@@ -1,0 +1,666 @@
+.IIROSE_MEDIA_CONTAINER {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 90000;
+  // display: none;
+  transition: transform 0.25s ease-in-out;
+  /* 只设置 transform 过渡 */
+  transform-origin: right;
+  transform: translateX(100%);
+
+  #IIROSE_MEDIA {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    // background-color: rgba(0, 0, 0, 0.786);
+
+    .NavBar {
+      display: flex;
+      height: 40px;
+      background-color: #3e3e3f00;
+      justify-content: space-between;
+
+      .LeftComponent {
+        display: flex;
+
+        #BackIcon {
+          font-size: 24px;
+          cursor: pointer;
+        }
+
+        #BackIcon::before {
+          content: "\F0141";
+          font-family: "md";
+        }
+
+        #TitleIcon {
+          font-size: 24px;
+          margin-right: 20px;
+        }
+
+        #TitleIcon::before {
+          content: "\F0025";
+          font-family: "md";
+        }
+      }
+
+      .RightComponent {
+        display: flex;
+
+        #SettingIcon::before {
+          content: "\F0493";
+          font-family: "md";
+        }
+
+        #MusicIcon::before {
+          content: "\F075A";
+          font-family: "md";
+        }
+
+        #VideoIcon::before {
+          content: "\F0381";
+          font-family: "md";
+        }
+      }
+
+      .NavBarButton,
+      .NavBarTitle {
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 24px;
+        background-color: rgba(0, 0, 0, .5);
+        color: #fff;
+        transition: opacity .3s ease-in-out;
+
+        .NavBarButtonText {
+          font-size: 14px;
+        }
+
+        .NavBarButtonIcon {
+          padding-left: 10px;
+          margin-right: 20px;
+        }
+      }
+
+      .NavBarButton {
+        background-color: rgba(255, 255, 255, .2);
+        transition: all .5s ease-in-out;
+      }
+
+      .NavBarButton:hover {
+        opacity: .7;
+      }
+
+      .NavBarButtonActive {
+        background-color: rgba(0, 0, 0, 0.5)
+      }
+
+      #NavBarTitle {
+        cursor: auto;
+        background-color: rgba(255, 255, 255, .2);
+        font-size: 16px;
+        color: #fff;
+      }
+
+    }
+
+    .MediaContainerWrapper {
+      overflow: hidden;
+      height: 100%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .MediaContainer {
+        background-color: rgba(224, 224, 224, 0.8);
+        height: 100%;
+        width: 100%;
+        transition: all .25s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+
+        .PlatformSelector {
+          display: flex;
+          padding: 0 10px;
+          background-color: rgb(221, 28, 4);
+
+          #NeteaseButton {
+            opacity: 1;
+          }
+
+          #NeteaseButton:hover {
+            opacity: .7;
+          }
+
+          .PlatformButton {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            height: 40px;
+            padding: 0 10px;
+            opacity: .4;
+            cursor: pointer;
+            transition: all .5s ease-in-out;
+
+            .PlatformIcon {
+              width: 32px;
+              height: 32px;
+            }
+
+            .PlatformTitle {
+              margin: 0 10px;
+            }
+          }
+
+          .PlatformButton:hover {
+            opacity: 1;
+          }
+        }
+
+        .MediaContainerSubNavBar {
+          display: flex;
+          color: #fff;
+
+          // padding: 5px;
+          .SubNavBarItem {
+            transition: all .5s ease-in-out;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            height: 30px;
+            padding: 0 20px;
+            // border-radius: 10px;
+            background-color: rgba(0, 0, 0, .3);
+            // margin-left: 10px;
+          }
+
+          .subNavBarItemActive {
+            background-color: rgba(0, 0, 0, .7);
+          }
+
+          .SubNavBarItem:hover {
+            opacity: .7;
+          }
+        }
+
+        .MediaSearchBar {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          // padding: 0 10px;
+
+          .inputWrapper {
+            cursor: pointer;
+            align-items: center;
+            display: flex;
+            color: #fff;
+            transition: all .5s ease-in-out;
+
+            .inputIcon {
+              font-size: 24px;
+              margin-right: 22px;
+            }
+
+            .inputIcon::before {
+              content: "\F0349";
+              font-family: 'md';
+            }
+
+            .input {
+              font-weight: bold;
+              min-width: 5px;
+              font-size: 14px;
+              height: 30px;
+              margin-left: 22px;
+            }
+          }
+
+          .inputWrapper:hover {
+            opacity: .7;
+          }
+
+          .paginationWrapper {
+            margin-left: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            transition: all .5s ease-in-out;
+
+            .paginationIcon {
+              font-size: 24px;
+            }
+
+            .paginationIcon::before {
+              content: "\F14F7";
+              font-family: 'md';
+            }
+
+            .pagination {
+              margin-left: 22px;
+              font-size: 14px;
+            }
+          }
+
+          .paginationWrapper:hover {
+            opacity: .7;
+          }
+
+          .controllerWrapper {
+            margin-left: 24px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            height: 100%;
+            .prevButtonWrapper {
+              background-color: rgba(255, 255, 255, .2);
+
+              .prevIcon{
+                font-size: 24px;
+              }
+              .prevIcon::before {
+                content: "\F0141";
+                font-family: 'md';
+              }
+            }
+
+            .nextButtonWrapper {
+              background-color: rgba(0, 0, 0, .5);
+
+              .nextIcon{
+                font-size: 24px;
+              }
+              .nextIcon::before {
+                content: "\F0142";
+                font-family: 'md';
+              }
+            }
+
+            .PaginationControllerButtonWrapper {
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              height: 100%;
+              padding: 0 20px;
+              transition: all .5s ease-in-out;
+              .PaginationControllerButton{
+                font-weight: bold;
+                margin-left: 22px;
+              }
+            }
+
+            .PaginationControllerButtonWrapper:hover {
+              opacity: .7;
+            }
+
+          }
+
+        }
+
+        .MediaContainerContent {
+          position: relative;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
+          grid-gap: 12px;
+          overflow-y: auto;
+          overflow-x: auto;
+          box-sizing: border-box;
+          padding: 12px;
+          height: 100%;
+          transition: all .25s ease-in-out;
+
+          .containerSpin {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            font-size: 100px;
+          }
+
+          .containerSpin::before {
+            content: "\F0772";
+            font: normal normal normal 24px / 1 "md";
+            font-size: inherit;
+            color: rgba(0, 0, 0, .5);
+            animation: spin 2s linear infinite;
+          }
+
+
+          // @keyframes spin {
+          //   from {
+          //       transform: translate(-50%, -50%) rotate(0deg); /* 从 0 度开始旋转 */
+          //   }
+          //   to {
+          //       transform: translate(-50%, -50%) rotate(360deg); /* 旋转一周，回到原点 */
+          //   }
+          // }
+
+          .ContentItem {
+            display: flex;
+            flex-grow: 1;
+            flex-shrink: 1;
+            flex-direction: column;
+            background-color: rgba(255, 255, 255, 0.5);
+            margin: 12px;
+            transition: all .5s ease-in-out;
+            position: relative;
+            max-height: 520px;
+            height: 100%;
+            /* 添加外边距，控制项目之间的间距 */
+
+            .contentImgCover {
+              display: flex;
+              position: relative;
+              height: 100%;
+              width: 100%;
+
+              .contentImg {
+                object-fit: cover;
+                object-position: center;
+                width: 100%;
+                overflow: hidden;
+              }
+
+              .contentDuration {
+                position: absolute;
+                color: #fff;
+                text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000;
+                bottom: 24px;
+                right: 24px;
+                left: 24px;
+                text-align: right;
+                font-weight: bold;
+
+              }
+            }
+
+
+            .infoArea {
+              padding: 24px;
+              color: rgba(0, 0, 0, 0.75);
+
+              .contentTitle {
+                overflow: hidden;
+                font-weight: bold;
+                text-overflow: ellipsis;
+                white-space: pre;
+                line-height: 25px;
+                font-size: 17px;
+                margin-bottom: 24px;
+              }
+
+              .contentAuthor {
+                overflow: hidden;
+                font-weight: bold;
+                text-overflow: ellipsis;
+                white-space: pre;
+              }
+            }
+
+            .contentPlayButton {
+              border-top: 1px solid rgba(0, 0, 0, 0.1);
+              color: black;
+              display: flex;
+              justify-content: center;
+              line-height: 88px;
+              font-size: 20px;
+              cursor: pointer;
+
+              .playButtonIcon {
+                font-size: 28px;
+              }
+
+              .playButtonTitle {
+                font-weight: bold;
+                margin-left: 22px;
+              }
+
+              .playButtonTitle,
+              .playButtonIcon {
+                transition: all .5s ease-in-out;
+              }
+
+              .playButtonIcon::before {
+                content: "\F02CB";
+                font-family: "md";
+              }
+            }
+
+            .contentPlayButton:hover {
+
+              .playButtonTitle,
+              .playButtonIcon {
+                opacity: .7;
+              }
+            }
+          }
+
+        }
+
+
+      }
+    }
+
+
+
+
+
+  }
+}
+
+.IIROSE_MEDIA_CONTAINER.ShowIIROSE_MEDIA_CONTAINER {
+  transform: translateX(0);
+  /* 显示时变为 1 */
+}
+
+.fullBoxFixed.hidemainHolder {
+  transform: translateX(-100%);
+  transform-origin: left;
+}
+
+.IIROSE_MEDIASelectHolder {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .25s ease-in-out;
+
+  .IIROSE_MEDIASelectHolderWrapper {
+    background-color: rgba(255, 255, 255, .8);
+    color: rgba(0, 0, 0, 0.75);
+    width: 100%;
+    max-width: 700px;
+
+    .IIROSE_MEDIASelectHolderItemWrapper {
+      display: flex;
+      cursor: pointer;
+      font-size: 24px;
+      padding-left: 100px;
+      padding: 32px 48px 32px 124px;
+      transition: all .5s ease-in-out;
+      text-align: center;
+      position: relative;
+
+      .IIROSE_MEDIASelectHolderItemLogo {
+        font-size: 28px;
+        top: 0;
+        left: 0;
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        text-align: center;
+        position: absolute;
+      }
+
+      #sequence::before {
+        content: "\F04BB";
+        font-family: 'md';
+      }
+
+      #random::before {
+        content: "\F04BA";
+        font-family: 'md';
+      }
+
+      .IIROSE_MEDIASelectHolderItem {}
+    }
+
+    .IIROSE_MEDIASelectHolderItemWrapper:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+
+
+
+}
+
+.IIROSE_MEDIAInput {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  padding: 20px;
+  opacity: 1;
+  transition: opacity .25s ease-in-out;
+
+  .inputBoxWrapper {
+    margin: 12px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
+    max-width: 568.0px;
+    width: 100%;
+
+    .inputBoxTitleWrapper {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      background-color: #707abf;
+      padding: 0 64px 0 24px;
+      color: #fff;
+      opacity: .7;
+
+      .inputBoxTitleLogo {
+        font-size: 26px;
+      }
+
+      .inputBoxTitleLogo::before {
+        content: "\F060E";
+        font-family: 'md';
+      }
+
+      .inputBoxTitle {
+        font-size: 16px;
+        margin-left: 24px;
+      }
+    }
+
+    .inputArea {
+      .inputPlace {
+        width: 100%;
+        height: 240px;
+        padding: 24px;
+        padding-bottom: 190px;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 26px;
+        color: rgba(0, 0, 0, 0.75);
+        background-color: rgba(240, 240, 240, 0.8);
+      }
+
+      /* 使用webkit内核的浏览器 */
+      ::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+      }
+
+
+    }
+
+    .IIROSE_MEDIA_ButtonWrapper {
+      display: flex;
+      align-items: center;
+      height: 40px;
+
+      .IIROSE_MEDIA_ButtonItemWrapper {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        width: 100%;
+        height: 100%;
+        transition: all .5s ease-in-out;
+        opacity: .8;
+        justify-content: center;
+
+        div {
+          transition: all .5s ease-in-out;
+        }
+
+        .IIROSE_MEDIA_cancelIcon {
+          font-size: 24px;
+        }
+
+        .IIROSE_MEDIA_cancelIcon::before {
+          content: "\F073A";
+          font-family: 'md';
+        }
+
+        .IIROSE_MEDIA_confirmIcon {
+          font-size: 24px;
+        }
+
+        .IIROSE_MEDIA_confirmIcon::before {
+          content: "\F012C";
+          font-family: 'md';
+        }
+
+        .IIROSE_MEDIA_Button {
+          margin-left: 22px;
+        }
+      }
+
+      .IIROSE_MEDIA_ButtonItemWrapper:hover {
+        opacity: .7;
+
+        div {
+          opacity: .7;
+        }
+      }
+
+      #IIROSE_MEDIA_cancelButtonWrapper {
+        background-color: #fff;
+        color: #707abf;
+      }
+
+      #IIROSE_MEDIA_confirmButtonWrapper {
+        background-color: #707abf;
+        color: #fff;
+      }
+    }
+  }
+}

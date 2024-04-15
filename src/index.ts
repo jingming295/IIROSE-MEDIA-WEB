@@ -14,6 +14,7 @@ class init{
     }
     async init(){
         
+        
         // const bs = new BiliBiliSearchApi();
         // const searchResult = await bs.getSearchRequestByTypeVideo('a', 1, 10);
         // console.log(searchResult)

@@ -1,4 +1,5 @@
 import { MusicMediaContainer } from "../UpdateDOM/MusicMediaContainer";
+import { SettingContainer } from "../UpdateDOM/SettingContainer";
 import { VideoMediaContainer } from "../UpdateDOM/VideoMediaContainer";
 import { UpdateDom } from "../UpdateDOM/index";
 
@@ -153,7 +154,13 @@ export class CreateNavBar
         {
             ButtonID: 'SettingButton',
             IconID: 'SettingIcon',
-            Text: '设置'
+            Text: '设置',
+            onClick: () =>
+            {
+                console.log('设置')
+                const settingContainer = new SettingContainer()
+                settingContainer.showSettingContainer()
+            }
         }];
 
         RightComponentButton.forEach((Button) =>

@@ -154,15 +154,26 @@ export class Media
         {
             t = media.type;
         }
-        media.name = encode(media.name);
-        media.singer = encode(media.singer);
-        media.color = encode(media.color);
-        const data = {
-            m: `m__4${typeMap[t]}>${media.name}>${media.singer}>${media.cover}>${media.color}>>${parseBitrate(media.bitRate)}>>${durationToText(media.duration)}`,
-            mc: media.color,
-            i: timestamp
+        const medianame = encode(media.name);
+        const mediasinger = encode(media.singer);
+        const mediacolor = encode(media.color);
+        if(media.type === 'video'){
+            const data = {
+                m: `m__4${typeMap[t]}>${medianame}>${mediasinger}>${media.cover}>${mediacolor}>>${parseBitrate(media.bitRate)}>>${durationToText(media.duration)}`,
+                mc: media.color,
+                i: timestamp
+            }
+            return JSON.stringify(data);
+        } else {
+            const data = {
+                m: `m__4${typeMap[t]}>${medianame}>${mediasinger}>${media.cover}>${mediacolor}>${parseBitrate(media.bitRate)}`,
+                mc: media.color,
+                i: timestamp
+            }
+            return JSON.stringify(data);
         }
-        return JSON.stringify(data);
+
+        
 
     }
 
@@ -213,6 +224,11 @@ export class Media
             l: media.lyrics
         });
 
-        return `&1${data}`;
+        if(media.type === 'video'){
+            return `&1${data}`;
+        } else {
+            return `&0${data}`;
+        }
+        
     }
 }

@@ -1,20 +1,51 @@
 import { UpdateDom } from "../UpdateDOM/index";
+import { showMessage } from "../UpdateDOM/ShowMessage";
 
 export class HotKey
 {
+    startY: number = 0;
     constructor()
     {
         this.KeyBoardCallApp = this.KeyBoardCallApp.bind(this);
         window.addEventListener("keydown", this.KeyBoardCallApp);
-        window.addEventListener("touchstart", this.touchScreen);
+        window.addEventListener("touchstart", this.handleTouchStart);
+        window.addEventListener("touchmove", this.handleTouchMove);
     }
+
+    handleTouchStart(event: TouchEvent)
+    {
+        if (event.touches.length === 2)
+        {
+            this.startY = event.touches[0].clientY;
+        }
+    }
+
+    handleTouchMove(event: TouchEvent)
+    {
+        if (event.touches.length === 2)
+        {
+            if(this.startY === 0) return;
+            const deltaY = event.touches[0].clientY - this.startY;
+            const screenHeight = window.innerHeight;
+            const threshold = screenHeight / 3;
+            if (deltaY > threshold)
+            {
+                this.startY = 0
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                const UpdateDOM = new UpdateDom();
+                UpdateDOM.changeStatusIIROSE_MEDIA();
+            }
+        }
+    }
+
 
     KeyBoardCallApp(event: KeyboardEvent)
     {
-        // 检查是否按下 Alt 键同时按下了 S 键
-        if (event.altKey && event.key === 's')
+        // 检查是否按下 Alt 键同时按下了 S 键，macos 下的 S 键是 ß 键
+        if ((event.altKey && event.key === 's') || (event.altKey && event.key === 'ß'))
         {
-            console.log('Alt + S 被按下');
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
@@ -22,37 +53,9 @@ export class HotKey
             if (focusedElement && focusedElement.tagName === 'TEXTAREA')
             {
                 focusedElement.blur();
-                const UpdateDOM = new UpdateDom();
-                UpdateDOM.changeStatusIIROSE_MEDIA();
             }
-        }
-    }
-
-    touchScreen(event:TouchEvent){
-        if (event.touches && event.touches.length === 2) {
-            const screenHeight = window.innerHeight;
-            const touch1 = event.touches[0];
-            const touch2 = event.touches[1];
-            const minY = Math.min(touch1.clientY, touch2.clientY);
-            const maxY = Math.max(touch1.clientY, touch2.clientY);
-    
-            // 计算触摸点之间的垂直距离
-            const verticalDistance = maxY - minY;
-    
-            // 判断是否向下滑动了 1/3 屏幕
-            if (verticalDistance > screenHeight / 3) {
-                console.log('双指向下滑超过 1/3 屏幕');
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                const focusedElement = document.activeElement as HTMLElement;
-                if (focusedElement && focusedElement.tagName === 'TEXTAREA')
-                {
-                    focusedElement.blur();
-                    const UpdateDOM = new UpdateDom();
-                    UpdateDOM.changeStatusIIROSE_MEDIA();
-                }
-            }
+            const UpdateDOM = new UpdateDom();
+            UpdateDOM.changeStatusIIROSE_MEDIA();
         }
     }
 
@@ -60,6 +63,7 @@ export class HotKey
     destroy()
     {
         window.removeEventListener("keydown", this.KeyBoardCallApp);
-        window.removeEventListener("touchstart", this.touchScreen);
+        // window.removeEventListener("touchstart", this.touchScreen);
     }
 }
+

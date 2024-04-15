@@ -36,6 +36,16 @@ export class IIROSE_MEDIAInput {
             return inputArea;
         }
 
+        function setMetaHeight(height:number){
+            const meta = document.head.querySelector('meta[name="viewport"]')
+            if(meta){
+                meta.setAttribute('id', 'viewportMeta')
+                let metaEl = document.getElementById('#viewportMeta')
+                console.log(meta)
+                console.log(metaEl)
+            }
+        }
+
         const createButton = () =>{
             const buttonWrapper = document.createElement('div');
             buttonWrapper.classList.add('IIROSE_MEDIA_ButtonWrapper');
@@ -108,7 +118,7 @@ export class IIROSE_MEDIAInput {
             }, { once: true });
 
             // 清除 inputEvent
-            this.cleanupInputEvent();
+            // this.cleanupInputEvent();
         }
     }
 
@@ -151,7 +161,7 @@ export class IIROSE_MEDIAInput {
         }
     }
 
-    private cleanupInputEvent() {
+    public cleanupInputEvent() {
         // 清除 inputEvent
         this.inputEvent = null;
 

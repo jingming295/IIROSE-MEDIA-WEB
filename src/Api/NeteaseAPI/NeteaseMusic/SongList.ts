@@ -17,6 +17,7 @@ export interface xcSongResource
     pic: string;
     time: number;
     url: string;
+    vip_level?:number;
 }
 
 /**

@@ -3,6 +3,7 @@ import { SendFetch } from "../../index";
 import { NeteaseMusicAPI } from "../NeteaseMusic/index";
 import { d } from "../Crypto";
 import { SearchData } from "./SearchInterface";
+import { RecommendSongList } from "./RecommendInterface";
 
 export class NeteaseSearchAPI extends SendFetch
 {
@@ -14,8 +15,7 @@ export class NeteaseSearchAPI extends SendFetch
     public async NeteaseRecommandPlayList(): Promise<MediaContainerItem[] | null>
     {
         const url = `${this.cors}https://music.163.com/discover`;
-        const headers = new Headers();
-        headers.append('Referer', 'https://music.163.com/');
+        const headers = this.returnNeteaseHeaders()
         const response = await this.sendGet(url, new URLSearchParams(), headers);
         if (response && response.ok)
         {
@@ -73,7 +73,7 @@ export class NeteaseSearchAPI extends SendFetch
 
                 }
             }
-
+            // console.log(data)
 
             return extractedData;
         } else
@@ -82,6 +82,12 @@ export class NeteaseSearchAPI extends SendFetch
         }
     }
 
+    /**
+     * 获取网易云搜索数据
+     * @param keyWord 
+     * @param limit 
+     * @returns 
+     */
     public async getNeteaseMusicSearchData(keyWord: string, limit:number = 100)
     {
         const url = `${this.cors}https://music.163.com/weapi/search/get`;
@@ -112,6 +118,23 @@ export class NeteaseSearchAPI extends SendFetch
         }
 
     }
-    
 
+    public async getNeteaseRecommandPlayListXC(limit:number = 30){
+        const url = `https://xc.null.red:8043/api/netease/personalized`
+        const params = new URLSearchParams();
+        params.append('limit', limit.toString());
+
+        const headers = new Headers();
+
+        const response = await this.sendGet(url, params, headers);
+
+        if (response && response.ok)
+        {
+            const data:RecommendSongList = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+    }
 }

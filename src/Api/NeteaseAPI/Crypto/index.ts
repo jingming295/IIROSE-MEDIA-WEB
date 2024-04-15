@@ -29,7 +29,7 @@ const eapiKey = 'e82ckenh8dichen8';
 
 function a(a: number)
 {
-    var d, e, b = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", c = "";
+    let d, e, b = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", c = "";
     for (d = 0; a > d; d += 1)
         e = Math.random() * b.length,
             e = Math.floor(e),
@@ -39,7 +39,7 @@ function a(a: number)
 
 function b(a: string, b: string)
 {
-    var c = CryptoJS.enc.Utf8.parse(b)
+    let c = CryptoJS.enc.Utf8.parse(b)
         , d = CryptoJS.enc.Utf8.parse("0102030405060708")
         , e = CryptoJS.enc.Utf8.parse(a)
         , f = CryptoJS.AES.encrypt(e, c, {
@@ -51,7 +51,7 @@ function b(a: string, b: string)
 
 function c(a: string, b: string, c: string)
 {
-    var d, e;
+    let d, e;
     return setMaxDigits(131),
         d = new RSAKeyPair(b, "", c),
         e = encryptedString(d, a);
@@ -99,7 +99,7 @@ class RSAKeyPair
 
     biFromHex(a: string)
     {
-        var d, e, b = new BigInt(), c = a.length;
+        let d, e, b = new BigInt(), c = a.length;
         for (d = c, e = 0; d > 0; d -= 4, ++e)
             if (b.digits)
                 b.digits[e] = this.hexToDigit(a.substr(Math.max(d - 4, 0), Math.min(d, 4)));
@@ -109,7 +109,7 @@ class RSAKeyPair
 
     hexToDigit(a: string)
     {
-        var d, b = 0, c = Math.min(a.length, 4);
+        let d, b = 0, c = Math.min(a.length, 4);
         for (d = 0; c > d; ++d)
             b <<= 4,
                 b |= this.charToHex(a.charCodeAt(d));
@@ -118,7 +118,7 @@ class RSAKeyPair
 
     charToHex(a: number)
     {
-        var h, b = 48, c = b + 9, d = 97, e = d + 25, f = 65, g = 90;
+        let h, b = 48, c = b + 9, d = 97, e = d + 25, f = 65, g = 90;
         return h = a >= b && c >= a ? a - b : a >= f && g >= a ? 10 + a - f : a >= d && e >= a ? 10 + a - d : 0;
     }
 
@@ -150,7 +150,7 @@ class BarrettMu
     {
         this.modulus = biCopy(a),
             this.k = biHighIndex(this.modulus) + 1;
-        var b = new BigInt;
+            let b = new BigInt;
         b.digits[2 * this.k] = 1,
             this.mu = this.biDivide(b, this.modulus),
             this.bkplus1 = new BigInt,
@@ -162,7 +162,7 @@ class BarrettMu
 
     BarrettMu_modulo(a: BigInt)
     {
-        var i, b = this.biDivideByRadixPower(a, this.k - 1), c = this.biMultiply(b, this.mu), d = this.biDivideByRadixPower(c, this.k + 1), e = this.biModuloByRadixPower(a, this.k + 1), f = this.biMultiply(d, this.modulus), g = this.biModuloByRadixPower(f, this.k + 1), h = biSubtract(e, g);
+        let i, b = this.biDivideByRadixPower(a, this.k - 1), c = this.biMultiply(b, this.mu), d = this.biDivideByRadixPower(c, this.k + 1), e = this.biModuloByRadixPower(a, this.k + 1), f = this.biMultiply(d, this.modulus), g = this.biModuloByRadixPower(f, this.k + 1), h = biSubtract(e, g);
         for (h.isNeg && (h = biAdd(h, this.bkplus1)),
             i = biCompare(h, this.modulus) >= 0; i;)
             h = biSubtract(h, this.modulus),
@@ -172,13 +172,13 @@ class BarrettMu
 
     BarrettMu_multiplyMod(a: BigInt, b: BigInt)
     {
-        var c = this.biMultiply(a, b);
+        let c = this.biMultiply(a, b);
         return this.modulo(c);
     }
 
     BarrettMu_powMod(a: BigInt, b: BigInt)
     {
-        var d, e, c = new BigInt;
+        let d, e, c = new BigInt;
         for (c.digits[0] = 1,
             d = a,
             e = b; ;)
@@ -194,14 +194,14 @@ class BarrettMu
 
     biModuloByRadixPower(a: BigInt, b: number)
     {
-        var c = new BigInt;
+        let c = new BigInt;
         return arrayCopy(a.digits, 0, c.digits, 0, b),
             c;
     }
 
     biMultiply(a: BigInt, b: BigInt)
     {
-        var d, h, i, k, c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
+        let d, h, i, k, c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
         let j: number;
         for (k = 0; f >= k; ++k)
         {
@@ -220,7 +220,7 @@ class BarrettMu
 
     biDivideByRadixPower(a: BigInt, b: number)
     {
-        var c = new BigInt;
+        let c = new BigInt;
         return arrayCopy(a.digits, b, c.digits, 0, c.digits.length - b),
             c;
     }
@@ -237,7 +237,7 @@ function setMaxDigits(a: number)
 {
     maxDigits = a,
         ZERO_ARRAY = new Array(maxDigits);
-    for (var b = 0; b < ZERO_ARRAY.length; b++)
+    for (let b = 0; b < ZERO_ARRAY.length; b++)
         ZERO_ARRAY[b] = 0;
     bigZero = new BigInt,
         bigOne = new BigInt,
@@ -261,7 +261,7 @@ function biHighIndex(a: BigInt)
 
 function biDivideModulo(a: BigInt, b: BigInt)
 {
-    var f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b), e = b.isNeg;
+    let f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b), e = b.isNeg;
     if (d > c)
         return a.isNeg ? (f = biCopy(bigOne),
             f.isNeg = !b.isNeg,
@@ -315,7 +315,7 @@ function biDivideModulo(a: BigInt, b: BigInt)
 
 function biNumBits(a: BigInt)
 {
-    var e, b = biHighIndex(a), c = a.digits[b], d = (b + 1) * bitsPerDigit;
+    let e, b = biHighIndex(a), c = a.digits[b], d = (b + 1) * bitsPerDigit;
     for (e = d; e > d - bitsPerDigit && 0 == (32768 & c); --e)
         c <<= 1;
     return e;
@@ -323,7 +323,7 @@ function biNumBits(a: BigInt)
 
 function biCopy(a: BigInt)
 {
-    var b = new BigInt(!0);
+    let b = new BigInt(!0);
     return b.digits = a.digits.slice(0),
         b.isNeg = a.isNeg,
         b;
@@ -331,7 +331,7 @@ function biCopy(a: BigInt)
 
 function biSubtract(a: BigInt, b: BigInt): BigInt
 {
-    var c, d, e, f;
+    let c, d, e, f;
     if (a.isNeg != b.isNeg)
         b.isNeg = !b.isNeg,
             c = biAdd(a, b),
@@ -362,7 +362,7 @@ function biSubtract(a: BigInt, b: BigInt): BigInt
 
 function biAdd(a: BigInt, b: BigInt): BigInt
 {
-    var c, d, e, f;
+    let c, d, e, f;
     if (a.isNeg != b.isNeg)
         b.isNeg = !b.isNeg,
             c = biSubtract(a, b),
@@ -382,7 +382,7 @@ function biAdd(a: BigInt, b: BigInt): BigInt
 
 function biShiftRight(a: BigInt, b: number)
 {
-    var e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
+    let e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, c, d.digits, 0, a.digits.length - c),
         e = b % bitsPerDigit,
         f = bitsPerDigit - e,
@@ -397,14 +397,14 @@ function biShiftRight(a: BigInt, b: number)
 
 function biMultiplyByRadixPower(a: BigInt, b: number)
 {
-    var c = new BigInt;
+    let c = new BigInt;
     return arrayCopy(a.digits, 0, c.digits, b, c.digits.length - b),
         c;
 }
 
 function arrayCopy(a: number[], b: number, c: number[], d: number, e: number)
 {
-    var g, h, f = Math.min(b + e, a.length);
+    let g, h, f = Math.min(b + e, a.length);
     for (g = b,
         h = d; f > g; ++g,
         ++h)
@@ -413,7 +413,7 @@ function arrayCopy(a: number[], b: number, c: number[], d: number, e: number)
 
 function biMultiplyDigit(a: BigInt, b: number)
 {
-    var c, d, e, f;
+    let c, d, e, f;
     let result: BigInt;
     for (result = new BigInt,
         c = biHighIndex(a),
@@ -428,7 +428,7 @@ function biMultiplyDigit(a: BigInt, b: number)
 
 function biShiftLeft(a: BigInt, b: number)
 {
-    var e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
+    let e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, 0, d.digits, c, d.digits.length - c),
         e = b % bitsPerDigit,
         f = bitsPerDigit - e,
@@ -453,7 +453,7 @@ function biCompare(a: BigInt, b: BigInt)
 
 function reverseStr(a: string)
 {
-    var c, b = "";
+    let c, b = "";
     for (c = a.length - 1; c > -1; --c)
         b += a.charAt(c);
     return b;
@@ -463,7 +463,7 @@ function encryptedString(a: RSAKeyPair, b: string)
 {
     function digitToHex(a: number)
     {
-        var b = 15
+        let b = 15
             , c = "";
         let i: number;
         for (i = 0; 4 > i; ++i)
@@ -473,7 +473,7 @@ function encryptedString(a: RSAKeyPair, b: string)
     }
     function biToHex(a: BigInt)
     {
-        var d, b = "";
+        let d, b = "";
         for (biHighIndex(a),
             d = biHighIndex(a); d > -1; --d)
             b += digitToHex(a.digits[d]);
@@ -482,7 +482,7 @@ function encryptedString(a: RSAKeyPair, b: string)
 
     function biToString(a: BigInt, b: number)
     {
-        var d, e, c = new BigInt;
+        let d, e, c = new BigInt;
         let digit: number;
         for (c.digits[0] = b,
             d = biDivideModulo(a, c),

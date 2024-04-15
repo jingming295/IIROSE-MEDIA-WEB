@@ -103,7 +103,7 @@ export class Music
                                 return
                             }, {once:true});
 
-                        };
+                        }
                         mediaContainer.updatePaginationNotings()
                         const keyword = mediaSearchBarInput.innerHTML;
                         const NeteaseSearchMediaContainerItem = this.NeteaseSearchMediaContainerItem(keyword);
@@ -131,7 +131,7 @@ export class Music
 
                 }
             ]
-        };
+        }
     }
 
     private formatMillisecondsToMinutes(milliseconds: number): string
@@ -154,7 +154,7 @@ export class Music
         const neteaseSearchAPI = new NeteaseSearchAPI();
         const limit = 100;
         const RecommandPlayList = await neteaseSearchAPI.getNeteaseRecommandPlayListXC(limit);
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
 
         let index = 0;
 
@@ -162,7 +162,7 @@ export class Music
         if (!RecommandPlayList || !RecommandPlayList.result) return null;
         for (const resultElement of RecommandPlayList.result)
         {
-            let mediaContainerItem: MediaContainerItem[] = [];
+            const mediaContainerItem: MediaContainerItem[] = [];
             const neteaseMusicApi = new NeteaseMusicAPI();
             const songListDetail = neteaseMusicApi.getSongListDetail(resultElement.id);
             const PromiseMediaContainerItem = songListDetail.then(songListDetailElement =>
@@ -212,7 +212,7 @@ export class Music
                                                 color: 'FFFFFF',
                                                 lyrics: songResource.lrc_control,
                                                 origin: 'netease'
-                                            };
+                                            }
                                             // 开了这个，速度大打折扣
                                             // const iImageTools = new ImageTools()
                                             // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
@@ -241,16 +241,16 @@ export class Music
                         }];
                         iiROSE_MEDIASelectHolder.showIIROSE_MEDIASelectHolder(item);
                     }
-                };
+                }
                 mediaContainerItem.push(item);
                 return mediaContainerItem;
             });
             x.push(PromiseMediaContainerItem);
             index += 1;
             if (index >= 10) break;
-        };
+        }
 
-        let mediaItem: MediaItem[] = [];
+        const mediaItem: MediaItem[] = [];
         const mediaContainer = new MediaContainer();
         RecommandPlayList.result.forEach((element, index) =>
         {
@@ -276,11 +276,11 @@ export class Music
         const limit = 100;
         const searchData = await neteaseSearchAPI.getNeteaseMusicSearchData(keyword, limit);
         if (!searchData || !searchData.result || !searchData.result.songs) return null;
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         let index = 0;
         for (const searchDataElement of searchData.result.songs)
         {
-            let mediaContainerItem: MediaContainerItem[] = [];
+            const mediaContainerItem: MediaContainerItem[] = [];
             const neteaseMusicApi = new NeteaseMusicAPI();
             const songDetail = neteaseMusicApi.getNeteaseSongDetailFromXC(searchDataElement.id);
             const PromiseMediaContainerItem = songDetail.then(songDetailElement =>
@@ -317,19 +317,19 @@ export class Music
                                 color: 'FFFFFF',
                                 lyrics: songResource.lrc_control,
                                 origin: 'netease'
-                            };
+                            }
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                         });
                     }
-                };
+                }
                 return mediaContainerItem;
             });
             x.push(PromiseMediaContainerItem);
             index += 1;
             if (index >= 10) break;
-        };
+        }
         const mediaContainer = new MediaContainer();
         let songCount: number;
         if (searchData.result.songCount < limit && searchData.result.songCount <= 100)
@@ -339,7 +339,7 @@ export class Music
         {
             songCount = limit;
         }
-        let MediaItem: MediaItem[] = [];
+        const MediaItem: MediaItem[] = [];
         searchData.result.songs.forEach((element, index) =>
         {
             MediaItem[index] = {
@@ -365,9 +365,9 @@ export class Music
         const neteaseMusicAPI = new NeteaseMusicAPI();
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
-        let mediaContainerItem: MediaContainerItem[] = [];
+        const mediaContainerItem: MediaContainerItem[] = [];
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         mediaItems.forEach((mediaItem, index) =>
         {
             if (index === itemPerPage) return;
@@ -406,13 +406,13 @@ export class Music
                                 color: 'FFFFFF',
                                 lyrics: songResource.lrc_control,
                                 origin: 'netease'
-                            };
+                            }
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                         });
                     }
-                };
+                }
                 console.log(mediaContainerItem[0].title);
                 return mediaContainerItem;
             });
@@ -432,10 +432,10 @@ export class Music
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         for (const mediaItem of mediaItems)
         {
-            let mediaContainerItem: MediaContainerItem[] = [];
+            const mediaContainerItem: MediaContainerItem[] = [];
             const neteaseMusicApi = new NeteaseMusicAPI();
             const songListDetail = neteaseMusicApi.getSongListDetail(mediaItem.id);
             const PromiseMediaContainerItem = songListDetail.then(songListDetailElement =>
@@ -485,7 +485,7 @@ export class Music
                                                 color: 'FFFFFF',
                                                 lyrics: songResource.lrc_control,
                                                 origin: 'netease'
-                                            };
+                                            }
                                             // 开了这个，速度大打折扣
                                             // const iImageTools = new ImageTools()
                                             // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
@@ -514,12 +514,12 @@ export class Music
                         }];
                         iiROSE_MEDIASelectHolder.showIIROSE_MEDIASelectHolder(item);
                     }
-                };
+                }
                 mediaContainerItem.push(item);
                 return mediaContainerItem;
             });
             x.push(PromiseMediaContainerItem);
-        };
+        }
         return x;
     }
 }

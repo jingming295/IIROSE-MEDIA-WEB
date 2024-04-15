@@ -379,7 +379,7 @@ export class Video
 
         if (!searchResult || !searchResult.data || !searchResult.data.result) return x;
 
-        searchResult.data.result.forEach((result, index) =>
+        searchResult.data.result.forEach((result) =>
         {
             const bv = new BiliBiliVideoApi();
             const bvDetail = bv.getBilibiliVideoData(result.aid, result.bvid);

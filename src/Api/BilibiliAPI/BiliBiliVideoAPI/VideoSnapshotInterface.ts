@@ -12,6 +12,6 @@ interface SnapshotData{
     img_y_size: number; //每张图片宽
     image:string[]; //图片拼版
     index: number[]; //json数组截取时间表
-    video_shots: {} // 未知
-    indexs: {} // 未知
+    video_shots: null // 未知
+    indexs: null // 未知
 }

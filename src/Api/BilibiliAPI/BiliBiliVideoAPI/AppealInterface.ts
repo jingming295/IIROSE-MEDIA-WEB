@@ -32,5 +32,5 @@ export interface MakeAppealResult{
 	code: number;
     message: string;
     ttl: number;
-    data?:{}
+    data?:null; // 需要完善
 }

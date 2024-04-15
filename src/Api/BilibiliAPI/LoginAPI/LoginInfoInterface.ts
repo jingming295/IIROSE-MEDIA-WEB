@@ -96,7 +96,7 @@ export interface NavUserInfo
             tv_due_date: number;
             avatar_icon: {
                 icon_type: number;
-                icon_resource: {};
+                icon_resource: null;
             };
 
         };
@@ -108,10 +108,10 @@ export interface NavUserInfo
         };
         has_shop?: boolean; // 是否拥有推广商品
         shop_url?: string; // 推广商品页面url
-        allowance_count?: number // 不清楚这是什么
-        answer_status?: number // 不清楚这是什么
-        is_senior_member?: number // 是否硬核会员 0: 不是 1: 是
-        is_jury?: boolean // 是否风纪委员
-        }
+        allowance_count?: number; // 不清楚这是什么
+        answer_status?: number; // 不清楚这是什么
+        is_senior_member?: number; // 是否硬核会员 0: 不是 1: 是
+        is_jury?: boolean; // 是否风纪委员
     };
+}
 

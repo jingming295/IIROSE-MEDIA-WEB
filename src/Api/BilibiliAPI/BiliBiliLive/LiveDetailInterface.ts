@@ -37,7 +37,7 @@ export interface LiveRoomInitDetail
         room_shield: number; // 未知
         is_sp: number; // 是否为特殊直播间 0：普通直播间 1：付费直播间
         special_type: number; // 0：普通直播间 1：付费直播间 2：拜年祭直播间
-    };
+    }
 }
 
 export interface LiveUserDetail
@@ -53,16 +53,16 @@ export interface LiveUserDetail
             official_verify: {
                 type: number; // 主播认证类型 -1: 无 0: 个人认证 1: 机构认证
                 desc: string; // 主播认证信息
-            }; // 认证信息
+            } // 认证信息
             gender: number; // 性别 -1: 保密 1: 女 2: 男
-        };
+        }
         exp:{
             master_level: {
                 level: number; // 主播等级
                 color: number; // 等级框颜色
                 current: number[]; // 当前等级信息
                 next: number[]; // 下一等级信息
-            }; // 主播等级
+            } // 主播等级
         }
         follower_num: number; // 粉丝数
         room_id: number; // 直播间id（短号）
@@ -75,8 +75,8 @@ export interface LiveUserDetail
             ctime:string // 公告时间
             ctime_text: string; // 公告日期
         } // 主播公告
-    };
-};
+    }
+}
 
 export interface LiveRoomPlayInfoDetail{
     code: number;
@@ -127,13 +127,13 @@ interface LiveRoomDetailData
             bg_color: string; // 背景颜色
             bg_pic: string; // 背景图片
             use_old_area: boolean; // 是否旧分区号
-        }; // 头像框
+        } // 头像框
         badge: {
             name: string; // 类型 v_person: 个人认证(黄) v_company: 企业认证(蓝)
             position: number; // 位置
             value: string; // 值
             desc: string; // 描述
-        }; // 大v
+        } // 大v
         mobile_frame: {
             name: string; // 名称
             value: string; // 值
@@ -151,7 +151,7 @@ interface LiveRoomDetailData
             value: string; // 值
             desc: string; // 描述
         } | null; // 同上
-    }; // 头像框\大v
+    } // 头像框\大v
     up_session: string; // 未知
     pk_status: number; // pk状态
     pk_id: number; // pk id
@@ -161,7 +161,7 @@ interface LiveRoomDetailData
     studio_info: {
         status: number; // 未知
         master_list: string[]; // 未知
-    };
+    }
 }
 
 interface LiveRoomStatusData

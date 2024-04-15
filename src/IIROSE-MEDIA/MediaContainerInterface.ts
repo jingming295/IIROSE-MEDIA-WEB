@@ -24,7 +24,7 @@ export interface MediaContainerItem{
     url?: string;
     author: Promise<string> | string;
     duration: string;
-    multipage?:Promise<Boolean>;
+    multipage?:Promise<boolean>;
     MediaRequest?: () => void;
 }
 

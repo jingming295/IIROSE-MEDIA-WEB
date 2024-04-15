@@ -199,7 +199,7 @@ export interface RecommentShortVideo
             home_transfer_test: number;
             auto_refresh_time: number;
             show_inline_danmaku: number;
-            toast: {};
+            toast: null;
             is_back_to_homepage: boolean;
             enable_rcmd_guide: boolean;
             inline_sound: number;

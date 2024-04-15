@@ -76,35 +76,35 @@ interface dash
     duration: number;
     minBufferTime: number;
     min_buffer_time: number;
-    video: {}[];
+    video: [];
     audio: {
-        start_with_sap: number
-        bandwidth: number
-        sar: string
+        start_with_sap: number;
+        bandwidth: number;
+        sar: string;
         backupUrl: [],
-        codecs: string
-        base_url: string
+        codecs: string;
+        base_url: string;
         backup_url: [],
-        segment_base: { 
-            initialization: string
-            index_range: string
+        segment_base: {
+            initialization: string;
+            index_range: string;
         },
-        mimeType: string
-        frame_rate: string
-        SegmentBase: { 
-            Initialization: string
-            indexRange: string
+        mimeType: string;
+        frame_rate: string;
+        SegmentBase: {
+            Initialization: string;
+            indexRange: string;
         },
-        frameRate: string
-        codecid: number
-        baseUrl: string
-        size: number
-        mime_type: string
-        width: number
-        startWithSAP: number
-        id: number
-        height: number
-        md5: string
+        frameRate: string;
+        codecid: number;
+        baseUrl: string;
+        size: number;
+        mime_type: string;
+        width: number;
+        startWithSAP: number;
+        id: number;
+        height: number;
+        md5: string;
     }[];
     dolby: {
         audio: [];

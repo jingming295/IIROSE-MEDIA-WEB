@@ -40,7 +40,7 @@ function a(a: number)
 
 function b(a: string, b: string)
 {
-    let c = CryptoJS.enc.Utf8.parse(b)
+    const c = CryptoJS.enc.Utf8.parse(b)
         , d = CryptoJS.enc.Utf8.parse("0102030405060708")
         , e = CryptoJS.enc.Utf8.parse(a)
         , f = CryptoJS.AES.encrypt(e, c, {
@@ -131,7 +131,7 @@ class BigInt
     isNeg: boolean;
     constructor(a: boolean | undefined = undefined)
     {
-        let ZERO_ARRAY = new Array(131).fill(0);
+        const ZERO_ARRAY = new Array(131).fill(0);
         this.digits = typeof a === 'boolean' && a === true ? [1] : ZERO_ARRAY.slice(0); // [1] original null
         this.isNeg = false;
     }

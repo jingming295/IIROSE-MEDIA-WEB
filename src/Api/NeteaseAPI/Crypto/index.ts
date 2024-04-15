@@ -150,7 +150,7 @@ class BarrettMu
     {
         this.modulus = biCopy(a),
             this.k = biHighIndex(this.modulus) + 1;
-            let b = new BigInt;
+            const b = new BigInt;
         b.digits[2 * this.k] = 1,
             this.mu = this.biDivide(b, this.modulus),
             this.bkplus1 = new BigInt,
@@ -194,14 +194,15 @@ class BarrettMu
 
     biModuloByRadixPower(a: BigInt, b: number)
     {
-        let c = new BigInt;
+        const c = new BigInt;
         return arrayCopy(a.digits, 0, c.digits, 0, b),
             c;
     }
 
     biMultiply(a: BigInt, b: BigInt)
     {
-        let d, h, i, k, c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
+        let d, h, i, k
+        const c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
         let j: number;
         for (k = 0; f >= k; ++k)
         {
@@ -220,7 +221,7 @@ class BarrettMu
 
     biDivideByRadixPower(a: BigInt, b: number)
     {
-        let c = new BigInt;
+        const c = new BigInt;
         return arrayCopy(a.digits, b, c.digits, 0, c.digits.length - b),
             c;
     }
@@ -261,7 +262,8 @@ function biHighIndex(a: BigInt)
 
 function biDivideModulo(a: BigInt, b: BigInt)
 {
-    let f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b), e = b.isNeg;
+    let f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b)
+    const  e = b.isNeg;
     if (d > c)
         return a.isNeg ? (f = biCopy(bigOne),
             f.isNeg = !b.isNeg,
@@ -315,7 +317,8 @@ function biDivideModulo(a: BigInt, b: BigInt)
 
 function biNumBits(a: BigInt)
 {
-    let e, b = biHighIndex(a), c = a.digits[b], d = (b + 1) * bitsPerDigit;
+    const b = biHighIndex(a), d = (b + 1) * bitsPerDigit;
+    let e, c = a.digits[b]
     for (e = d; e > d - bitsPerDigit && 0 == (32768 & c); --e)
         c <<= 1;
     return e;
@@ -382,7 +385,8 @@ function biAdd(a: BigInt, b: BigInt): BigInt
 
 function biShiftRight(a: BigInt, b: number)
 {
-    let e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
+    let e, f, g, h
+    const c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, c, d.digits, 0, a.digits.length - c),
         e = b % bitsPerDigit,
         f = bitsPerDigit - e,
@@ -397,14 +401,15 @@ function biShiftRight(a: BigInt, b: number)
 
 function biMultiplyByRadixPower(a: BigInt, b: number)
 {
-    let c = new BigInt;
+    const c = new BigInt;
     return arrayCopy(a.digits, 0, c.digits, b, c.digits.length - b),
         c;
 }
 
 function arrayCopy(a: number[], b: number, c: number[], d: number, e: number)
 {
-    let g, h, f = Math.min(b + e, a.length);
+    let g, h
+    const f = Math.min(b + e, a.length);
     for (g = b,
         h = d; f > g; ++g,
         ++h)
@@ -428,7 +433,8 @@ function biMultiplyDigit(a: BigInt, b: number)
 
 function biShiftLeft(a: BigInt, b: number)
 {
-    let e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
+    let e, f, g, h
+    const c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, 0, d.digits, c, d.digits.length - c),
         e = b % bitsPerDigit,
         f = bitsPerDigit - e,
@@ -482,7 +488,8 @@ function encryptedString(a: RSAKeyPair, b: string)
 
     function biToString(a: BigInt, b: number)
     {
-        let d, e, c = new BigInt;
+        let d, e
+        const c = new BigInt;
         let digit: number;
         for (c.digits[0] = b,
             d = biDivideModulo(a, c),

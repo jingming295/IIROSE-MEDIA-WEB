@@ -20,7 +20,8 @@
 
     .NavBar {
       display: flex;
-      height: 40px;
+      flex-wrap: wrap;
+      min-height: 40px;
       background-color: #3e3e3f00;
       justify-content: space-between;
 
@@ -169,9 +170,9 @@
 
         .MediaContainerSubNavBar {
           display: flex;
+          flex-wrap: wrap;
           color: #fff;
           transition: all .25s ease-in-out;
-          height: 30px;
           // padding: 5px;
           .SubNavBarItem, .subNavBarItemPlaceHolder {
             transition: all .5s ease-in-out;
@@ -202,6 +203,7 @@
           display: flex;
           align-items: center;
           justify-content: flex-end;
+          flex-wrap: wrap;
           // padding: 0 10px;
 
           .inputWrapper {
@@ -210,6 +212,7 @@
             display: flex;
             color: #fff;
             transition: all .25s ease-in-out;
+            max-width: 460px;
 
             .inputIcon {
               font-size: 24px;
@@ -221,12 +224,12 @@
               font-family: 'md';
             }
 
-            .input {
+            .mediaSearchBarInput {
               font-weight: bold;
-              min-width: 5px;
               font-size: 14px;
-              height: 30px;
-              margin-left: 22px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: pre;
             }
           }
 
@@ -236,6 +239,7 @@
 
           .paginationWrapper {
             margin-left: 24px;
+            margin-right: 24px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -262,11 +266,9 @@
           }
 
           .controllerWrapper {
-            margin-left: 24px;
             display: flex;
             align-items: center;
             color: #fff;
-            height: 100%;
             transition: all .25s ease-in-out;
             .returnButtonWrapper{
               background-color: rgba(0, 0, 0, .5);
@@ -536,7 +538,6 @@
       display: flex;
       cursor: pointer;
       font-size: 24px;
-      padding-left: 100px;
       padding: 32px 48px 32px 124px;
       transition: all .5s ease-in-out;
       text-align: center;
@@ -562,8 +563,6 @@
         content: "\F04BA";
         font-family: 'md';
       }
-
-      .IIROSE_MEDIASelectHolderItem {}
     }
 
     .IIROSE_MEDIASelectHolderItemWrapper:hover {
@@ -717,6 +716,10 @@
   }
   .MediaContainerContent{
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))!important;
+  }
+
+  .inputWrapper{
+    max-width: 250px !important;
   }
   
 }

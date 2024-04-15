@@ -610,9 +610,9 @@ export class MediaContainer
         ) => Promise<Promise<MediaContainerItem[] | null>[]>
     )
     {
-        let pagination: HTMLDivElement | null = null;
-        let prevButton: HTMLDivElement | null = null;
-        let nextButton: HTMLDivElement | null = null;
+        let pagination: HTMLDivElement | undefined = undefined;
+        let prevButton: HTMLDivElement | undefined = undefined;
+        let nextButton: HTMLDivElement | undefined = undefined;
 
         const paginationList = Array.from(document.querySelectorAll('.pagination')) as HTMLDivElement[];
         const prevButtonList = Array.from(document.querySelectorAll('.prevButtonWrapper')) as HTMLDivElement[];
@@ -660,9 +660,9 @@ export class MediaContainer
                 prevButton = prevButtonList[0];
                 nextButton = nextButtonList[0];
             }
-
         }
-        if (!pagination || !prevButton || !nextButton) return null;
+
+        if(!pagination || !prevButton || !nextButton) return;
 
         if (func && currentPage && mediaItems)
         {

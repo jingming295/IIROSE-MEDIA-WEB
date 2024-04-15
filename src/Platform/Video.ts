@@ -1,5 +1,7 @@
 import { BiliBiliSearchApi } from "../Api/BilibiliAPI/BiliBiliSearch";
+import { VideoResult } from "../Api/BilibiliAPI/BiliBiliSearch/SearchRequestInterface";
 import { BiliBiliVideoApi } from "../Api/BilibiliAPI/BiliBiliVideoAPI";
+import { BVideoDetail } from "../Api/BilibiliAPI/BiliBiliVideoAPI/VideoDetailInterface";
 import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
 import { MediaContainerItem, MediaContainerNavBarPlatform, MediaItem } from "../IIROSE-MEDIA/MediaContainerInterface";
 import { Socket } from "../Socket";
@@ -98,7 +100,7 @@ export class Video
                                 mediaContainerDisplay.displayPleaseSearch('rgb(221, 28, 4)');
                                 return;
                             }, { once: true });
-                        };
+                        }
                         mediaContainer.updatePaginationNotings();
                         const keyword = mediaSearchBarInput.innerHTML;
 
@@ -141,7 +143,7 @@ export class Video
                     }
                 }
             ]
-        };
+        }
     }
 
     private formatMillisecondsToMinutes(milliseconds: number): string
@@ -155,6 +157,10 @@ export class Video
         return formattedTime;
     }
 
+    /**
+     * 获取首页推荐视频
+     * @returns 
+     */
     private async bilibiliRecommendVideoMediaContainerItem(): Promise<Promise<MediaContainerItem[] | null>[] | null>
     {
         const bv = new BiliBiliVideoApi();
@@ -165,7 +171,7 @@ export class Video
 
         if (!bvrcmd || !bvrcmd.data) return null;
         let index = 0;
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         for (const rcmdItem of bvrcmd.data.item)
         {
             const item: MediaContainerItem = {
@@ -196,19 +202,19 @@ export class Video
                             bitRate: bvResource.data.quality,
                             color: 'FFFFFF',
                             origin: 'bilibili'
-                        };
+                        }
                         socket.sendMessage(sMedia.mediaCard(mediaData));
                         socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                     });
                 }
-            };
+            }
             x.push(Promise.resolve([item]));
             index += 1;
             if (index >= 10) break;
         }
 
-        let mediaItems: MediaItem[] = [];
+        const mediaItems: MediaItem[] = [];
 
         for (const item of bvrcmd.data.item)
         {
@@ -242,7 +248,7 @@ export class Video
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         for (const item of mediaItems)
         {
             if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url) continue;
@@ -278,12 +284,12 @@ export class Video
                             bitRate: bvResource.data.quality,
                             color: 'FFFFFF',
                             origin: 'bilibili'
-                        };
+                        }
                         socket.sendMessage(sMedia.mediaCard(mediaData));
                         socket.sendMessage(sMedia.mediaEvent(mediaData));
                     });
                 },
-            };
+            }
             x.push(Promise.resolve([mediaContainerItem]));
         }
 
@@ -292,7 +298,7 @@ export class Video
     }
 
     /**
-     * 搜索视频
+     * 根据关键词搜索获取视频，用于第一页
      * @param keyword 
      * @returns 
      */
@@ -300,7 +306,7 @@ export class Video
     {
         const bs = new BiliBiliSearchApi();
         const searchResult = await bs.getSearchRequestByTypeVideo(keyword, 1, 10);
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
 
         if (!searchResult || !searchResult.data) return x;
         if (!searchResult || !searchResult.data || !searchResult.data.result) return x;
@@ -328,86 +334,8 @@ export class Video
             });
 
             result.title = result.title.replace(/<[^>]+>/g, '');
-            const mediaContainerItem: MediaContainerItem = {
-                formatMillisecondsToMinutes: this.formatMillisecondsToMinutes,
-                id: result.id,
-                title: result.title,
-                img: `https:${result.pic}`,
-                url: result.arcurl,
-                author: result.author,
-                multipage: multipage,
-                duration: result.duration,
-                MediaRequest()
-                {
-                    if (!result.bvid) return;
-                    const socket = new Socket();
-                    const sMedia = new Media();
-                    bvDetail.then(bvDetail =>
-                    {
-                        if (!bvDetail || !bvDetail.data)
-                        {
-                            const updateDom = new UpdateDom();
-                            updateDom.changeStatusIIROSE_MEDIA();
-                            return;
-                        };
-                        if (bvDetail.data.pages.length === 1)
-                        {
-                            const updateDom = new UpdateDom();
-                            updateDom.changeStatusIIROSE_MEDIA();
-                            const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, 112, 'html5');
-                            bvResource.then(bvResource =>
-                            {
-                                if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                                if (bvResource.data.quality === 6) bvResource.data.quality = 2;
-                                const mediaData: MediaData = {
-                                    type: 'video',
-                                    name: result.title,
-                                    singer: result.author,
-                                    cover: `https:${result.pic}`,
-                                    link: result.arcurl,
-                                    url: bvResource.data.durl[0].url,
-                                    duration: bvResource.data.durl[0].length / 1000,
-                                    bitRate: bvResource.data.quality,
-                                    color: 'FFFFFF',
-                                    origin: 'bilibili'
-                                };
-                                socket.sendMessage(sMedia.mediaCard(mediaData));
-                                socket.sendMessage(sMedia.mediaEvent(mediaData));
-                            });
-                        } else
-                        {
-                            const mediaItems: MediaItem[] = [];
-                            const cids = bvDetail.data.pages.map((page) => page.cid);
-                            for (let i = 0; i < cids.length; i++)
-                            {
-                                const totalSeconds = Math.floor(bvDetail.data.pages[i].duration * 1000 / 1000);
-                                const minutes = Math.floor(totalSeconds / 60);
-                                const seconds = totalSeconds % 60;
-                                // 格式化为 xx:xx 形式
-                                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                                mediaItems.push({
-                                    id: result.id,
-                                    keyword: keyword,
-                                    title: bvDetail.data.pages[i].part,
-                                    img: `https:${result.pic}`,
-                                    url: `${result.arcurl}?p=${i + 1}`,
-                                    author: result.author,
-                                    duration: formattedTime,
-                                    bilibili: {
-                                        bvid: result.bvid,
-                                        cid: cids[i]
-                                    }
-                                });
-                            }
-
-                            const videoContainer = document.getElementById('VideoContainer') as HTMLDivElement;
-                            const mediaContainer = new MediaContainer();
-                            mediaContainer.goMultiPage(videoContainer, mediaItems, 'rgb(221, 28, 4)');
-                        }
-                    });
-                },
-            };
-            x.push(Promise.resolve([mediaContainerItem]));
+            const mediaContainerItem = this.processMediaContainerItemWhenKeyword(keyword, result, bvDetail, multipage);
+            x.push(mediaContainerItem);
         }
 
         const mediaItems: MediaItem[] = [];
@@ -433,7 +361,7 @@ export class Video
     }
 
     /**
-     * 根据关键词搜索视频
+     * 根据关键词搜索获取视频，用于分页
      * @param currentPage 
      * @param mediaItems 
      * @returns 
@@ -445,7 +373,7 @@ export class Video
         const bs = new BiliBiliSearchApi();
         const searchResult = await bs.getSearchRequestByTypeVideo(mediaItems[0].keyword, currentPage, 10);
 
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        const x: Promise<MediaContainerItem[] | null>[] = [];
 
         if (!searchResult || !searchResult.data) return x;
 
@@ -474,157 +402,190 @@ export class Video
                 }
             });
 
-            const mediaContainerItem: MediaContainerItem = {
-                id: result.id,
-                title: result.title,
-                img: `https:${result.pic}`,
-                url: result.arcurl,
-                author: result.author,
-                multipage: multipage,
-                duration: result.duration,
-                MediaRequest()
-                {
-                    if (!result.bvid) return;
-                    const socket = new Socket();
-                    const sMedia = new Media();
-                    bvDetail.then(bvDetail =>
-                    {
-                        if (!bvDetail || !bvDetail.data) return;
-
-                        if (!bvDetail || !bvDetail.data)
-                        {
-                            const updateDom = new UpdateDom();
-                            updateDom.changeStatusIIROSE_MEDIA();
-                            return;
-                        };
-
-                        if (bvDetail.data.pages.length === 1)
-                        {
-
-                            const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, 112, 'html5');
-                            bvResource.then(bvResource =>
-                            {
-                                if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                                if (bvResource.data.quality === 6) bvResource.data.quality = 2;
-                                const mediaData: MediaData = {
-                                    type: 'video',
-                                    name: result.title,
-                                    singer: result.author,
-                                    cover: `https:${result.pic}`,
-                                    link: result.arcurl,
-                                    url: bvResource.data.durl[0].url,
-                                    duration: bvResource.data.durl[0].length / 1000,
-                                    bitRate: bvResource.data.quality,
-                                    color: 'FFFFFF',
-                                    origin: 'bilibili'
-                                };
-                                socket.sendMessage(sMedia.mediaCard(mediaData));
-                                socket.sendMessage(sMedia.mediaEvent(mediaData));
-                            });
-                        } else {
-                            const cids = bvDetail.data.pages.map((page) => page.cid);
-                            const newMediaItems: MediaItem[] = [];
-                            for (let i = 0; i < cids.length; i++)
-                            {
-                                const totalSeconds = Math.floor(bvDetail.data.pages[i].duration * 1000 / 1000);
-                                const minutes = Math.floor(totalSeconds / 60);
-                                const seconds = totalSeconds % 60;
-                                // 格式化为 xx:xx 形式
-                                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                                newMediaItems.push({
-                                    id: result.id,
-                                    keyword: mediaItems[0].keyword,
-                                    title: bvDetail.data.pages[i].part,
-                                    img: `https:${result.pic}`,
-                                    url: `${result.arcurl}?p=${i + 1}`,
-                                    author: result.author,
-                                    duration: formattedTime,
-                                    bilibili: {
-                                        bvid: result.bvid,
-                                        cid: cids[i]
-                                    }
-                                });
-                            }
-                            console.log(newMediaItems)
-                            const videoContainer = document.getElementById('VideoContainer') as HTMLDivElement;
-                            const mediaContainer = new MediaContainer();
-                            mediaContainer.goMultiPage(videoContainer, newMediaItems, 'rgb(221, 28, 4)');
-                        }
-                    });
-
-                },
-
-            };
-            x.push(Promise.resolve([mediaContainerItem]));
+            const mediaContainerItem = this.processMediaContainerItemWhenKeyword(mediaItems[0].keyword, result, bvDetail, multipage);
+            if (mediaContainerItem) x.push(mediaContainerItem);
 
         });
-
-
         return x;
     }
 
+    /**
+     * 根据cids获取视频，用于第一页和分页
+     * @param currentPage 
+     * @param mediaItems 
+     * @returns 
+     */
     public async bilibiliVideoMediaContainerItemByCids(currentPage: number, mediaItems: MediaItem[]): Promise<Promise<MediaContainerItem[] | null>[]>
     {
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
-        console.log(StartItem)
-        let x: Promise<MediaContainerItem[] | null>[] = [];
+        console.log(StartItem);
+        const x: Promise<MediaContainerItem[] | null>[] = [];
         for (const item of mediaItems)
         {
-            if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) continue;
-            const mediaContainerItem: MediaContainerItem = {
-                id: item.id,
-                title: item.title,
-                img: item.img,
-                url: item.url,
-                author: item.author,
-                duration: item.duration,
-                MediaRequest()
+            const mediaContainerItem = this.processMediaContainerItem(item);
+            if (mediaContainerItem) x.push(mediaContainerItem);
+        }
+
+        return x;
+
+    }
+
+    /**
+     * 处理mediaContainerItem，根据mediaItem的方式
+     * @param item 
+     * @returns 
+     */
+    public async processMediaContainerItem(item: MediaItem)
+    {
+        if (!item.id || !item.title || !item.img || !item.url || !item.author || !item.duration || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return null;
+        const mediaContainerItem: MediaContainerItem = {
+            id: item.id,
+            title: item.title,
+            img: item.img,
+            url: item.url,
+            author: item.author,
+            duration: item.duration,
+            MediaRequest()
+            {
+                if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
+                const bv = new BiliBiliVideoApi();
+                const bvDetail = bv.getBilibiliVideoData(item.id, item.bilibili.bvid);
+                const socket = new Socket();
+                const sMedia = new Media();
+
+                const updateDom = new UpdateDom();
+                updateDom.changeStatusIIROSE_MEDIA();
+                bvDetail.then(bvDetail =>
                 {
                     if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-                    const bv = new BiliBiliVideoApi();
-                    const bvDetail = bv.getBilibiliVideoData(item.id, item.bilibili.bvid);
-                    const socket = new Socket();
-                    const sMedia = new Media();
+                    if (!bvDetail || !bvDetail.data) return;
+                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili.bvid, item.bilibili.cid, 112, 'html5');
 
-                    const updateDom = new UpdateDom();
-                    updateDom.changeStatusIIROSE_MEDIA();
-                    bvDetail.then(bvDetail =>
+                    bvResource.then(bvResource =>
                     {
                         if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-                        if (!bvDetail || !bvDetail.data) return;
-                        const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili.bvid, item.bilibili.cid, 112, 'html5');
+                        if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
+                        if (bvResource.data.quality === 6) bvResource.data.quality = 2;
+                        const mediaData: MediaData = {
+                            type: 'video',
+                            name: item.title,
+                            singer: item.author,
+                            cover: `${item.img}`,
+                            link: item.url,
+                            url: bvResource.data.durl[0].url,
+                            duration: bvResource.data.durl[0].length / 1000,
+                            bitRate: bvResource.data.quality,
+                            color: 'FFFFFF',
+                            origin: 'bilibili'
+                        }
+                        socket.sendMessage(sMedia.mediaCard(mediaData));
+                        socket.sendMessage(sMedia.mediaEvent(mediaData));
+                    });
+                });
+            }
+        }
 
+        return Promise.resolve([mediaContainerItem]);
+    }
+
+    /**
+     * 出路mediaContainerItem，根据关键词搜索的方式
+     * @param keyword 
+     * @param result 
+     * @param bvDetail 
+     * @param multipage 
+     * @returns 
+     */
+    public async processMediaContainerItemWhenKeyword(keyword: string | undefined, result: VideoResult, bvDetail: Promise<BVideoDetail | null>, multipage: Promise<boolean>)
+    {
+        if (!keyword) return null;
+        const bv = new BiliBiliVideoApi();
+        const mediaContainerItem: MediaContainerItem = {
+            id: result.id,
+            title: result.title,
+            img: `https:${result.pic}`,
+            url: result.arcurl,
+            author: result.author,
+            multipage: multipage,
+            duration: result.duration,
+            MediaRequest()
+            {
+                if (!result.bvid) return;
+                const socket = new Socket();
+                const sMedia = new Media();
+                bvDetail.then(bvDetail =>
+                {
+                    if (!bvDetail || !bvDetail.data) return;
+
+                    if (!bvDetail || !bvDetail.data)
+                    {
+                        const updateDom = new UpdateDom();
+                        updateDom.changeStatusIIROSE_MEDIA();
+                        return;
+                    }
+
+                    if (bvDetail.data.pages.length === 1)
+                    {
+                        const updateDom = new UpdateDom();
+                        updateDom.changeStatusIIROSE_MEDIA();
+                        const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, 112, 'html5');
                         bvResource.then(bvResource =>
                         {
-                            if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
                             if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
                             if (bvResource.data.quality === 6) bvResource.data.quality = 2;
                             const mediaData: MediaData = {
                                 type: 'video',
-                                name: item.title,
-                                singer: item.author,
-                                cover: `${item.img}`,
-                                link: item.url,
+                                name: result.title,
+                                singer: result.author,
+                                cover: `https:${result.pic}`,
+                                link: result.arcurl,
                                 url: bvResource.data.durl[0].url,
                                 duration: bvResource.data.durl[0].length / 1000,
                                 bitRate: bvResource.data.quality,
                                 color: 'FFFFFF',
                                 origin: 'bilibili'
-                            };
+                            }
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
                         });
-                    });
-                }
-            };
-            x.push(Promise.resolve([mediaContainerItem]));
+                    } else
+                    {
+                        const cids = bvDetail.data.pages.map((page) => page.cid);
+                        const newMediaItems: MediaItem[] = [];
+                        for (let i = 0; i < cids.length; i++)
+                        {
+                            const totalSeconds = Math.floor(bvDetail.data.pages[i].duration * 1000 / 1000);
+                            const minutes = Math.floor(totalSeconds / 60);
+                            const seconds = totalSeconds % 60;
+                            // 格式化为 xx:xx 形式
+                            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                            newMediaItems.push({
+                                id: result.id,
+                                keyword: keyword,
+                                title: bvDetail.data.pages[i].part,
+                                img: `https:${result.pic}`,
+                                url: `${result.arcurl}?p=${i + 1}`,
+                                author: result.author,
+                                duration: formattedTime,
+                                bilibili: {
+                                    bvid: result.bvid,
+                                    cid: cids[i]
+                                }
+                            });
+                        }
+                        console.log(newMediaItems);
+                        const videoContainer = document.getElementById('VideoContainer') as HTMLDivElement;
+                        const mediaContainer = new MediaContainer();
+                        mediaContainer.goMultiPage(videoContainer, newMediaItems, 'rgb(221, 28, 4)');
+                    }
+                });
+
+            },
 
         }
-
-        return x;
-
+        return Promise.resolve([mediaContainerItem]);
     }
 
 }

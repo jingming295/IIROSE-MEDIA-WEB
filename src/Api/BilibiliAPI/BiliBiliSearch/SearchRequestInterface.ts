@@ -90,9 +90,7 @@ export interface SearchRequestByType
         cost_time: cost_time;
         exp_list: exp_list;
         egg_hit: number; // 不知道有什么用途
-        result: {
-
-        }[];
+        result:[];
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
@@ -264,7 +262,7 @@ export interface SearchRequestByTypePhoto
         cost_time: cost_time;
         exp_list: exp_list;
         egg_hit: number; // 不知道有什么用途
-        result: {}[];
+        result: [];
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
@@ -347,7 +345,7 @@ interface media_ftAndmedia_bangumiResult
     index_show: string; // 全*话
 }
 
-interface VideoResult
+export interface VideoResult
 {
     type: string; // 类型
     id: number; // 视频aid

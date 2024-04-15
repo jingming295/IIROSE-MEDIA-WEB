@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "moduleResolution": "nodenext",
+        "module": "NodeNext",
+        "target": "es5",
+        "downlevelIteration": true,
+        "sourceMap": true
+    }
+}

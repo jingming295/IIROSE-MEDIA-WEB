@@ -1,9 +1,0 @@
-# 忽略 dist 目录
-/dist
-
-# 忽略 node_modules 目录
-/node_modules
-
-# 如果有其他需要忽略的文件或目录，可以继续添加
-# /example_file.txt
-# /example_directory/

@@ -10,11 +10,12 @@ export interface EapiResult
 {
     params: string;
 }
-let maxDigits, ZERO_ARRAY, bigZero: BigInt, bigOne: BigInt, dpl10, lr10, biRadixBase = 2, biRadixBits = 16, bitsPerDigit = biRadixBits, biRadix = 65536, biHalfRadix = biRadix >>> 1, biRadixSquared = biRadix * biRadix, maxDigitVal = biRadix - 1, maxInteger = 9999999999999998;
+let maxDigits, ZERO_ARRAY, bigZero: BigInt, bigOne: BigInt, dpl10, lr10;
 let highBitMasks = new Array(0, 32768, 49152, 57344, 61440, 63488, 64512, 65024, 65280, 65408, 65472, 65504, 65520, 65528, 65532, 65534, 65535);
 let hexToChar = new Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f");
 let lowBitMasks = new Array(0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535);
 let hexatrigesimalToChar = new Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
+const biRadixBase = 2, biRadixBits = 16, bitsPerDigit = biRadixBits, biRadix = 65536, biHalfRadix = biRadix >>> 1, biRadixSquared = biRadix * biRadix, maxDigitVal = biRadix - 1, maxInteger = 9999999999999998;
 const iv = CryptoJS.enc.Utf8.parse('0102030405060708');
 const presetKey = CryptoJS.enc.Utf8.parse('0CoJUm6Qyw8W8jud');
 const base62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -150,7 +151,7 @@ class BarrettMu
     {
         this.modulus = biCopy(a),
             this.k = biHighIndex(this.modulus) + 1;
-            const b = new BigInt;
+        const b = new BigInt;
         b.digits[2 * this.k] = 1,
             this.mu = this.biDivide(b, this.modulus),
             this.bkplus1 = new BigInt,
@@ -201,7 +202,7 @@ class BarrettMu
 
     biMultiply(a: BigInt, b: BigInt)
     {
-        let d, h, i, k
+        let d, h, i, k;
         const c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
         let j: number;
         for (k = 0; f >= k; ++k)
@@ -262,8 +263,8 @@ function biHighIndex(a: BigInt)
 
 function biDivideModulo(a: BigInt, b: BigInt)
 {
-    let f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b)
-    const  e = b.isNeg;
+    let f, g, h, i, j, k, l, m, n, o, p, q, r, s, c = biNumBits(a), d = biNumBits(b);
+    const e = b.isNeg;
     if (d > c)
         return a.isNeg ? (f = biCopy(bigOne),
             f.isNeg = !b.isNeg,
@@ -318,7 +319,7 @@ function biDivideModulo(a: BigInt, b: BigInt)
 function biNumBits(a: BigInt)
 {
     const b = biHighIndex(a), d = (b + 1) * bitsPerDigit;
-    let e, c = a.digits[b]
+    let e, c = a.digits[b];
     for (e = d; e > d - bitsPerDigit && 0 == (32768 & c); --e)
         c <<= 1;
     return e;
@@ -385,7 +386,7 @@ function biAdd(a: BigInt, b: BigInt): BigInt
 
 function biShiftRight(a: BigInt, b: number)
 {
-    let e, f, g, h
+    let e, f, g, h;
     const c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, c, d.digits, 0, a.digits.length - c),
         e = b % bitsPerDigit,
@@ -408,7 +409,7 @@ function biMultiplyByRadixPower(a: BigInt, b: number)
 
 function arrayCopy(a: number[], b: number, c: number[], d: number, e: number)
 {
-    let g, h
+    let g, h;
     const f = Math.min(b + e, a.length);
     for (g = b,
         h = d; f > g; ++g,
@@ -433,7 +434,7 @@ function biMultiplyDigit(a: BigInt, b: number)
 
 function biShiftLeft(a: BigInt, b: number)
 {
-    let e, f, g, h
+    let e, f, g, h;
     const c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, 0, d.digits, c, d.digits.length - c),
         e = b % bitsPerDigit,
@@ -488,7 +489,7 @@ function encryptedString(a: RSAKeyPair, b: string)
 
     function biToString(a: BigInt, b: number)
     {
-        let d, e
+        let d, e;
         const c = new BigInt;
         let digit: number;
         for (c.digits[0] = b,

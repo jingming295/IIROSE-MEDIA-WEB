@@ -224,11 +224,12 @@ export class Media
             l: media.lyrics
         });
 
-        if(media.type === 'video'){
-            return `&1${data}`;
-        } else {
-            return `&0${data}`;
-        }
+        // if(media.type === 'video'){
+        //     return `&1${data}`;
+        // } else {
+        //     return `&0${data}`;
+        // }
+        return `&1${data}`;
         
     }
 }

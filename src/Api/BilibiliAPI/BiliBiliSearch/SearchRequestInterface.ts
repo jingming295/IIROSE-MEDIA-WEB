@@ -94,7 +94,7 @@ export interface SearchRequestByType
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
-
+        v_voucher?: string; // 错误记录
     };
 }
 
@@ -118,7 +118,7 @@ export interface SearchRequestByTypeVideo
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
-
+        v_voucher?: string; // 错误记录
     };
 }
 
@@ -179,7 +179,7 @@ export interface SearchRequestByTypeLiveRoom
     code: number;
     message: string;
     ttl: number;
-    data: {
+    data?: {
         seid: string; // 搜索id
         page: number; // 页数，固定为1
         pagesize: number; // 每页条数
@@ -194,7 +194,7 @@ export interface SearchRequestByTypeLiveRoom
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
-
+        v_voucher?: string; // 错误记录
     };
 }
 
@@ -501,7 +501,7 @@ interface liveResult
     live_user: live_userResult[];
 }
 
-interface live_roomResult
+export interface live_roomResult
 {
     area: number; // 不知道有什么用途
     attentions: number; // 主播粉丝数

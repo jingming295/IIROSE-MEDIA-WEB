@@ -4,7 +4,7 @@ import { showMessage } from "../UpdateDOM/ShowMessage";
 export class SendFetch
 {
     public cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
-    // public cors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`
+    public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`
     constructor()
     {
         if (window.iirosemedia && window.iirosemedia.cors !== undefined)
@@ -83,6 +83,17 @@ export class SendFetch
         }
 
         return response;
+    }
+
+    public async tryget(url:string){
+        const response = await fetch(url, {
+            method: 'HEAD',
+        });
+        if(response.ok){
+            return true
+        } else {
+            return false
+        }
     }
 
 

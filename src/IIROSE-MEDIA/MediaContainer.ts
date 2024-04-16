@@ -1,5 +1,7 @@
 import { Music } from "../Platform/Music";
 import { Video } from "../Platform/Video";
+import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
+import { showMessage } from "../UpdateDOM/ShowMessage";
 import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
 import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem } from "./MediaContainerInterface";
 import { InputEvent } from "./MediaContainerInterface";
@@ -365,7 +367,15 @@ export class MediaContainer
         if (!ppMediaContainerItems) return MediaContainerContent;
         ppMediaContainerItems.then(pMediaContainerItem =>
         {
-            if (!pMediaContainerItem) return;
+            if (!pMediaContainerItem || pMediaContainerItem.length === 0) {
+                if(spin) spin.remove();
+                const showmessage = new showMessage();
+                showmessage.showMessage('搜索无结果')
+
+                const mediaContainerDisplay = new MediaContainerDisplay();
+                mediaContainerDisplay.displayMessage(playColor, 2);
+                return
+            }
             pMediaContainerItem.forEach(pMediaContainerItem =>
             {
                 pMediaContainerItem.then(MediaContainerItem =>
@@ -594,6 +604,11 @@ export class MediaContainer
     {
         const video = new Video();
         this.PaginationAction(currentPage, mediaItems, video.bilibiliVideoMediaContainerItemByCids.bind(video));
+    }
+
+    public updatePaginationBilibiliLive(currentPage: number, mediaItems: MediaItem[]){
+        const video = new Video();
+        this.PaginationAction(currentPage, mediaItems, video.bilibiliLiveMediaContainerItemByIDs.bind(video));
     }
 
     public updatePaginationNotings()

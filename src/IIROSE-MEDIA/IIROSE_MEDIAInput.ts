@@ -33,17 +33,9 @@ export class IIROSE_MEDIAInput {
             inputPlace.placeholder = '请输入内容...';
 
             inputArea.appendChild(inputPlace);
-            return inputArea;
-        }
 
-        function setMetaHeight(height:number){
-            const meta = document.head.querySelector('meta[name="viewport"]')
-            if(meta){
-                meta.setAttribute('id', 'viewportMeta')
-                let metaEl = document.getElementById('#viewportMeta')
-                console.log(meta)
-                console.log(metaEl)
-            }
+
+            return inputArea;
         }
 
         const createButton = () =>{

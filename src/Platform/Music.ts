@@ -99,7 +99,7 @@ export class Music
                             MediaContainerContent.style.opacity = '0'
                             MediaContainerContent.addEventListener('transitionend', function(){
                                 const mediaContainerDisplay = new MediaContainerDisplay();
-                                mediaContainerDisplay.displayPleaseSearch('rgb(221, 28, 4)');
+                                mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1);
                                 return
                             }, {once:true});
 
@@ -191,7 +191,7 @@ export class Music
                                     if (!element) return;
                                     const socket = new Socket();
                                     const sMedia = new Media();
-                                    element.playlist.trackIds.forEach((element, index) =>
+                                    element.playlist.trackIds.forEach((element) =>
                                     {
                                         const songResource = neteaseMusicAPI.getSongResource(element.id);
                                         songResource.then(songResource =>
@@ -464,7 +464,7 @@ export class Music
                                     if (!element) return;
                                     const socket = new Socket();
                                     const sMedia = new Media();
-                                    element.playlist.trackIds.forEach((element, index) =>
+                                    element.playlist.trackIds.forEach((element) =>
                                     {
                                         const songResource = neteaseMusicAPI.getSongResource(element.id);
                                         songResource.then(songResource =>

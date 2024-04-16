@@ -366,11 +366,17 @@
             height: 100%;
             opacity: .4;
             transition: all .25s ease-in-out;
-            .searchLogo{
+            .searchLogo, .noresultLogo{
               font-size: 200px;
+              display: flex;
             }
             .searchLogo::before{
               content: "\F1A7E";
+              font-family: 'md';
+            }
+
+            .noresultLogo::before{
+              content: "\F0413";
               font-family: 'md';
             }
 
@@ -378,6 +384,7 @@
               margin-top: 24px;
               line-height: 31px;
               font-size: 24px;
+              font-weight: bold;
             }
           }
 

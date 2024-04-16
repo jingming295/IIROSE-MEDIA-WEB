@@ -11,7 +11,7 @@ export class BiliBiliLiveApi extends SendFetch
      */
     public async getLiveRoomDetail(roomId: number)
     {
-        const url = 'https://api.live.bilibili.com/room/v1/Room/get_info';
+        const url = `${this.cors}https://api.live.bilibili.com/room/v1/Room/get_info`;
         const params = new URLSearchParams({
             room_id: roomId.toString()
         });
@@ -160,7 +160,7 @@ export class BiliBiliLiveApi extends SendFetch
             qn: number | null = null,
         )
     {
-        const url = 'https://api.live.bilibili.com/room/v1/Room/playUrl';
+        const url = `${this.malaysiacors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
         const params = new URLSearchParams({
             cid: cid.toString()
         });

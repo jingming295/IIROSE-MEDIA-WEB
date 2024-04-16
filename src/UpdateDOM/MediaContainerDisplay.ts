@@ -2,7 +2,7 @@ import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
 
 export class MediaContainerDisplay{
 
-    public displayPleaseSearch(color:string){
+    public displayMessage(color:string, type:number){
 
         function createPleaseSearchMsg(){
             const msgWrapper = document.createElement('div');
@@ -17,6 +17,20 @@ export class MediaContainerDisplay{
             msgWrapper.appendChild(msgText);
             return msgWrapper;
         }
+
+        function createNoResultMsg(){
+            const msgWrapper = document.createElement('div');
+            msgWrapper.classList.add('containerMsgWrapper')
+            msgWrapper.style.color = color;
+            const msgLogo = document.createElement('div');
+            msgLogo.classList.add('noresultLogo');
+            const msgText = document.createElement('div');
+            msgText.classList.add('containerMsg');
+            msgText.innerText = '什么也没有搜到...';
+            msgWrapper.appendChild(msgLogo);
+            msgWrapper.appendChild(msgText);
+            return msgWrapper;
+        }
         const MediaContainerContent = document.getElementById('MediaContainerContent');
         if(!MediaContainerContent) return;
         const parent = MediaContainerContent.parentElement;
@@ -26,7 +40,11 @@ export class MediaContainerDisplay{
         newMediaContainerContent.classList.add('MediaContainerContent');
         newMediaContainerContent.id = 'MediaContainerContent';
         newMediaContainerContent.style.opacity = '0';
+        if(type === 1){
         newMediaContainerContent.appendChild(createPleaseSearchMsg());
+        } else if(type === 2){
+        newMediaContainerContent.appendChild(createNoResultMsg());
+        }
         newMediaContainerContent.style.height = '100%';
         const mediacontainer = new MediaContainer();
         mediacontainer.updatePaginationNotings()

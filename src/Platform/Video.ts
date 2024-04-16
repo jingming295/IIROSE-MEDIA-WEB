@@ -1,5 +1,7 @@
+import { SendFetch } from "../Api";
+import { BiliBiliLiveApi } from "../Api/BilibiliAPI/BiliBiliLive";
 import { BiliBiliSearchApi } from "../Api/BilibiliAPI/BiliBiliSearch";
-import { VideoResult } from "../Api/BilibiliAPI/BiliBiliSearch/SearchRequestInterface";
+import { live_roomResult, VideoResult } from "../Api/BilibiliAPI/BiliBiliSearch/SearchRequestInterface";
 import { BiliBiliVideoApi } from "../Api/BilibiliAPI/BiliBiliVideoAPI";
 import { BVideoDetail } from "../Api/BilibiliAPI/BiliBiliVideoAPI/VideoDetailInterface";
 import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
@@ -9,6 +11,7 @@ import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
+import { showMessage } from "../UpdateDOM/ShowMessage";
 
 export class Video
 {
@@ -57,7 +60,7 @@ export class Video
                         const BilibiliRecommandVideoitem = this.bilibiliRecommendVideoMediaContainerItem();
                         const MediaContainerContent = document.getElementById('MediaContainerContent');
                         if (!MediaContainerContent) return;
-                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(221, 28, 4)');
+                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
                         const parent = MediaContainerContent.parentElement;
                         MediaContainerContent.style.opacity = '0';
 
@@ -84,66 +87,70 @@ export class Video
                     id: 'SubNavBarItemBilibiliVideo',
                     onclick: () =>
                     {
-                        const mediaContainer = new MediaContainer();
-                        const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
-                        const MediaContainerContent = document.getElementById('MediaContainerContent');
-                        if (!MediaContainerContent) return;
-                        if (!mediaSearchBarInput) return;
-                        if (mediaSearchBarInput.innerHTML === '')
-                        {
-                            const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
-                            if (containerMsgWrapper) return;
-                            MediaContainerContent.style.opacity = '0';
-                            MediaContainerContent.addEventListener('transitionend', function ()
-                            {
-                                const mediaContainerDisplay = new MediaContainerDisplay();
-                                mediaContainerDisplay.displayPleaseSearch('rgb(221, 28, 4)');
-                                return;
-                            }, { once: true });
-                        }
-                        mediaContainer.updatePaginationNotings();
-                        const keyword = mediaSearchBarInput.innerHTML;
-
-                        const BilibiliRecommandVideoitem = this.bilibiliVideoSearchMediaContainer(keyword);
-                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(221, 28, 4)');
-                        const parent = MediaContainerContent.parentElement;
-                        MediaContainerContent.style.opacity = '0';
-
-                        MediaContainerContent.addEventListener('transitionend', () =>
-                        {
-                            MediaContainerContent.remove();
-                            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                            if (currentMediaContainerContent) return;
-                            if (parent)
-                            {
-                                newMediaContainerContent.style.opacity = '0';
-                                parent.appendChild(newMediaContainerContent);
-                                setTimeout(() =>
-                                {
-                                    newMediaContainerContent.style.opacity = '1';
-                                }, 1);
-                            }
-                        }, { once: true });
+                        this.bilibiliOnclickSubNavBarNeedSearchItem(this.bilibiliVideoSearchMediaContainer.bind(this));
                     }
                 }, {
-                    title: '影视 (未完成)',
-                    class: 'SubNavBarItemSearch',
-                    id: 'SubNavBarItemBilibiliMovie',
-                    onclick: () =>
-                    {
-                        console.log('影视');
-                    }
-                }, {
-                    title: '直播 (未完成)',
+                    title: '搜索直播',
                     class: 'SubNavBarItemSearch',
                     id: 'SubNavBarItemBilibiliLive',
                     onclick: () =>
                     {
-                        console.log('直播');
+                        this.bilibiliOnclickSubNavBarNeedSearchItem(this.bilibiliSearchLiveMediaContainerItemByKeyword.bind(this));
                     }
                 }
             ]
+        };
+    }
+
+
+    /**
+     * 这些也做成一个函数了
+     * @param VideoContainerFunc 
+     * @returns 
+     */
+    private bilibiliOnclickSubNavBarNeedSearchItem(VideoContainerFunc: (keyword: string) => Promise<Promise<MediaContainerItem[] | null>[]>)
+    {
+        const mediaContainer = new MediaContainer();
+        const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
+        const MediaContainerContent = document.getElementById('MediaContainerContent');
+        if (!MediaContainerContent) return;
+        if (!mediaSearchBarInput) return;
+        if (mediaSearchBarInput.innerHTML === '')
+        {
+            const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
+            if (containerMsgWrapper) return;
+            MediaContainerContent.style.opacity = '0';
+            MediaContainerContent.addEventListener('transitionend', function ()
+            {
+                const mediaContainerDisplay = new MediaContainerDisplay();
+                mediaContainerDisplay.displayMessage('rgb(209, 79, 118)', 1);
+                return;
+            }, { once: true });
+            return;
         }
+        mediaContainer.updatePaginationNotings();
+        const keyword = mediaSearchBarInput.innerHTML;
+
+        const BilibiliRecommandVideoitem = VideoContainerFunc(keyword);
+        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
+        const parent = MediaContainerContent.parentElement;
+        MediaContainerContent.style.opacity = '0';
+
+        MediaContainerContent.addEventListener('transitionend', () =>
+        {
+            MediaContainerContent.remove();
+            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
+            if (currentMediaContainerContent) return;
+            if (parent)
+            {
+                newMediaContainerContent.style.opacity = '0';
+                parent.appendChild(newMediaContainerContent);
+                setTimeout(() =>
+                {
+                    newMediaContainerContent.style.opacity = '1';
+                }, 1);
+            }
+        }, { once: true });
     }
 
     private formatMillisecondsToMinutes(milliseconds: number): string
@@ -202,13 +209,13 @@ export class Video
                             bitRate: bvResource.data.quality,
                             color: 'FFFFFF',
                             origin: 'bilibili'
-                        }
+                        };
                         socket.sendMessage(sMedia.mediaCard(mediaData));
                         socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                     });
                 }
-            }
+            };
             x.push(Promise.resolve([item]));
             index += 1;
             if (index >= 10) break;
@@ -284,12 +291,12 @@ export class Video
                             bitRate: bvResource.data.quality,
                             color: 'FFFFFF',
                             origin: 'bilibili'
-                        }
+                        };
                         socket.sendMessage(sMedia.mediaCard(mediaData));
                         socket.sendMessage(sMedia.mediaEvent(mediaData));
                     });
                 },
-            }
+            };
             x.push(Promise.resolve([mediaContainerItem]));
         }
 
@@ -307,9 +314,9 @@ export class Video
         const bs = new BiliBiliSearchApi();
         const searchResult = await bs.getSearchRequestByTypeVideo(keyword, 1, 10);
         const x: Promise<MediaContainerItem[] | null>[] = [];
-
-        if (!searchResult || !searchResult.data) return x;
+        if (!searchResult || !searchResult.data || searchResult.data.v_voucher) return x;
         if (!searchResult || !searchResult.data || !searchResult.data.result) return x;
+
         for (const result of searchResult.data.result)
         {
             const bv = new BiliBiliVideoApi();
@@ -432,6 +439,57 @@ export class Video
 
     }
 
+    public async bilibiliSearchLiveMediaContainerItemByKeyword(keyword: string)
+    {
+        const bs = new BiliBiliSearchApi();
+        const searchResult = await bs.getSearchRequestByTypeLiveRoom(keyword, 1, 10);
+        const x: Promise<MediaContainerItem[] | null>[] = [];
+        if (!searchResult || !searchResult.data || searchResult.data.v_voucher) return x;
+        if (!searchResult || !searchResult.data || !searchResult.data.result) return x;
+        const mediaItems: MediaItem[] = [];
+        searchResult.data.result.forEach((result) =>
+        {
+            const mediaContainerItem = this.processLiveMediaContainerItem(result);
+            x.push(mediaContainerItem);
+        });
+
+        const actualItems = searchResult.data.numResults;
+
+        for (let i = 1; i <= actualItems; i++)
+        {
+            mediaItems.push({
+                id: i,
+                keyword: keyword,
+            });
+        }
+
+        const mediaContainer = new MediaContainer();
+        mediaContainer.updatePaginationBilibiliLive(1, mediaItems);
+
+        return x;
+    }
+
+    public async bilibiliLiveMediaContainerItemByIDs(currentPage: number, mediaItems: MediaItem[])
+    {
+
+        const itemPerPage = 10;
+        const StartItem = (currentPage - 1) * itemPerPage;
+        mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
+        const x: Promise<MediaContainerItem[] | null>[] = [];
+        if (!mediaItems[0].keyword) return x;
+        const blsearchResult = await new BiliBiliSearchApi().getSearchRequestByTypeLiveRoom(mediaItems[0].keyword, currentPage, 10);
+        if(!blsearchResult || !blsearchResult.data || !blsearchResult.data.result) return x;
+        
+        for (const result of blsearchResult.data.result)
+        {
+            const mediaContainerItem = this.processLiveMediaContainerItem(result);
+            if (mediaContainerItem) x.push(mediaContainerItem);
+        }
+
+        return x;
+
+    }
+
     /**
      * 处理mediaContainerItem，根据mediaItem的方式
      * @param item 
@@ -479,14 +537,72 @@ export class Video
                             bitRate: bvResource.data.quality,
                             color: 'FFFFFF',
                             origin: 'bilibili'
-                        }
+                        };
                         socket.sendMessage(sMedia.mediaCard(mediaData));
                         socket.sendMessage(sMedia.mediaEvent(mediaData));
                     });
                 });
             }
-        }
+        };
 
+        return Promise.resolve([mediaContainerItem]);
+    }
+
+    public async processLiveMediaContainerItem(result: live_roomResult){
+        result.title = result.title.replace(/<[^>]+>/g, '');
+        const mediaContainerItem: MediaContainerItem = {
+            id: result.roomid,
+            title: result.title,
+            img: `https:${result.user_cover}`,
+            url: `https://live.bilibili.com/${result.roomid}`,
+            author: result.uname,
+            duration: `${result.online} 人正在观看`,
+            MediaRequest: () =>
+            {
+                const socket = new Socket();
+                const sMedia = new Media();
+                const bl = new BiliBiliLiveApi();
+                const updateDom = new UpdateDom();
+                updateDom.changeStatusIIROSE_MEDIA();
+                const blstream = bl.getLiveStream(result.roomid, 'web', null, 30000);
+
+                blstream.then(blstream =>
+                {
+                    if (!blstream || !blstream.data || !blstream.data.durl) return null;
+                    const sendfetch = new SendFetch();
+                    let done = false;
+                    blstream.data.durl.forEach(async (durl, index, array) =>
+                    {
+                        const playurlresult = await sendfetch.tryget(durl.url);
+                        if (playurlresult && !done && blstream && blstream.data && blstream.data.current_qn)
+                        {
+                            const mediaData: MediaData = {
+                                type: 'video',
+                                name: result.title,
+                                singer: result.uname,
+                                cover: `https:${result.user_cover}`,
+                                link: `https://live.bilibili.com/${result.roomid}`,
+                                url: durl.url,
+                                duration: 43200,
+                                bitRate: blstream.data.current_qn,
+                                color: 'FFFFFF',
+                                origin: 'bilibililive'
+                            };
+                            socket.sendMessage(sMedia.mediaCard(mediaData));
+                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                            done = true;
+                        }
+                        if (index === array.length - 1 && !done)
+                        {
+                            const showmessage = new showMessage();
+                            showmessage.showMessage('获取直播流失败');
+                        }
+
+                    })
+                });
+
+            }
+        };
         return Promise.resolve([mediaContainerItem]);
     }
 
@@ -546,7 +662,7 @@ export class Video
                                 bitRate: bvResource.data.quality,
                                 color: 'FFFFFF',
                                 origin: 'bilibili'
-                            }
+                            };
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
                         });
@@ -584,7 +700,7 @@ export class Video
 
             },
 
-        }
+        };
         return Promise.resolve([mediaContainerItem]);
     }
 

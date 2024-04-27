@@ -1,5 +1,6 @@
 export interface MediaContainerNavBarPlatform{
     id: string;
+    containerID: string;
     title: string;
     iconsrc: string;
     buttonBackgroundColor: string;
@@ -30,7 +31,7 @@ export interface MediaContainerItem{
 
 export interface InputEvent{
     title: string;
-    InputAreaConfirmBtnOnClick: () => void;
+    InputAreaConfirmBtnOnClick: (userInput:string | null) => void;
 }
 
 export interface MediaItem{

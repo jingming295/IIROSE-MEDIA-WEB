@@ -26,18 +26,18 @@ export class Music
         const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
         return {
             id: 'Netease',
+            containerID: 'MusicContainer',
             title: '网易云音乐',
             iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
             buttonBackgroundColor: 'rgb(221, 28, 4)',
             inputEvent: {
                 title: '请输入搜索关键词',
-                InputAreaConfirmBtnOnClick: () =>
+                InputAreaConfirmBtnOnClick: (userInput:string | null) =>
                 {
                     const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
                     if (!mediaSearchBarInput) return;
-                    const inputPlace = document.getElementById('inputPlace') as HTMLInputElement;
-                    if (!inputPlace || inputPlace.value === '') return;
-                    mediaSearchBarInput.innerHTML = inputPlace.value;
+                    if (!userInput) return;
+                    mediaSearchBarInput.innerHTML = userInput;
                     const SubNavBarItemSearchMusic = document.getElementById('SubNavBarItemSearchMusic');
                     if (!SubNavBarItemSearchMusic) return;
                     const subNavBarItemActive = document.querySelector('.subNavBarItemActive') as HTMLDivElement;
@@ -102,7 +102,7 @@ export class Music
                                 mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1);
                                 return
                             }, {once:true});
-
+                            return
                         }
                         mediaContainer.updatePaginationNotings()
                         const keyword = mediaSearchBarInput.innerHTML;
@@ -193,7 +193,7 @@ export class Music
                                     const sMedia = new Media();
                                     element.playlist.trackIds.forEach((element) =>
                                     {
-                                        const songResource = neteaseMusicAPI.getSongResource(element.id);
+                                        const songResource = neteaseMusicAPI.getSongResource(element.id, 'jymaster');
                                         songResource.then(songResource =>
                                         {
 
@@ -208,7 +208,7 @@ export class Music
                                                 link: `https://music.163.com/#/song?id=${element.id}`,
                                                 url: songResource.url,
                                                 duration: songResource.time / 1000,
-                                                bitRate: songResource.br/1000,
+                                                bitRate: Math.floor(songResource.br / 1000),
                                                 color: 'FFFFFF',
                                                 lyrics: songResource.lrc_control,
                                                 origin: 'netease'
@@ -298,7 +298,7 @@ export class Music
                         const socket = new Socket();
                         const sMedia = new Media();
                         const neteaseMusicAPI = new NeteaseMusicAPI();
-                        const songResource = neteaseMusicAPI.getSongResource(searchDataElement.id, 'exhigh');
+                        const songResource = neteaseMusicAPI.getSongResource(searchDataElement.id, 'jymaster');
                         const updateDom = new UpdateDom();
                         updateDom.changeStatusIIROSE_MEDIA();
                         songResource.then(songResource =>
@@ -313,7 +313,7 @@ export class Music
                                 link: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                                 url: songResource.url,
                                 duration: songDetailElement.songs[0].dt / 1000,
-                                bitRate: songResource.br/1000,
+                                bitRate: Math.floor(songResource.br / 1000),
                                 color: 'FFFFFF',
                                 lyrics: songResource.lrc_control,
                                 origin: 'netease'
@@ -387,7 +387,7 @@ export class Music
                         const socket = new Socket();
                         const sMedia = new Media();
                         const neteaseMusicAPI = new NeteaseMusicAPI();
-                        const songResource = neteaseMusicAPI.getSongResource(mediaItem.id);
+                        const songResource = neteaseMusicAPI.getSongResource(mediaItem.id, 'jymaster');
                         const updateDom = new UpdateDom();
                         updateDom.changeStatusIIROSE_MEDIA();
                         songResource.then(songResource =>
@@ -402,7 +402,7 @@ export class Music
                                 link: `https://music.163.com/#/song?id=${songResource.id}`,
                                 url: songResource.url,
                                 duration: songDetailElement.songs[0].dt / 1000,
-                                bitRate: songResource.br/1000,
+                                bitRate: Math.floor(songResource.br / 1000),
                                 color: 'FFFFFF',
                                 lyrics: songResource.lrc_control,
                                 origin: 'netease'
@@ -466,7 +466,7 @@ export class Music
                                     const sMedia = new Media();
                                     element.playlist.trackIds.forEach((element) =>
                                     {
-                                        const songResource = neteaseMusicAPI.getSongResource(element.id);
+                                        const songResource = neteaseMusicAPI.getSongResource(element.id, 'jymaster');
                                         songResource.then(songResource =>
                                         {
 
@@ -481,7 +481,7 @@ export class Music
                                                 link: `https://music.163.com/#/song?id=${element.id}`,
                                                 url: songResource.url,
                                                 duration: songResource.time / 1000,
-                                                bitRate: songResource.br/1000,
+                                                bitRate: Math.floor(songResource.br / 1000),
                                                 color: 'FFFFFF',
                                                 lyrics: songResource.lrc_control,
                                                 origin: 'netease'

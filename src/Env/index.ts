@@ -28,23 +28,23 @@ export class ENV
 
     private setCors()
     {
-        const ua = navigator.userAgent;
-        const device = window.device;
-        if (device === 7)
-        {
-            if(window.iirosemedia)
-            window.iirosemedia.cors = ``;
-            return;
-        }
-        if (ua.includes('IIROSE'))
-        {
-            if(window.iirosemedia)
-            window.iirosemedia.cors = ``;
-            return;
-        } else {
-            this.selectCorsBySpeed();
-        }
-
+        // const ua = navigator.userAgent;
+        // const device = window.device;
+        // if (device === 7)
+        // {
+        //     if(window.iirosemedia)
+        //     window.iirosemedia.cors = ``;
+        //     return;
+        // }
+        // if (ua.includes('IIROSE'))
+        // {
+        //     if(window.iirosemedia)
+        //     window.iirosemedia.cors = ``;
+        //     return;
+        // } else {
+        //     this.selectCorsBySpeed();
+        // }
+        this.selectCorsBySpeed();
     }
 
     private async selectCorsBySpeed() {

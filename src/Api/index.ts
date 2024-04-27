@@ -1,10 +1,11 @@
 import { GetBiliBiliAccount } from "../Account/GetBiliBili";
-import { showMessage } from "../UpdateDOM/ShowMessage";
+import { showMessage } from "../IIROSE/ShowMessage";
 
 export class SendFetch
 {
     public cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
     public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`
+    public beijingcors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`
     constructor()
     {
         if (window.iirosemedia && window.iirosemedia.cors !== undefined)

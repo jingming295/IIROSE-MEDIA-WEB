@@ -160,7 +160,7 @@ export class BiliBiliLiveApi extends SendFetch
             qn: number | null = null,
         )
     {
-        const url = `${this.malaysiacors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
+        const url = `${this.beijingcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
         const params = new URLSearchParams({
             cid: cid.toString()
         });

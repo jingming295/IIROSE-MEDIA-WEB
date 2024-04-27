@@ -19,16 +19,12 @@ export class IIROSEMEDIA
 
             const iiROSE_MEDIASelectHolder = new IIROSE_MEDIASelectHolder();
             const SelectHolder = iiROSE_MEDIASelectHolder.createIIROSE_MEDIASelectHolder();
-            const iiROSE_MEDIAInput = new IIROSE_MEDIAInput();
-            const iiroseInput = iiROSE_MEDIAInput.createIIROSE_MEDIAInput();
-            
 
             if (mainContainer)
             {
                 const IIROSE_MEDIA = this.createIIROSE_MEDIA();
                 mainContainer.appendChild(IIROSE_MEDIA_CONTAINER);
                 mainContainer.appendChild(SelectHolder)
-                mainContainer.appendChild(iiroseInput)
                 IIROSE_MEDIA_CONTAINER.appendChild(IIROSE_MEDIA);
             }
         }

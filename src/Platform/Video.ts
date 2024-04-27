@@ -11,7 +11,7 @@ import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
-import { showMessage } from "../UpdateDOM/ShowMessage";
+import { showMessage } from "../IIROSE/ShowMessage";
 
 export class Video
 {
@@ -28,18 +28,18 @@ export class Video
         const BilibiliRecommandVideoitem = this.bilibiliRecommendVideoMediaContainerItem();
         return {
             id: 'BilibiliVideo',
+            containerID: 'VideoContainer',
             title: '哔哩哔哩视频 (高清视频未完成)',
             iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/video/bilibili/ic_launcher.png',
             buttonBackgroundColor: 'rgb(209, 79, 118)',
             inputEvent: {
                 title: '请输入搜索关键词',
-                InputAreaConfirmBtnOnClick: () =>
+                InputAreaConfirmBtnOnClick: (userInput:string | null) =>
                 {
                     const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
                     if (!mediaSearchBarInput) return;
-                    const inputPlace = document.getElementById('inputPlace') as HTMLInputElement;
-                    if (!inputPlace || inputPlace.value === '') return;
-                    mediaSearchBarInput.innerHTML = inputPlace.value;
+                    if(!userInput) return;
+                    mediaSearchBarInput.innerHTML = userInput;
                     const SubNavBarItemBilibiliVideo = document.getElementById('SubNavBarItemBilibiliVideo');
                     if (!SubNavBarItemBilibiliVideo) return;
                     const subNavBarItemActive = document.querySelector('.subNavBarItemActive') as HTMLDivElement;
@@ -478,8 +478,8 @@ export class Video
         const x: Promise<MediaContainerItem[] | null>[] = [];
         if (!mediaItems[0].keyword) return x;
         const blsearchResult = await new BiliBiliSearchApi().getSearchRequestByTypeLiveRoom(mediaItems[0].keyword, currentPage, 10);
-        if(!blsearchResult || !blsearchResult.data || !blsearchResult.data.result) return x;
-        
+        if (!blsearchResult || !blsearchResult.data || !blsearchResult.data.result) return x;
+
         for (const result of blsearchResult.data.result)
         {
             const mediaContainerItem = this.processLiveMediaContainerItem(result);
@@ -548,7 +548,8 @@ export class Video
         return Promise.resolve([mediaContainerItem]);
     }
 
-    public async processLiveMediaContainerItem(result: live_roomResult){
+    public async processLiveMediaContainerItem(result: live_roomResult)
+    {
         result.title = result.title.replace(/<[^>]+>/g, '');
         const mediaContainerItem: MediaContainerItem = {
             id: result.roomid,
@@ -564,14 +565,14 @@ export class Video
                 const bl = new BiliBiliLiveApi();
                 const updateDom = new UpdateDom();
                 updateDom.changeStatusIIROSE_MEDIA();
-                const blstream = bl.getLiveStream(result.roomid, 'web', null, 30000);
+                const blstream = bl.getLiveStream(result.roomid, 'h5', null, 30000);
 
-                blstream.then(blstream =>
+                blstream.then(async blstream =>
                 {
                     if (!blstream || !blstream.data || !blstream.data.durl) return null;
                     const sendfetch = new SendFetch();
                     let done = false;
-                    blstream.data.durl.forEach(async (durl, index, array) =>
+                    for (const durl of blstream.data.durl)
                     {
                         const playurlresult = await sendfetch.tryget(durl.url);
                         if (playurlresult && !done && blstream && blstream.data && blstream.data.current_qn)
@@ -592,13 +593,12 @@ export class Video
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
                             done = true;
                         }
-                        if (index === array.length - 1 && !done)
-                        {
-                            const showmessage = new showMessage();
-                            showmessage.showMessage('获取直播流失败');
-                        }
-
-                    })
+                    }
+                    if (!done)
+                    {
+                        const showmessage = new showMessage();
+                        showmessage.showMessage('获取直播流失败');
+                    }
                 });
 
             }

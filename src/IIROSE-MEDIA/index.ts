@@ -4,6 +4,7 @@ import { MediaContainer } from "./MediaContainer";
 import { IIROSE_MEDIASelectHolder } from "./IIROSE_MEDIASelectHolder";
 import { Music } from "../Platform/Music";
 import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
+import { Video } from "../Platform/Video";
 
 export class IIROSEMEDIA
 {
@@ -42,14 +43,14 @@ export class IIROSEMEDIA
         MediaContainerWrapper.classList.add('MediaContainerWrapper');
         MediaContainerWrapper.id = 'MediaContainerWrapper';
 
-        const music = new Music()
+        // const music = new Music()
+        // const platforms = music.music()
 
-        const platforms = music.music()
-
-
+        const video = new Video()
+        const videoPlatforms = video.video()
 
         const mediaContainer = new MediaContainer()
-        MediaContainerWrapper.appendChild(mediaContainer.createMediaCOntainer(platforms, 'MusicContainer'))
+        MediaContainerWrapper.appendChild(mediaContainer.createMediaCOntainer(videoPlatforms, 'VideoContainer'))
         IIROSE_MEDIA.appendChild(MediaContainerWrapper)
 
         return IIROSE_MEDIA;

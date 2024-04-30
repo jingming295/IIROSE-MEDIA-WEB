@@ -19,13 +19,12 @@ export class BiliBiliLoginApi extends SendFetch
 
         const response = await this.sendGet(url, data, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const responseData: qrLogin = await response.json();
             return responseData;
         } else
         {
-            console.log('Warn:', response.statusText);
             return null;
         }
     }
@@ -36,13 +35,12 @@ export class BiliBiliLoginApi extends SendFetch
         const headers = this.returnBilibiliHeaders();
         // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value}; bili_ticket=${CookieData['bili_ticket']?.value};bmg_af_switch=${CookieData['bmg_af_switch']?.value};FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value};browser_resolution=${CookieData['browser_resolution']?.value};header_theme_version=${CookieData['header_theme_version']?.value};home_feed_column=${CookieData['home_feed_column']?.value};bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value};enable_web_push=${CookieData['enable_web_push']?.value};_uuid=${CookieData['_uuid']?.value};b_lsid=${CookieData['b_lsid']?.value};buvid3=${CookieData['buvid3']?.value};b_ut=${CookieData['b_ut']?.value};buvid_fp=${CookieData['buvid_fp']?.value};b_nut=${CookieData['b_nut']?.value};buvid4=${CookieData['buvid4']?.value};`);
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: QRcode = await response.json();
             return data;
         } else
         {
-            console.log('Warn:', response.statusText);
             return null;
         }
     }
@@ -57,7 +55,7 @@ export class BiliBiliLoginApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: Refresh = await response.json();
             if (data.code === 0)
@@ -70,8 +68,7 @@ export class BiliBiliLoginApi extends SendFetch
             }
         } else
         {
-            console.log(`accountStatusAPI: ${response.statusText} code: ${response.status}`);
-            throw new Error(`accountStatusAPI: ${response.statusText} code: ${response.status}`);
+            return null;
         }
     }
 
@@ -84,13 +81,12 @@ export class BiliBiliLoginApi extends SendFetch
         const url = 'https://api.bilibili.com/x/frontend/finger/spi';
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: buvid = await response.json();
             return data;
         } else
         {
-            console.log('Warn:', response.statusText);
             return null;
         }
     }
@@ -356,13 +352,12 @@ export class BiliBiliLoginApi extends SendFetch
 
         });// 这个我不知道怎么弄
         const response = await this.sendPost(url, param, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data = await response.json();
             return data;
         } else
         {
-            console.log('Warn:', response.statusText);
             return null;
         }
     }
@@ -394,7 +389,7 @@ export class BiliBiliLoginApi extends SendFetch
     //     const headers = this.returnBilibiliHeaders(biliBiliSessData);
     //     const response = await this.sendGet(url, new URLSearchParams(''), headers);
 
-    //     if (response.ok)
+    //     if (response && response.ok)
     //     {
     //         const htmlContent = await response.text();
     //         const dom = new JSDOM(htmlContent);
@@ -429,7 +424,7 @@ export class BiliBiliLoginApi extends SendFetch
 
     //     const response = await this.sendPost(url, data, headers);
 
-    //     if (response.ok)
+    //     if (response && response.ok)
     //     {
     //         const data: RefreshCookiedata = await response.json();
     //         const cookies = response.headers.get('set-cookie');
@@ -474,7 +469,7 @@ export class BiliBiliLoginApi extends SendFetch
 
     //     const response = await this.sendPost(url, data, headers);
 
-    //     if (response.ok)
+    //     if (response && response.ok)
     //     {
     //         const responseData: RefreshCookiedata = await response.json();
     //         return responseData;
@@ -490,13 +485,12 @@ export class BiliBiliLoginApi extends SendFetch
         const url = `${this.cors}https://api.bilibili.com/x/web-interface/nav`;
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: NavUserInfo = await response.json();
             return data;
         } else
         {
-            console.log('Warn:', response.statusText);
             return null;
         }
     }

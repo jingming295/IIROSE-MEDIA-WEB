@@ -3,7 +3,7 @@ import { Video } from "../Platform/Video";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
 import { showMessage } from "../IIROSE/ShowMessage";
 import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
-import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem } from "./MediaContainerInterface";
+import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem, SettingContainerNavBarPlatform } from "./MediaContainerInterface";
 import { InputEvent } from "./MediaContainerInterface";
 // import { noloadGifBase64 } from "../ImageTools/Gif";
 export class MediaContainer
@@ -14,6 +14,7 @@ export class MediaContainer
         const MediaContainer = document.createElement('div');
         MediaContainer.id = mediaContainerID;
         MediaContainer.classList.add('MediaContainer');
+
         const MediaSearchBar = this.createMediaSearchBar(platforms[whichPlatform].inputEvent, platforms[whichPlatform].buttonBackgroundColor);
         MediaContainer.appendChild(MediaSearchBar);
 
@@ -28,16 +29,7 @@ export class MediaContainer
 
         return MediaContainer;
     }
-
-    public createSettingContainer(mediaContainerID: string)
-    {
-        const MediaContainer = document.createElement('div');
-        MediaContainer.id = mediaContainerID;
-        MediaContainer.classList.add('MediaContainer');
-
-        return MediaContainer;
-    }
-
+    
     /**
      * 平台的按钮
      * @param platforms 
@@ -68,7 +60,7 @@ export class MediaContainer
             {
                 const prevmediaContainer = Array.from(document.querySelectorAll('.MediaContainer')) as HTMLDivElement[] | null;
                 // if (!prevmediaContainer || prevmediaContainer.id === 'MusicContainer') return;
-                if(!prevmediaContainer || prevmediaContainer.length>1) return;
+                if (!prevmediaContainer || prevmediaContainer.length > 1) return;
                 prevmediaContainer[0].style.opacity = '0';
 
                 // 添加动画结束事件的监听器
@@ -105,7 +97,7 @@ export class MediaContainer
         return PlatFormSelector;
     }
 
-    private createMediaContainerSubNavBar(item: MediaContainerNavBarPlatform[])
+    protected createMediaContainerSubNavBar(item: MediaContainerNavBarPlatform[] | SettingContainerNavBarPlatform[])
     {
         const MediaContainerSubNavBar = document.createElement('div');
         MediaContainerSubNavBar.classList.add('MediaContainerSubNavBar');

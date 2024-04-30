@@ -35,14 +35,13 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: BVideoDetail = await response.json();
             return data;
 
         } else
         {
-            console.log('getBilibiliVideoData:', response.statusText);
             return null;
         }
     }
@@ -87,13 +86,12 @@ export class BiliBiliVideoApi extends SendFetch
         wbidata.wts && params.set('wts', wbidata.wts.toString());
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: BVideoStream = await response.json();
             return data;
         } else
         {
-            console.log('getBilibiliVideoStream:', response.statusText);
             return null;
         }
     }
@@ -116,13 +114,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: BVideoStream = await response.json();
             return data;
         } else
         {
-            console.log(`getBilibiliVideoStreamFromFunctionCompute: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -144,13 +141,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: videoStatus = await response.json();
             return data;
         } else
         {
-            console.log(`getBilibiliVideoStatus: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -178,13 +174,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: Snapshot = await response.json();
             return data;
         } else
         {
-            console.log(`getBilibiliVideoSnapshot: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -214,13 +209,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LikeVideo = await response.json();
             return data;
         } else
         {
-            console.log(`likeOrDislikeBilibiliVideo: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -242,13 +236,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: hasLiked = await response.json();
             return data;
         } else
         {
-            console.log(`checkIsLikedAndUnliked: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -281,13 +274,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: AddCoin = await response.json();
             return data;
         } else
         {
-            console.log(`addCoin: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -309,13 +301,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: isAddedCoin = await response.json();
             return data;
         } else
         {
-            console.log(`checkIsAddedCoin: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -345,13 +336,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: AddFavorite = await response.json();
             return data;
         } else
         {
-            console.log(`addFavorite: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -372,13 +362,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: isAddFavorited = await response.json();
             return data;
         } else
         {
-            console.log(`checkIsFavorite: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -405,13 +394,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: likeTriple = await response.json();
             return data;
         } else
         {
-            console.log(`archiveLikeTriple: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -438,13 +426,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: ShareVideo = await response.json();
             return data;
         } else
         {
-            console.log(`shareVideo: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -465,13 +452,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: VideoTags = await response.json();
             return data;
         } else
         {
-            console.log(`getVideoTags: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -503,13 +489,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LikeTagResult = await response.json();
             return data;
         } else
         {
-            console.log(`likeTag: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -535,13 +520,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LikeTagResult = await response.json();
             return data;
         } else
         {
-            console.log(`dislikeTag: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -564,13 +548,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: RecommandVideo = await response.json();
             return data;
         } else
         {
-            console.log(`getRecommandVideoFromSingleVideo: ${response.statusText} code: ${response.status}`);
             return null;
         }
 
@@ -607,13 +590,12 @@ export class BiliBiliVideoApi extends SendFetch
         const headers = this.returnBilibiliHeaders();
 
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: RecommendVideoFromMainPage = await response.json();
             return data;
         } else
         {
-            console.log(`getRecommendVideoFromMainPage: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -642,13 +624,12 @@ export class BiliBiliVideoApi extends SendFetch
         });
 
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: RecommentShortVideo = await response.json();
             return data;
         } else
         {
-            console.log(`getRecommendShortVideo: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -683,13 +664,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: interactVideoDetail = await response.json();
             return data;
         } else
         {
-            console.log(`getInteractiveVideoDetail: ${response.statusText} code: ${response.status}`);
             return null;
         }
 
@@ -716,13 +696,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: HighEnergyBar = await response.json();
             return data;
         } else
         {
-            console.log(`getHighEnergyBarList: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -751,13 +730,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: reportResult = await response.json();
             return data;
         } else
         {
-            console.log(`setViewHistory: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -818,13 +796,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: reportResult = await response.json();
             return data;
         } else
         {
-            console.log(`postHeartbeat: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -848,13 +825,12 @@ export class BiliBiliVideoApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: OnlineViewer = await response.json();
             return data;
         } else
         {
-            console.log(`getCurrentOnlineViewers: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -892,13 +868,12 @@ export class BiliBiliVideoApi extends SendFetch
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: AIConclusion = await response.json();
             return data;
         } else
         {
-            console.log(`getAIConclusionAboutVideo: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -942,13 +917,12 @@ export class BiliBiliVideoApi extends SendFetch
         headers.set('content-type', 'application/x-www-form-urlencoded');
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: likeAndDislikeAIConclusion = await response.json();
             return data;
         } else
         {
-            console.log(`likeAndDislikeAIConclusion: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -963,13 +937,12 @@ export class BiliBiliVideoApi extends SendFetch
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, new URLSearchParams(), headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: AppealType = await response.json();
             return data;
         } else
         {
-            console.log(`getAppealType: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -998,17 +971,15 @@ export class BiliBiliVideoApi extends SendFetch
         attach && params.set('attach', attach);
 
         const headers = await this.returnBilibiliHeaders();
-        console.log(headers);
         headers.set('content-type', 'application/x-www-form-urlencoded');
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MakeAppealResult = await response.json();
             return data;
         } else
         {
-            console.log(`makeAppeal: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -1042,13 +1013,12 @@ export class BiliBiliVideoApi extends SendFetch
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: SeasonArchives = await response.json();
             return data;
         } else
         {
-            console.log(`getSeasonArchivesList: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }

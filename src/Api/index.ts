@@ -4,8 +4,8 @@ import { showMessage } from "../IIROSE/ShowMessage";
 export class SendFetch
 {
     public cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
-    public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`
-    public beijingcors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`
+    public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
+    public beijingcors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
     constructor()
     {
         if (window.iirosemedia && window.iirosemedia.cors !== undefined)
@@ -13,26 +13,41 @@ export class SendFetch
             this.cors = window.iirosemedia.cors;
         }
     }
-    public async sendGet(url: string, params: URLSearchParams, headers: Headers)
+    public async sendGet(url: string, params: URLSearchParams, headers: Headers, warn:boolean = true)
     {
-        if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+
+        try
         {
-            if(headers.get('cookie-trans')){
-                headers.append('cookie' , headers.get('cookie-trans') as string)
+            if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+            {
+                if (headers.get('cookie-trans'))
+                {
+                    headers.append('cookie', headers.get('cookie-trans') as string);
+                }
             }
-        }
-        const fullUrl = `${url}?${params.toString()}`;
-        const response = await fetch(fullUrl, {
-            method: 'GET',
-            headers: headers,
-        });
+            const fullUrl = `${url}?${params.toString()}`;
+            const response = await fetch(fullUrl, {
+                method: 'GET',
+                headers: headers,
+            });
 
-        if(!response.ok){
-            const showmessage = new showMessage()
-            showmessage.showMessage(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`)
+            if (!response.ok)
+            {
+                const showmessage = new showMessage();
+                showmessage.showMessage(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+            }
+
+            return response;
+        } catch (error)
+        {
+            if(warn){
+                const showmessage = new showMessage();
+                showmessage.showMessage(`GET请求失败，url: ${url} 信息：${error}`);
+            }
+            return null;
         }
 
-        return response;
+
     }
 
     public async sendGetXHR(url: string, params: URLSearchParams, headers: Headers)
@@ -66,34 +81,49 @@ export class SendFetch
     public async sendPost(url: string, params: URLSearchParams | string, headers: Headers)
     {
 
-        if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+        try
         {
-            if(headers.get('cookie-trans')){
-                headers.append('cookie' , headers.get('cookie-trans') as string)
+            if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+            {
+                if (headers.get('cookie-trans'))
+                {
+                    headers.append('cookie', headers.get('cookie-trans') as string);
+                }
             }
-        }
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: headers,
-            body: params
-        });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: params
+            });
 
-        if(!response.ok){
-            const showmessage = new showMessage()
-            showmessage.showMessage(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`)
+            if (!response.ok)
+            {
+                const showmessage = new showMessage();
+                showmessage.showMessage(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+            }
+
+            return response;
+        } catch (error)
+        {
+            const showmessage = new showMessage();
+            showmessage.showMessage(`POST请求失败，url: ${url} 信息：${error}`);
+            return null;
         }
 
-        return response;
+
     }
 
-    public async tryget(url:string){
+    public async tryget(url: string)
+    {
         const response = await fetch(url, {
             method: 'HEAD',
         });
-        if(response.ok){
-            return true
-        } else {
-            return false
+        if (response.ok)
+        {
+            return true;
+        } else
+        {
+            return false;
         }
     }
 
@@ -118,14 +148,17 @@ export class SendFetch
         return headers;
     }
 
-    protected returnBiliBiliHeadersBuvidOnly(){
+    protected returnBiliBiliHeadersBuvidOnly()
+    {
         const headers = new Headers();
         const bilibiliAccount = new GetBiliBiliAccount();
         const account = bilibiliAccount.getBiliBiliAccount();
-        if(account){
+        if (account)
+        {
             headers.append('cookie-trans', `buvid3=${account.buvid3}; buvid4=${account.buvid4};`);
-        } else {
-            headers.append('cookie-trans', `buvid3=1; buvid4=2;`)
+        } else
+        {
+            headers.append('cookie-trans', `buvid3=1; buvid4=2;`);
         }
         headers.set('referer', 'https://www.bilibili.com');
         headers.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36');
@@ -134,10 +167,8 @@ export class SendFetch
 
     protected returnCommonHeaders()
     {
-        
+
         const headers = new Headers();
-        
-        
         return headers;
     }
 

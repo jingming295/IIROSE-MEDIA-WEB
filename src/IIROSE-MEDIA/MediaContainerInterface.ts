@@ -8,6 +8,28 @@ export interface MediaContainerNavBarPlatform{
     inputEvent: InputEvent;
 }
 
+export interface SettingContainerNavBarPlatform{
+    id: string;
+    containerID: string;
+    title: string;
+    iconsrc: string;
+    buttonBackgroundColor: string;
+    subNavBarItems: SettingContainerSubNavBarItem[];
+}
+
+interface SettingContainerSubNavBarItem{
+    title: string;
+    class?: string;
+    id: string;
+    onclick: () => void;
+    item: settingContainerItem[]
+}
+
+export interface settingContainerItem{
+    type:number;
+    cb?: () => void;
+}
+
 interface MediaContainerSubNavBarItem{
     title: string;
     class?: string;

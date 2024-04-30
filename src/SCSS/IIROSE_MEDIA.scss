@@ -498,6 +498,44 @@
 
         }
 
+        .SettingContainerContent{
+          position: relative;
+          overflow-y: auto;
+          overflow-x: auto;
+          box-sizing: border-box;
+          padding: 12px;
+          // height: 100%;
+          transition: all .25s ease-in-out;
+
+          .scWrapper{
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            .scTitle, .scHelpText{
+              font-size: 16px;
+              color: rgba(0, 0, 0, 0.50);
+            }
+
+            .scButton{
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              padding: 6px 16px;
+              margin: 6px 0 3px;
+              font-size: 14px;
+              background-color: rgba(0, 0, 0, .5);
+              color: #fff;
+              transition: all .5s ease-in-out;
+            }
+
+            .scButton:hover{
+              opacity: .7;
+            }
+
+          }
+        }
 
       }
     }

@@ -31,14 +31,13 @@ export class BiliBiliSearchApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: SearchRequest = await response.json();
             return data;
 
         } else
         {
-            console.log(`getSearchRequestAll: ${response.statusText} code: ${response.status}`);
             return null;
         }
 
@@ -93,14 +92,13 @@ export class BiliBiliSearchApi extends SendFetch
 
         const headers = this.returnBiliBiliHeadersBuvidOnly();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data = await response.json();
             return data;
 
         } else
         {
-            console.log(`getSearchRequestByType: ${response.statusText} code: ${response.status}`);
             return null;
         }
 

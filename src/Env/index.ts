@@ -1,4 +1,5 @@
 import { SendFetch } from "../Api";
+import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
 // 全局声明，告诉 TypeScript window 具有 iirosemedia 属性
 declare global {
     interface Window {
@@ -13,6 +14,10 @@ declare global {
                 fresh_idx: number
                 brush:number
             }
+        };
+        netease?:{
+            xc?: boolean;
+            iarc?: boolean;
         }
     }
 }
@@ -22,8 +27,12 @@ export class ENV
     public setEnv()
     {
         window.iirosemedia = {};
+        window.netease = {};
+        window.netease.xc = false
+        window.netease.iarc = false
         this.setBilibiliRcmdVideo()
         this.setCors();
+        this.setNetease();
     }
 
     private setCors()
@@ -81,6 +90,15 @@ export class ENV
                 fresh_idx: 1,
                 brush: 0
             }
+        }
+    }
+
+    private async setNetease(){
+        const neteaseMusicAPI = new NeteaseMusicAPI();
+        const xc = await neteaseMusicAPI.testGetSongResource()
+        if(xc){
+            if(window.netease)
+            window.netease.xc = true;
         }
     }
 }

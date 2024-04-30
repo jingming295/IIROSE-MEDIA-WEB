@@ -32,7 +32,7 @@ export class Music
             buttonBackgroundColor: 'rgb(221, 28, 4)',
             inputEvent: {
                 title: '请输入搜索关键词',
-                InputAreaConfirmBtnOnClick: (userInput:string | null) =>
+                InputAreaConfirmBtnOnClick: (userInput: string | null) =>
                 {
                     const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
                     if (!mediaSearchBarInput) return;
@@ -41,11 +41,12 @@ export class Music
                     const SubNavBarItemSearchMusic = document.getElementById('SubNavBarItemSearchMusic');
                     if (!SubNavBarItemSearchMusic) return;
                     const subNavBarItemActive = document.querySelector('.subNavBarItemActive') as HTMLDivElement;
-                    if(subNavBarItemActive){
-                        if(subNavBarItemActive.classList.contains('SubNavBarItemSearch')) subNavBarItemActive.click();
+                    if (subNavBarItemActive)
+                    {
+                        if (subNavBarItemActive.classList.contains('SubNavBarItemSearch')) subNavBarItemActive.click();
                         else SubNavBarItemSearchMusic.click();
                     } else SubNavBarItemSearchMusic.click();
-                    
+
                 }
             },
             subNavBarItems: [
@@ -58,7 +59,7 @@ export class Music
                         const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
                         const MediaContainerContent = document.getElementById('MediaContainerContent');
                         if (!MediaContainerContent) return;
-                        mediaContainer.updatePaginationNotings()
+                        mediaContainer.updatePaginationNotings();
                         const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
                         const parent = MediaContainerContent.parentElement;
                         MediaContainerContent.style.opacity = '0';
@@ -93,18 +94,20 @@ export class Music
 
                         const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
                         if (!mediaSearchBarInput) return;
-                        if (mediaSearchBarInput.innerHTML === '') {
+                        if (mediaSearchBarInput.innerHTML === '')
+                        {
                             const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
-                            if(containerMsgWrapper) return;
-                            MediaContainerContent.style.opacity = '0'
-                            MediaContainerContent.addEventListener('transitionend', function(){
+                            if (containerMsgWrapper) return;
+                            MediaContainerContent.style.opacity = '0';
+                            MediaContainerContent.addEventListener('transitionend', function ()
+                            {
                                 const mediaContainerDisplay = new MediaContainerDisplay();
                                 mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1);
-                                return
-                            }, {once:true});
-                            return
+                                return;
+                            }, { once: true });
+                            return;
                         }
-                        mediaContainer.updatePaginationNotings()
+                        mediaContainer.updatePaginationNotings();
                         const keyword = mediaSearchBarInput.innerHTML;
                         const NeteaseSearchMediaContainerItem = this.NeteaseSearchMediaContainerItem(keyword);
                         const newMediaContainerContent = mediaContainer.createMediaContainerContent(NeteaseSearchMediaContainerItem, 'rgb(221, 28, 4)');
@@ -131,11 +134,12 @@ export class Music
 
                 }
             ]
-        }
+        };
     }
 
     private formatMillisecondsToMinutes(milliseconds: number): string
     {
+        milliseconds = milliseconds * 1000;
         const totalSeconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
@@ -158,7 +162,7 @@ export class Music
 
         let index = 0;
 
-        
+
         if (!RecommandPlayList || !RecommandPlayList.result) return null;
         for (const resultElement of RecommandPlayList.result)
         {
@@ -168,12 +172,15 @@ export class Music
             const PromiseMediaContainerItem = songListDetail.then(songListDetailElement =>
             {
                 if (!songListDetailElement || !songListDetailElement.playlist.creator) return null;
+
+                const author = songListDetailElement.playlist.creator.nickname;
+
                 const item: MediaContainerItem = {
                     id: resultElement.id || 0,
                     title: resultElement.name,
                     img: resultElement.picUrl,
                     url: `https://music.163.com/#/playlist?id=${resultElement.id}`,
-                    author: songListDetailElement.playlist.creator.nickname,
+                    author: author,
                     duration: `歌单/${resultElement.trackCount}首`,
                     MediaRequest: () =>
                     {
@@ -185,7 +192,6 @@ export class Music
                             {
                                 const neteaseMusicAPI = new NeteaseMusicAPI();
                                 const data = neteaseMusicAPI.getSongListDetail(resultElement.id);
-                                let count = 0;
                                 data.then(element =>
                                 {
                                     if (!element) return;
@@ -193,38 +199,46 @@ export class Music
                                     const sMedia = new Media();
                                     element.playlist.trackIds.forEach((element) =>
                                     {
-                                        const songResource = neteaseMusicAPI.getSongResource(element.id, 'jymaster');
-                                        songResource.then(songResource =>
+                                        const songDetail = this.processSongDetail(element.id);
+                                        const songResource = this.ProcessSongResource(element.id);
+                                        songDetail.then(songDetailElement =>
                                         {
+                                            songResource.then(songResource =>
+                                            {
 
-                                            if (!element) return;
-                                            if (!songResource) return;
-                                            console.log(count += 1);
-                                            const mediaData: MediaData = {
-                                                type: 'music',
-                                                name: songResource.name,
-                                                singer: songResource.auther,
-                                                cover: songResource.pic,
-                                                link: `https://music.163.com/#/song?id=${element.id}`,
-                                                url: songResource.url,
-                                                duration: songResource.time / 1000,
-                                                bitRate: Math.floor(songResource.br / 1000),
-                                                color: 'FFFFFF',
-                                                lyrics: songResource.lrc_control,
-                                                origin: 'netease'
-                                            }
-                                            // 开了这个，速度大打折扣
-                                            // const iImageTools = new ImageTools()
-                                            // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
-                                            //     mediaData.color = color
-                                            //     console.log(color)
-                                            //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
-                                            // })
-                                            // console.log(mediaData)
-                                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                                                if (!element) return;
+                                                if (!songResource) return;
+                                                if (!songDetailElement) return;
+                                                const name = songDetailElement.singer;
+                                                const pic = songDetailElement.cover;
+                                                const duration = songDetailElement.duration;
+                                                const mediaData: MediaData = {
+                                                    type: 'music',
+                                                    name: name,
+                                                    singer: author,
+                                                    cover: pic,
+                                                    link: `https://music.163.com/#/song?id=${element.id}`,
+                                                    url: songResource.url,
+                                                    duration: duration,
+                                                    bitRate: songResource.br,
+                                                    color: 'FFFFFF',
+                                                    lyrics: songResource.lyric,
+                                                    origin: 'netease'
+                                                };
+                                                // 开了这个，速度大打折扣
+                                                // const iImageTools = new ImageTools()
+                                                // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
+                                                //     mediaData.color = color
+                                                //     console.log(color)
+                                                //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
+                                                // })
+                                                // console.log(mediaData)
+                                                socket.sendMessage(sMedia.mediaCard(mediaData));
+                                                socket.sendMessage(sMedia.mediaEvent(mediaData));
 
+                                            });
                                         });
+
 
 
                                     });
@@ -241,7 +255,7 @@ export class Music
                         }];
                         iiROSE_MEDIASelectHolder.showIIROSE_MEDIASelectHolder(item);
                     }
-                }
+                };
                 mediaContainerItem.push(item);
                 return mediaContainerItem;
             });
@@ -259,7 +273,7 @@ export class Music
                 title: element.name,
                 img: element.picUrl,
                 url: `https://music.163.com/#/playlist?id=${element.id}`,
-            }
+            };
         });
         mediaContainer.updatePaginationNeteasePlayList(1, mediaItem);
         return x;
@@ -282,48 +296,53 @@ export class Music
         {
             const mediaContainerItem: MediaContainerItem[] = [];
             const neteaseMusicApi = new NeteaseMusicAPI();
-            const songDetail = neteaseMusicApi.getNeteaseSongDetailFromXC(searchDataElement.id);
+            const songDetail = this.processSongDetail(searchDataElement.id);
             const PromiseMediaContainerItem = songDetail.then(songDetailElement =>
             {
-                if (!songDetailElement || !songDetailElement.songs) return null;
+                if (!songDetailElement) return null;
+                // const singer = songDetailElement.songs[0].ar[0].name
+                // const img = songDetailElement.songs[0].al.picUrl
+                // const duration = songDetailElement.songs[0].dt
+                const singer = songDetailElement.singer;
+                const img = songDetailElement.cover;
+                const duration = songDetailElement.duration;
                 mediaContainerItem[0] = {
                     id: searchDataElement.id,
                     title: searchDataElement.name,
-                    img: songDetailElement.songs[0].al.picUrl,
+                    img: img,
                     url: `https://music.163.com/#/song?id=${searchDataElement.id}`,
-                    author: songDetailElement.songs[0].ar[0].name,
-                    duration: this.formatMillisecondsToMinutes(songDetailElement.songs[0].dt),
+                    author: singer,
+                    duration: this.formatMillisecondsToMinutes(duration),
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
                         const sMedia = new Media();
-                        const neteaseMusicAPI = new NeteaseMusicAPI();
-                        const songResource = neteaseMusicAPI.getSongResource(searchDataElement.id, 'jymaster');
                         const updateDom = new UpdateDom();
                         updateDom.changeStatusIIROSE_MEDIA();
+                        const songResource = this.ProcessSongResource(searchDataElement.id);
                         songResource.then(songResource =>
                         {
-                            if (!songDetailElement || !songDetailElement.songs) return null;
+                            if (!songDetailElement) return null;
                             if (!songResource) return null;
                             const mediaData: MediaData = {
                                 type: 'music',
                                 name: searchDataElement.name,
-                                singer: songDetailElement.songs[0].ar[0].name,
-                                cover: songDetailElement.songs[0].al.picUrl,
+                                singer: singer,
+                                cover: img,
                                 link: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                                 url: songResource.url,
-                                duration: songDetailElement.songs[0].dt / 1000,
-                                bitRate: Math.floor(songResource.br / 1000),
+                                duration: duration,
+                                bitRate: songResource.br,
                                 color: 'FFFFFF',
-                                lyrics: songResource.lrc_control,
+                                lyrics: songResource.lyric,
                                 origin: 'netease'
-                            }
+                            };
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                         });
                     }
-                }
+                };
                 return mediaContainerItem;
             });
             x.push(PromiseMediaContainerItem);
@@ -347,7 +366,7 @@ export class Music
                 title: element.name,
                 author: element.artists[0].name,
                 duration: this.formatMillisecondsToMinutes(element.duration),
-            }
+            };
         });
         mediaContainer.updatePaginationNeteaseMusic(1, MediaItem);
         return x;
@@ -371,48 +390,54 @@ export class Music
         mediaItems.forEach((mediaItem, index) =>
         {
             if (index === itemPerPage) return;
-            const songDetail = neteaseMusicAPI.getNeteaseSongDetailFromXC(mediaItem.id);
+            const songDetail = this.processSongDetail(mediaItem.id);
             const PromiseMediaContainerItem = songDetail.then(songDetailElement =>
             {
-                if (!songDetailElement || !songDetailElement.songs) return null;
+                if (!songDetailElement) return null;
+                const singer = songDetailElement.singer;
+                const img = songDetailElement.cover;
+                const duration = songDetailElement.duration;
+                const name = songDetailElement.name;
                 mediaContainerItem[0] = {
                     id: mediaItem.id,
-                    title: songDetailElement.songs[0].name,
-                    img: songDetailElement.songs[0].al.picUrl,
+                    title: songDetailElement.name,
+                    img: img,
                     url: `https://music.163.com/#/song?id=${mediaItem.id}`,
-                    author: songDetailElement.songs[0].ar[0].name,
-                    duration: this.formatMillisecondsToMinutes(songDetailElement.songs[0].dt),
+                    author: singer,
+                    duration: this.formatMillisecondsToMinutes(duration),
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
                         const sMedia = new Media();
-                        const neteaseMusicAPI = new NeteaseMusicAPI();
-                        const songResource = neteaseMusicAPI.getSongResource(mediaItem.id, 'jymaster');
                         const updateDom = new UpdateDom();
                         updateDom.changeStatusIIROSE_MEDIA();
-                        songResource.then(songResource =>
+
+                        const sr = this.ProcessSongResource(mediaItem.id);
+
+                        sr.then((data) =>
                         {
-                            if (!songDetailElement || !songDetailElement.songs) return null;
-                            if (!songResource) return null;
+                            if (!data) return;
+
                             const mediaData: MediaData = {
                                 type: 'music',
-                                name: songResource.name,
-                                singer: songDetailElement.songs[0].ar[0].name,
-                                cover: songDetailElement.songs[0].al.picUrl,
-                                link: `https://music.163.com/#/song?id=${songResource.id}`,
-                                url: songResource.url,
-                                duration: songDetailElement.songs[0].dt / 1000,
-                                bitRate: Math.floor(songResource.br / 1000),
+                                name: name,
+                                singer: singer,
+                                cover: img,
+                                link: `https://music.163.com/#/song?id=${mediaItem.id}`,
+                                url: data.url,
+                                duration: duration,
+                                bitRate: data.br,
                                 color: 'FFFFFF',
-                                lyrics: songResource.lrc_control,
+                                lyrics: data.lyric,
                                 origin: 'netease'
-                            }
+                            };
+
                             socket.sendMessage(sMedia.mediaCard(mediaData));
                             socket.sendMessage(sMedia.mediaEvent(mediaData));
 
                         });
                     }
-                }
+                };
                 console.log(mediaContainerItem[0].title);
                 return mediaContainerItem;
             });
@@ -428,7 +453,8 @@ export class Music
      * @param ids 
      * @returns 
      */
-    public async NeteaseRecommendSongListMediaContainerItemByIDs(currentPage: number, mediaItems: MediaItem[]){
+    public async NeteaseRecommendSongListMediaContainerItemByIDs(currentPage: number, mediaItems: MediaItem[])
+    {
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
@@ -466,38 +492,44 @@ export class Music
                                     const sMedia = new Media();
                                     element.playlist.trackIds.forEach((element) =>
                                     {
-                                        const songResource = neteaseMusicAPI.getSongResource(element.id, 'jymaster');
-                                        songResource.then(songResource =>
+                                        const songResource = this.ProcessSongResource(element.id);
+                                        const songdetail = this.processSongDetail(element.id);
+                                        songdetail.then(songDetailElement =>
                                         {
+                                            songResource.then(songResource =>
+                                            {
 
-                                            if (!element) return;
-                                            if (!songResource) return;
-                                            console.log(count += 1);
-                                            const mediaData: MediaData = {
-                                                type: 'music',
-                                                name: songResource.name,
-                                                singer: songResource.auther,
-                                                cover: songResource.pic,
-                                                link: `https://music.163.com/#/song?id=${element.id}`,
-                                                url: songResource.url,
-                                                duration: songResource.time / 1000,
-                                                bitRate: Math.floor(songResource.br / 1000),
-                                                color: 'FFFFFF',
-                                                lyrics: songResource.lrc_control,
-                                                origin: 'netease'
-                                            }
-                                            // 开了这个，速度大打折扣
-                                            // const iImageTools = new ImageTools()
-                                            // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
-                                            //     mediaData.color = color
-                                            //     console.log(color)
-                                            //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
-                                            // })
-                                            // console.log(mediaData)
-                                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                                                if (!element) return;
+                                                if (!songResource) return;
+                                                if (!songdetail) return;
+                                                console.log(count += 1);
+                                                const mediaData: MediaData = {
+                                                    type: 'music',
+                                                    name: songDetailElement.name,
+                                                    singer: songDetailElement.singer,
+                                                    cover: songDetailElement.cover,
+                                                    link: `https://music.163.com/#/song?id=${element.id}`,
+                                                    url: songResource.url,
+                                                    duration: songDetailElement.duration,
+                                                    bitRate: songResource.br,
+                                                    color: 'FFFFFF',
+                                                    lyrics: songResource.lyric,
+                                                    origin: 'netease'
+                                                };
+                                                // 开了这个，速度大打折扣
+                                                // const iImageTools = new ImageTools()
+                                                // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
+                                                //     mediaData.color = color
+                                                //     console.log(color)
+                                                //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
+                                                // })
+                                                // console.log(mediaData)
+                                                socket.sendMessage(sMedia.mediaCard(mediaData));
+                                                socket.sendMessage(sMedia.mediaEvent(mediaData));
 
+                                            });
                                         });
+
 
 
                                     });
@@ -514,7 +546,7 @@ export class Music
                         }];
                         iiROSE_MEDIASelectHolder.showIIROSE_MEDIASelectHolder(item);
                     }
-                }
+                };
                 mediaContainerItem.push(item);
                 return mediaContainerItem;
             });
@@ -522,4 +554,135 @@ export class Music
         }
         return x;
     }
+
+    public async ProcessSongResource(id: number)
+    {
+        const neteaseMusicAPI = new NeteaseMusicAPI();
+        if (window.netease && window.netease.xc)
+        {
+
+            const songResource = await neteaseMusicAPI.getSongResource(id, 'jymaster');
+            if (!songResource) return null;
+
+            const url = songResource.url;
+            const lyric = songResource.lrc_control;
+            const br = Math.floor(songResource.br / 1000);
+
+            return { url, lyric, br };
+        } else
+        {
+            const url = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/https://v.iarc.top//?server=netease&type=url&id=${id}#.mp3`;
+            const br = 320;
+            let lyric = ``;
+            const lyrdata = await neteaseMusicAPI.getLyric(id);
+            if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
+            {
+                lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
+            } else if (lyrdata && lyrdata.lrc)
+            {
+                lyric = lyrdata.lrc.lyric;
+            }
+
+            return { url, lyric, br };
+        }
+
+
+    }
+
+    private mergeLyrics(jpLyrics: string, cnLyrics: string): string
+    {
+        const jpLines = jpLyrics.split('\n');
+        const cnLines = cnLyrics.split('\n');
+
+        const jpEntries: { [key: string]: string; } = {};
+        const cnEntries: { [key: string]: string; } = {};
+
+        // Parse Japanese lyrics
+        for (const line of jpLines)
+        {
+            const timeRegex = /\[(\d+:\d+\.\d+)\]/;
+            const timeMatch = line.match(timeRegex);
+            if (timeMatch)
+            {
+                const time = timeMatch[1];
+                const content = line.replace(timeRegex, '').trim();
+                jpEntries[time] = content;
+            }
+        }
+
+        // Parse Chinese lyrics
+        for (const line of cnLines)
+        {
+            const timeRegex = /\[(\d+:\d+\.\d+)\]/;
+            const timeMatch = line.match(timeRegex);
+            if (timeMatch)
+            {
+                const time = timeMatch[1];
+                const content = line.replace(timeRegex, '').trim();
+                cnEntries[time] = content;
+            }
+        }
+
+        // Merge and format
+        const mergedLines: { time: string; content: string; translation: string; }[] = [];
+        for (const time in jpEntries)
+        {
+            const jpContent = jpEntries[time];
+            const cnContent = cnEntries[time] || ''; // Use empty string if no translation
+
+            mergedLines.push({ time, content: jpContent, translation: cnContent });
+        }
+
+        // Format the merged lines
+        const mergedOutput = mergedLines.map(line =>
+        {
+            const { time, content, translation } = line;
+            let outputLine = `[${time}] ${content}`;
+            if (translation)
+            {
+                outputLine += ` | ${translation}`;
+            }
+            return outputLine;
+        }).join('\n');
+
+        return mergedOutput;
+    }
+
+    public async processSongDetail(id: number)
+    {
+        const neteaseMusicAPI = new NeteaseMusicAPI();
+        const songDetail = await neteaseMusicAPI.getNeteaseSongDetailFromXC(id);
+
+        let name = '';
+        let singer = '';
+        let cover = '';
+        let duration = 0;
+
+        if (songDetail)
+        {
+            if (songDetail && songDetail.songs)
+            {
+                name = songDetail.songs[0].name;
+                singer = songDetail.songs[0].ar[0].name;
+                cover = songDetail.songs[0].al.picUrl;
+                duration = songDetail.songs[0].dt + 2000 / 1000;
+            }
+        } else
+        {
+            const songDetail = await neteaseMusicAPI.getNeteaseSongDetail(id);
+            if (songDetail)
+            {
+                if (songDetail && songDetail.songs)
+                {
+                    name = songDetail.songs[0].name;
+                    singer = songDetail.songs[0].artists[0].name;
+                    cover = songDetail.songs[0].album.picUrl;
+                    duration = songDetail.songs[0].duration + 2000 / 1000;
+                }
+            }
+        }
+        return { name, singer, cover, duration };
+
+    }
+
 }

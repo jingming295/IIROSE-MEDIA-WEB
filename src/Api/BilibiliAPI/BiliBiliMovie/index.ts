@@ -15,13 +15,12 @@ export class BiliBiliMovieApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MovieDetailMDID = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieDetailMDID: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -48,13 +47,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MovieDetailEPSS = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieDetailEPSS: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -67,13 +65,12 @@ export class BiliBiliMovieApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MovieSeasonSection = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieSeasonSection: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -119,13 +116,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MovieStreamFormat = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieStream: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -153,13 +149,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: MovieStreamFormat = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieStreamFromFunctionCompute: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -187,13 +182,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data:TimeLine = await response.json();
             return data;
         } else
         {
-            console.log(`getMovieTimeLine: ${response.statusText} code: ${response.status}`);
             return null;
         }
 
@@ -212,13 +206,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data:FollowMovie = await response.json();
             return data;
         } else
         {
-            console.log(`followMovie: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -236,13 +229,12 @@ export class BiliBiliMovieApi extends SendFetch
 
         const response = await this.sendPost(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data:FollowMovie = await response.json();
             return data;
         } else
         {
-            console.log(`unfollowMovie: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }

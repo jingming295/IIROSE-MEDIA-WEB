@@ -1,5 +1,5 @@
 import { MusicMediaContainer } from "../UpdateDOM/MusicMediaContainer";
-import { SettingContainer } from "../UpdateDOM/SettingContainer";
+import { MediaSettingContainer } from "../UpdateDOM/SettingContainer";
 import { VideoMediaContainer } from "../UpdateDOM/VideoMediaContainer";
 import { UpdateDom } from "../UpdateDOM/index";
 
@@ -134,7 +134,7 @@ export class CreateNavBar
             ButtonID: 'MusicButton',
             IconID: 'MusicIcon',
             Text: '音乐',
-            active: true,
+            active: false,
             onClick: () =>
             {
                 const musicMediaContainer = new MusicMediaContainer();
@@ -145,6 +145,7 @@ export class CreateNavBar
             ButtonID: 'VideoButton',
             IconID: 'VideoIcon',
             Text: '视频',
+            active: true,
             onClick: () =>
             {
                 const videoMediaContainer = new VideoMediaContainer();
@@ -158,7 +159,7 @@ export class CreateNavBar
             onClick: () =>
             {
                 console.log('设置')
-                const settingContainer = new SettingContainer()
+                const settingContainer = new MediaSettingContainer()
                 settingContainer.showSettingContainer()
             }
         }];

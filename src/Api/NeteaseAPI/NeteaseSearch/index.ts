@@ -113,7 +113,6 @@ export class NeteaseSearchAPI extends SendFetch
             return data;
         } else
         {
-            console.log(response.status, response.statusText)
             return null;
         }
 

@@ -17,13 +17,12 @@ export class BiliBiliLiveApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LiveRoomDetail = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveRoomDetail: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -42,13 +41,12 @@ export class BiliBiliLiveApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LiveRoomStatus = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveRoomStatusByMid: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -66,13 +64,12 @@ export class BiliBiliLiveApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LiveRoomInitDetail = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveRoomInitDetail: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -90,13 +87,12 @@ export class BiliBiliLiveApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LiveUserDetail = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveUserDetail: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -141,13 +137,12 @@ export class BiliBiliLiveApi extends SendFetch
         });
         const headers = this.returnBilibiliHeaders();
         const response = await this.sendGet(url, params, headers);
-        if (response.ok)
+        if (response && response.ok)
         {
             const data: LiveRoomPlayInfoDetail = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveRoomPlayInfo: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }
@@ -172,13 +167,12 @@ export class BiliBiliLiveApi extends SendFetch
 
         const response = await this.sendGet(url, params, headers);
 
-        if (response.ok)
+        if (response && response.ok)
         {
             const data:LiveStream = await response.json();
             return data;
         } else
         {
-            console.log(`getLiveStream: ${response.statusText} code: ${response.status}`);
             return null;
         }
     }

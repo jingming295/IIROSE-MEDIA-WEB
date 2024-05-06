@@ -103,7 +103,8 @@ class RSAKeyPair
         let d, e, b = new BigInt(), c = a.length;
         for (d = c, e = 0; d > 0; d -= 4, ++e)
             if (b.digits)
-                b.digits[e] = this.hexToDigit(a.substr(Math.max(d - 4, 0), Math.min(d, 4)));
+                // b.digits[e] = this.hexToDigit(a.substr(Math.max(d - 4, 0), Math.min(d, 4)));
+                b.digits[e] = this.hexToDigit(a.substring(Math.max(d - 4, 0), d));
         return b;
 
     }

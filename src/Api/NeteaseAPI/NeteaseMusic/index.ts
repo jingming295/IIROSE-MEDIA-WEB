@@ -5,6 +5,11 @@ import { Lyric, SongList, xcSongResource } from "./SongList";
 export class NeteaseMusicAPI extends SendFetch
 {
 
+    /**
+     * 直接访问网易云音乐的接口获取歌单详情
+     * @param id 
+     * @returns 
+     */
     public async getSongListDetail(id: number)
     {
         const url = `${this.cors}https://music.163.com/api/v6/playlist/detail`;
@@ -28,6 +33,12 @@ export class NeteaseMusicAPI extends SendFetch
 
     }
 
+    /**
+     * 直接访问网易云音乐的接口获取歌曲详情
+     * @param id 
+     * @param corsnum 
+     * @returns 
+     */
     public async getNeteaseSongDetail(id: number, corsnum: number = 0): Promise<SongDetail | null>
     {
         const cors = [this.beijingcors, this.malaysiacors];
@@ -51,11 +62,7 @@ export class NeteaseMusicAPI extends SendFetch
             const timeout = 2000;
             setTimeout(() => controller.abort(), timeout);
 
-            const response = await fetch(url.toString(), {
-                method: 'GET',
-                headers: headers,
-                signal: signal
-            });
+            const response = await this.sendGet(url.toString(), params, headers, true, signal);
 
             if (response && response.ok)
             {
@@ -73,21 +80,26 @@ export class NeteaseMusicAPI extends SendFetch
             }
         } catch (error)
         {
-            console.error('发生错误：', error);
+            if (corsnum < cors.length - 1)
+            {
+                return this.getNeteaseSongDetail(id, corsnum + 1);
+            }
+            console.error(`发生错误, 目前是第 ${corsnum} 个 CORS 地址`);
             return null;
         }
     }
 
-
-
+    /**
+     * 访问小草的网易云音乐接口获取歌曲详情
+     * @param id 
+     * @returns 
+     */
     public async getNeteaseSongDetailFromXC(id: number)
     {
         const url = new URL(`https://xc.null.red:8043/api/netease/song/detail`);
         const params = new URLSearchParams({
             ids: id.toString(),
         });
-
-        url.search = params.toString();
 
         const headers = new Headers();
         headers.append('Referer', 'https://music.163.com/');
@@ -102,13 +114,9 @@ export class NeteaseMusicAPI extends SendFetch
 
         try
         {
-            const response = await fetch(url.toString(), {
-                method: 'GET',
-                headers: headers,
-                signal: signal // 将 signal 参数传递给 fetch 方法
-            });
+            const response = await this.sendGet(url.toString(), params, headers, false, signal);
 
-            if (response.ok)
+            if (response && response.ok)
             {
                 const data: SongDetailFromXC = await response.json();
                 return data;
@@ -122,7 +130,11 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-
+    /**
+     * 访问小草的网易云音乐接口获取歌单详情
+     * @param id 
+     * @returns 
+     */
     public async getNeteaseSongListDetailFromXC(id: number)
     {
         const url = `https://xc.null.red:8043/api/netease/playlist/detail`;
@@ -145,7 +157,7 @@ export class NeteaseMusicAPI extends SendFetch
     }
 
     /**
-     * 
+     * 访问小草的网易云音乐接口获取歌曲链接等信息
      * @param id 
      * @param level standard 标准品质-128k higher 较高品质-192k exhigh 极高品质-320k lossless 无损品质 hires hires品质 jyeffect 高清环绕声 sky 沉浸环绕声 jymaster 超清母带
      * @returns 
@@ -164,20 +176,15 @@ export class NeteaseMusicAPI extends SendFetch
         type && params.append('type', type.toString());
         const headers = new Headers();
         headers.append('Referer', 'https://music.163.com/');
-
         // 创建 AbortController 实例
         const controller = new AbortController();
         const signal = controller.signal;
 
         // 设置超时时间为 2 秒
-        const timeout = 2000;
+        const timeout = 3000;
         setTimeout(() => controller.abort(), timeout);
 
-        const response = await fetch(url.toString(), {
-            method: 'GET',
-            headers: headers,
-            signal: signal
-        });
+        const response = await this.sendGet(url.toString(), params, headers, false, signal);
 
         if (response && response.ok)
         {
@@ -189,7 +196,6 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
     }
-
 
     public async testGetSongResource()
     {
@@ -208,7 +214,7 @@ export class NeteaseMusicAPI extends SendFetch
         const signal = controller.signal;
 
         // 设置超时时间（毫秒）
-        const timeout = 2000; // 2秒超时
+        const timeout = 5000; // 2秒超时
 
         // 设置超时任务
         const timeoutId = setTimeout(() =>
@@ -219,10 +225,7 @@ export class NeteaseMusicAPI extends SendFetch
         try
         {
             // 发送 GET 请求
-            const response = await fetch(url + '?' + params.toString(), {
-                headers,
-                signal // 传入信号对象
-            });
+            const response = await this.sendGet(url, params, headers, false, signal);
 
             clearTimeout(timeoutId); // 清除超时任务
 
@@ -239,7 +242,6 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
     }
-
 
     public async getLyric(id: number)
     {
@@ -265,7 +267,6 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
     }
-
 
     public imoeGetSongResource = async (id: number) =>
     {

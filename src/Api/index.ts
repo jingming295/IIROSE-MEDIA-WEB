@@ -1,5 +1,6 @@
+import { BilibiliACC } from "../Account/BilibiliAccountInterface";
 import { GetBiliBiliAccount } from "../Account/GetBiliBili";
-import { showMessage } from "../IIROSE/ShowMessage";
+import { ShowMessage } from "../IIROSE/ShowMessage";
 
 export class SendFetch
 {
@@ -13,9 +14,8 @@ export class SendFetch
             this.cors = window.iirosemedia.cors;
         }
     }
-    public async sendGet(url: string, params: URLSearchParams, headers: Headers, warn:boolean = true)
+    public async sendGet(url: string, params: URLSearchParams, headers: Headers, warn: boolean = true, signal?: AbortSignal)
     {
-
         try
         {
             if (window.iirosemedia && window.iirosemedia.cors !== undefined)
@@ -29,25 +29,26 @@ export class SendFetch
             const response = await fetch(fullUrl, {
                 method: 'GET',
                 headers: headers,
+                signal: signal
             });
 
             if (!response.ok)
             {
-                const showmessage = new showMessage();
-                showmessage.showMessage(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+                const showmessage = new ShowMessage();
+                showmessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
             }
 
             return response;
         } catch (error)
         {
-            if(warn){
-                const showmessage = new showMessage();
-                showmessage.showMessage(`GET请求失败，url: ${url} 信息：${error}`);
+            if (warn)
+            {
+                const showmessage = new ShowMessage();
+                showmessage.show(`GET请求失败，url: ${url} 信息：${error}`);
+                console.log(`GET请求失败，url: ${url} 信息：${error}`);
             }
             return null;
         }
-
-
     }
 
     public async sendGetXHR(url: string, params: URLSearchParams, headers: Headers)
@@ -98,15 +99,15 @@ export class SendFetch
 
             if (!response.ok)
             {
-                const showmessage = new showMessage();
-                showmessage.showMessage(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+                const showmessage = new ShowMessage();
+                showmessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
             }
 
             return response;
         } catch (error)
         {
-            const showmessage = new showMessage();
-            showmessage.showMessage(`POST请求失败，url: ${url} 信息：${error}`);
+            const showmessage = new ShowMessage();
+            showmessage.show(`POST请求失败，url: ${url} 信息：${error}`);
             return null;
         }
 
@@ -145,6 +146,24 @@ export class SendFetch
         const headers = new Headers();
         headers.set('referer', 'https://www.bilibili.com');
         headers.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36');
+        const bilibiliAccount = localStorage.getItem('bilibiliAccount');
+        if (bilibiliAccount)
+        {
+            const account: BilibiliACC = JSON.parse(bilibiliAccount);
+            const excludedKeys = ['face', 'uname'];
+            const cookieString = Object.entries(account)
+                .filter(([key, value]) =>
+                    value !== undefined &&
+                    value !== null &&
+                    value !== '' &&
+                    key !== 'id' &&
+                    !excludedKeys.includes(key))
+                .map(([key, value]) => `${key}=${value}`)
+                .join(';');
+
+            console.log(cookieString);
+            headers.append('cookie-trans', cookieString);
+        }
         return headers;
     }
 

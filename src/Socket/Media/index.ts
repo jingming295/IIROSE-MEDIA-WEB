@@ -170,6 +170,7 @@ export class Media
                 mc: media.color,
                 i: timestamp
             }
+            console.log(data)
             return JSON.stringify(data);
         }
 
@@ -212,24 +213,31 @@ export class Media
         {
             t = media.type;
         }
-
-        const data = JSON.stringify({
-            s: media.url.substr(4),
-            d: media.duration,
-            c: media.cover.substr(4),
-            n: media.name,
-            r: media.singer,
-            b: `${typeMap[t]}`,
-            o: media.link.substr(4),
-            l: media.lyrics
-        });
+        try {
+            const data = JSON.stringify({
+                s: media.url.substring(4),
+                d: media.duration,
+                c: media.cover.substring(4),
+                n: media.name,
+                r: media.singer,
+                b: `${typeMap[t]}`,
+                o: media.link.substring(4),
+                l: media.lyrics
+            });
+            console.log(data)
+            return `&1${data}`;
+        } catch (error) {
+            console.log(error)
+            return ``
+        }
+        
 
         // if(media.type === 'video'){
         //     return `&1${data}`;
         // } else {
         //     return `&0${data}`;
         // }
-        return `&1${data}`;
+        
         
     }
 }

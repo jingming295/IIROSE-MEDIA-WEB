@@ -20,7 +20,7 @@ export interface SongDetailFromXCSong{
     pic: number; // 未知
     pic_str: string; // 专辑图片
   }; // 专辑信息
-  alia: [];
+  alia: string[];
   ar: {
     id: number; // 歌手id
     name: string; // 歌手名
@@ -36,6 +36,7 @@ export interface SongDetailFromXCSong{
   entertainmentTags: null; // 未知
   fee: number; // 未知
   ftype: number; // 未知
+  tns?: string[]; // 副标题
   sq:{
     br: number; // 比特率
     fid: number; // 未知
@@ -122,7 +123,7 @@ interface SongDetailSong
   ftype: number;
   rtUrls: null[]; // 根据实际情况定义
   copyright: number;
-  transName: string;
+  transName?: string;
   sign: null; // 根据实际情况定义
   mark: number;
   originCoverType: number;

@@ -1,10 +1,8 @@
-import { BiliBiliSearchApi } from "./Api/BilibiliAPI/BiliBiliSearch";
-import { NeteaseMusicAPI } from "./Api/NeteaseAPI/NeteaseMusic";
-import { NeteaseSearchAPI } from "./Api/NeteaseAPI/NeteaseSearch/index";
 import { HotKey } from "./HotKey/index";
 import { IIROSEMEDIA } from "./IIROSE-MEDIA/index";
 import { ENV } from "./Env";
 import { BiliBiliAccount } from "./Account/SetBiliBili";
+import './SCSS/IIROSE_MEDIA.scss';
 class init{
     constructor(){
         const env = new ENV()

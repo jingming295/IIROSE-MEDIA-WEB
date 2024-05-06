@@ -1,7 +1,7 @@
 import { Music } from "../Platform/Music";
 import { Video } from "../Platform/Video";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
-import { showMessage } from "../IIROSE/ShowMessage";
+import { ShowMessage } from "../IIROSE/ShowMessage";
 import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
 import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem, SettingContainerNavBarPlatform } from "./MediaContainerInterface";
 import { InputEvent } from "./MediaContainerInterface";
@@ -272,18 +272,6 @@ export class MediaContainer
 
             observer.observe(contentImgCover);
             window.addEventListener('resize', setHeightToWidth);
-            // contentImg.src = noloadGifBase64;
-
-            // const sendfetch = new SendFetch();
-            const headers = new Headers();
-            headers.append('Referer', 'https://music.163.com/');
-            headers.append('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-
-            // const httpsImgUrl = item.img.replace(/^http:/, 'https:');
-            // sendfetch.sendGet(httpsImgUrl, new URLSearchParams(), headers).then((res) =>
-            // {
-            //     contentImg.src = item.img;
-            // });
             contentImg.src = item.img;
             const infoArea = document.createElement('div');
             infoArea.classList.add('infoArea');
@@ -323,6 +311,15 @@ export class MediaContainer
             const contentTitle = document.createElement('div');
             contentTitle.classList.add('contentTitle');
             contentTitle.innerText = item.title;
+
+            if(item.subTitle){
+                const contentSubTitle = document.createElement('div');
+                contentSubTitle.classList.add('contentSubTitle');
+                contentSubTitle.innerText = item.subTitle;
+
+                contentTitle.appendChild(contentSubTitle);
+            }
+            
 
             if (item.duration)
             {
@@ -404,8 +401,8 @@ export class MediaContainer
             if (!pMediaContainerItem || pMediaContainerItem.length === 0)
             {
                 if (spin) spin.remove();
-                const showmessage = new showMessage();
-                showmessage.showMessage('搜索无结果');
+                const showmessage = new ShowMessage();
+                showmessage.show('搜索无结果');
 
                 const mediaContainerDisplay = new MediaContainerDisplay();
                 mediaContainerDisplay.displayMessage(playColor, 2);

@@ -1,5 +1,4 @@
 import { UpdateDom } from "../UpdateDOM/index";
-import { showMessage } from "../IIROSE/ShowMessage";
 
 export class HotKey
 {

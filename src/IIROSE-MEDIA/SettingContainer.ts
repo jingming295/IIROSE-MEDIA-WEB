@@ -88,48 +88,66 @@ export class SettingContainer extends MediaContainer
         return PlatFormSelector;
     }
 
-    private createSettingContainerContent(item: settingContainerItem[]){
+    private createSettingContainerContent(items: settingContainerItem[])
+    {
 
-        function createLoginAccountSetting(cb:() => void){
-            const LoginAccountSettingWrapper = document.createElement('div');
-            LoginAccountSettingWrapper.classList.add('scWrapper');
+        function createContainerContent(titleText: string, titleIcon: string, actionType: string, cb?: ((htmlElement: HTMLElement) => void), selectOption?: () => (string | number)[][])
+        {
+            const ContainerContent = document.createElement('div');
+            ContainerContent.classList.add('ContainerContent');
 
+            const titleWrapper = document.createElement('div');
+            titleWrapper.classList.add('titleWrapper');
 
-            const LoginAccountTitle = document.createElement('div');
-            LoginAccountTitle.classList.add('scTitle');
-            LoginAccountTitle.innerText = '登陆账号: ';
+            const Icon = document.createElement('div');
+            Icon.classList.add('titleIcon');
+            Icon.classList.add(titleIcon);
 
-            const LoginButton = document.createElement('div');
-            LoginButton.classList.add('scButton');
-            LoginButton.innerText = '扫码登录';
+            const title = document.createElement('div');
+            title.classList.add('title');
+            title.innerText = titleText;
 
-            const scHelpText = document.createElement('div');
-            scHelpText.classList.add('scHelpText');
-            scHelpText.innerText = '扫码登录后可点播720p画质的视频';
+            titleWrapper.appendChild(Icon);
+            titleWrapper.appendChild(title);
 
-            LoginAccountSettingWrapper.appendChild(LoginAccountTitle);
-            LoginAccountSettingWrapper.appendChild(LoginButton);
-            LoginAccountSettingWrapper.appendChild(scHelpText);
+            const actionWrapper = document.createElement('div');
+            actionWrapper.classList.add('actionWrapper');
 
-            LoginButton.onclick = cb;
+            const action = document.createElement('div');
+            action.classList.add('action');
+            action.classList.add(actionType);
+            if(selectOption){
+                action.innerText = selectOption()[0][1].toString();
+            }
 
-            return LoginAccountSettingWrapper;
+            actionWrapper.appendChild(action);
+            if (cb)
+            {
+                actionWrapper.onclick = () =>
+                {
+                    cb(action);
+                };
+            }
+
+            ContainerContent.appendChild(titleWrapper);
+            ContainerContent.appendChild(actionWrapper);
+
+            return ContainerContent;
         }
-
-        const components = [createLoginAccountSetting]
 
         const SettingContainerContent = document.createElement('div');
         SettingContainerContent.classList.add('SettingContainerContent');
-        
-        item.forEach((item, index) => {
-            const component = components[item.type];
-            if(component){
-                if(item.cb)
-                SettingContainerContent.appendChild(component(item.cb));
-            }
-        })
+
+        items.forEach((item) =>
+        {
+            let actionType = '';
+            if (item.type === 0) actionType = 'buttonAction';
+            if (item.type === 1) actionType = 'textAction';
+            const container = createContainerContent(item.title, 'settingIcon', actionType, item.cb, item.getSelectOption);
+            SettingContainerContent.appendChild(container);
+        });
 
         return SettingContainerContent;
-    }
 
+    }
 }

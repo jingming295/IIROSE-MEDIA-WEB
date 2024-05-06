@@ -27,7 +27,9 @@ interface SettingContainerSubNavBarItem{
 
 export interface settingContainerItem{
     type:number;
-    cb?: () => void;
+    title: string;
+    getSelectOption?: () => (string | number)[][];
+    cb?: (htmlElement?:HTMLElement) => void;
 }
 
 interface MediaContainerSubNavBarItem{
@@ -43,6 +45,7 @@ export interface MediaContainerItem{
     formatMillisecondsToMinutes?(arg0: number): string | undefined;
     id: number;
     title: string;
+    subTitle?: string;
     img: string;
     url?: string;
     author: Promise<string> | string;

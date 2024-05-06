@@ -137,10 +137,9 @@ export class Music
         };
     }
 
-    private formatMillisecondsToMinutes(milliseconds: number): string
+    private formatMillisecondsToMinutes(sec: number): string
     {
-        milliseconds = milliseconds * 1000;
-        const totalSeconds = Math.floor(milliseconds / 1000);
+        const totalSeconds = Math.floor(sec);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
 
@@ -295,20 +294,19 @@ export class Music
         for (const searchDataElement of searchData.result.songs)
         {
             const mediaContainerItem: MediaContainerItem[] = [];
-            const neteaseMusicApi = new NeteaseMusicAPI();
             const songDetail = this.processSongDetail(searchDataElement.id);
             const PromiseMediaContainerItem = songDetail.then(songDetailElement =>
             {
                 if (!songDetailElement) return null;
-                // const singer = songDetailElement.songs[0].ar[0].name
-                // const img = songDetailElement.songs[0].al.picUrl
-                // const duration = songDetailElement.songs[0].dt
                 const singer = songDetailElement.singer;
                 const img = songDetailElement.cover;
                 const duration = songDetailElement.duration;
+                let name = songDetailElement.name;
+                const subTitle = songDetailElement.subTitle;
                 mediaContainerItem[0] = {
                     id: searchDataElement.id,
-                    title: searchDataElement.name,
+                    title: name,
+                    subTitle: subTitle,
                     img: img,
                     url: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                     author: singer,
@@ -324,9 +322,13 @@ export class Music
                         {
                             if (!songDetailElement) return null;
                             if (!songResource) return null;
+                            let linkname = name;
+                            if(subTitle){
+                                linkname = `${name} - ${subTitle}`
+                            }
                             const mediaData: MediaData = {
                                 type: 'music',
-                                name: searchDataElement.name,
+                                name: linkname,
                                 singer: singer,
                                 cover: img,
                                 link: `https://music.163.com/#/song?id=${searchDataElement.id}`,
@@ -381,7 +383,6 @@ export class Music
      */
     public async NeteaseSearchMediaContainerByIDs(currentPage: number, mediaItems: MediaItem[])
     {
-        const neteaseMusicAPI = new NeteaseMusicAPI();
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         const mediaContainerItem: MediaContainerItem[] = [];
@@ -397,11 +398,13 @@ export class Music
                 const singer = songDetailElement.singer;
                 const img = songDetailElement.cover;
                 const duration = songDetailElement.duration;
-                const name = songDetailElement.name;
+                let name = songDetailElement.name;
+                const subTitle = songDetailElement.subTitle;
                 mediaContainerItem[0] = {
                     id: mediaItem.id,
                     title: songDetailElement.name,
                     img: img,
+                    subTitle: subTitle,
                     url: `https://music.163.com/#/song?id=${mediaItem.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
@@ -417,10 +420,11 @@ export class Music
                         sr.then((data) =>
                         {
                             if (!data) return;
-
+                            let linkname = name;
+                            if(subTitle) linkname = `${name} - ${subTitle}`
                             const mediaData: MediaData = {
                                 type: 'music',
-                                name: name,
+                                name: linkname,
                                 singer: singer,
                                 cover: img,
                                 link: `https://music.163.com/#/song?id=${mediaItem.id}`,
@@ -438,7 +442,6 @@ export class Music
                         });
                     }
                 };
-                console.log(mediaContainerItem[0].title);
                 return mediaContainerItem;
             });
             x.push(PromiseMediaContainerItem);
@@ -484,7 +487,6 @@ export class Music
                             {
                                 const neteaseMusicAPI = new NeteaseMusicAPI();
                                 const data = neteaseMusicAPI.getSongListDetail(mediaItem.id);
-                                let count = 0;
                                 data.then(element =>
                                 {
                                     if (!element) return;
@@ -502,7 +504,6 @@ export class Music
                                                 if (!element) return;
                                                 if (!songResource) return;
                                                 if (!songdetail) return;
-                                                console.log(count += 1);
                                                 const mediaData: MediaData = {
                                                     type: 'music',
                                                     name: songDetailElement.name,
@@ -656,16 +657,17 @@ export class Music
         let name = '';
         let singer = '';
         let cover = '';
+        let subTitle: string | undefined = undefined
         let duration = 0;
-
         if (songDetail)
         {
             if (songDetail && songDetail.songs)
             {
-                name = songDetail.songs[0].name;
+                name = `${songDetail.songs[0].name}`;
+                subTitle = songDetail.songs[0]?.tns?.[0] || songDetail.songs[0].alia[0];
                 singer = songDetail.songs[0].ar[0].name;
                 cover = songDetail.songs[0].al.picUrl;
-                duration = songDetail.songs[0].dt + 2000 / 1000;
+                duration = (songDetail.songs[0].dt + 2000) / 1000;
             }
         } else
         {
@@ -674,14 +676,15 @@ export class Music
             {
                 if (songDetail && songDetail.songs)
                 {
-                    name = songDetail.songs[0].name;
+                    name = `${songDetail.songs[0].name}`;
+                    subTitle = songDetail.songs[0].transName || songDetail.songs[0].alias[0];
                     singer = songDetail.songs[0].artists[0].name;
                     cover = songDetail.songs[0].album.picUrl;
-                    duration = songDetail.songs[0].duration + 2000 / 1000;
+                    duration = (songDetail.songs[0].duration + 2000) / 1000;
                 }
             }
         }
-        return { name, singer, cover, duration };
+        return { name, singer, cover, duration, subTitle };
 
     }
 

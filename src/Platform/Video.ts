@@ -11,7 +11,7 @@ import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
-import { showMessage } from "../IIROSE/ShowMessage";
+import { ShowMessage } from "../IIROSE/ShowMessage";
 
 export class Video
 {
@@ -29,7 +29,7 @@ export class Video
         return {
             id: 'BilibiliVideo',
             containerID: 'VideoContainer',
-            title: '哔哩哔哩视频 (高清视频未完成)',
+            title: '哔哩哔哩视频',
             iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/video/bilibili/ic_launcher.png',
             buttonBackgroundColor: 'rgb(209, 79, 118)',
             inputEvent: {
@@ -596,8 +596,8 @@ export class Video
                     }
                     if (!done)
                     {
-                        const showmessage = new showMessage();
-                        showmessage.showMessage('获取直播流失败');
+                        const showmessage = new ShowMessage();
+                        showmessage.show('获取直播流失败');
                     }
                 });
 

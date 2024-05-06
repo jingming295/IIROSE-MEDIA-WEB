@@ -1,22 +1,5 @@
-declare global {
-    interface Window {
-        /**
-         * 一些工具函数
-         */
-        Utils?: {
-            /**
-             * 开启输入框
-             * @param e 模式, 0,1,2,3,4
-             * @param t 
-             * @param o 回调函数
-             * @returns 
-             */
-            sync: (e: number, t: (number | string)[], o: (a: string | null) => void) => void;
-        };
-    }
-}
-
-export class Utils {
+export class Utils
+{
     /**
      * 开启输入框
      * @param e 模式, 0,1,2,3,4
@@ -24,8 +7,27 @@ export class Utils {
      * @param o 回调函数
      * @returns 
      */
-    public sync(e: number, t: (number | string)[], o: (userInput: string | null) => void) {
+    public sync(e: number, t: (number | string)[], o: (userInput: string | null) => void)
+    {
         if (!window.Utils) return;
         window.Utils.sync(e, t, o);
+    }
+
+    /**
+     * 创建一个选择框
+     * @param i 触发元素
+     * @param a 2D数组，结构为类似 [[0, "选项1", "HTML字符串"], [1, "选项2", "HTML字符串"]]
+     * @param s 回调函数
+     * @param e 是否禁止清空选项 (禁止点空白的地方返回)
+     * @param t 是否显示图标
+     * @param o 自定义HTML字符串，出现在顶端
+     * @param r 是否启用多选功能
+     * @param l 自定义HTML字符串，出现在底端
+     * @param n 返回（点击空白处）的回调函数
+     */
+    public buildSelect2(i: HTMLElement | undefined | null, a: (string | number)[][], s: (t: HTMLElement, s: string) => void, e: boolean, t: boolean, o: string | undefined | null, r: boolean, l: string | undefined | null, n: () => void)
+    {
+        if (!window.Utils) return;
+        window.Utils.buildSelect2(i, a, s, e, t, o, r, l, n);
     }
 }

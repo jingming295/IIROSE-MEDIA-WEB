@@ -173,8 +173,10 @@
           flex-wrap: wrap;
           color: #fff;
           transition: all .25s ease-in-out;
+
           // padding: 5px;
-          .SubNavBarItem, .subNavBarItemPlaceHolder {
+          .SubNavBarItem,
+          .subNavBarItemPlaceHolder {
             transition: all .5s ease-in-out;
             display: flex;
             align-items: center;
@@ -185,7 +187,8 @@
             background-color: rgba(0, 0, 0, .3);
             // margin-left: 10px;
           }
-          .subNavBarItemPlaceHolder{
+
+          .subNavBarItemPlaceHolder {
             background-color: rgba(0, 0, 0, .0);
             cursor: auto;
           }
@@ -270,23 +273,27 @@
             align-items: center;
             color: #fff;
             transition: all .25s ease-in-out;
-            .returnButtonWrapper{
+
+            .returnButtonWrapper {
               background-color: rgba(0, 0, 0, .5);
 
-              .returnIcon{
+              .returnIcon {
                 font-size: 24px;
               }
+
               .returnIcon::before {
                 content: "\F17A7";
                 font-family: 'md';
               }
             }
+
             .prevButtonWrapper {
               background-color: rgba(255, 255, 255, .2);
 
-              .prevIcon{
+              .prevIcon {
                 font-size: 24px;
               }
+
               .prevIcon::before {
                 content: "\F0141";
                 font-family: 'md';
@@ -296,9 +303,10 @@
             .nextButtonWrapper {
               background-color: rgba(0, 0, 0, .5);
 
-              .nextIcon{
+              .nextIcon {
                 font-size: 24px;
               }
+
               .nextIcon::before {
                 content: "\F0142";
                 font-family: 'md';
@@ -312,7 +320,8 @@
               height: 100%;
               padding: 0 20px;
               transition: all .5s ease-in-out;
-              .PaginationControllerButton{
+
+              .PaginationControllerButton {
                 font-weight: bold;
                 margin-left: 22px;
               }
@@ -356,7 +365,7 @@
             animation: spin 2s linear infinite;
           }
 
-          .containerMsgWrapper{
+          .containerMsgWrapper {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -366,21 +375,24 @@
             height: 100%;
             opacity: .4;
             transition: all .25s ease-in-out;
-            .searchLogo, .noresultLogo{
+
+            .searchLogo,
+            .noresultLogo {
               font-size: 200px;
               display: flex;
             }
-            .searchLogo::before{
+
+            .searchLogo::before {
               content: "\F1A7E";
               font-family: 'md';
             }
 
-            .noresultLogo::before{
+            .noresultLogo::before {
               content: "\F0413";
               font-family: 'md';
             }
 
-            .containerMsg{
+            .containerMsg {
               margin-top: 24px;
               line-height: 31px;
               font-size: 24px;
@@ -440,6 +452,16 @@
                 line-height: 25px;
                 font-size: 17px;
                 margin-bottom: 24px;
+
+                .contentSubTitle {
+                  position: absolute;
+                  font-size: 11px;
+                  max-width: 80%;
+                  overflow: hidden;
+                  white-space: pre;
+                  text-overflow: ellipsis;
+                  color: rgba(0, 0, 0, 0.5);
+                }
               }
 
               .contentAuthor {
@@ -479,7 +501,7 @@
                 content: "\F02CB";
                 font-family: "md";
               }
-              
+
               .pickButtonIcon::before {
                 content: "\F0412";
                 font-family: "md";
@@ -498,8 +520,11 @@
 
         }
 
-        .SettingContainerContent{
+        .SettingContainerContent {
           position: relative;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(355.2px, 1fr));
+          grid-gap: 12px;
           overflow-y: auto;
           overflow-x: auto;
           box-sizing: border-box;
@@ -507,33 +532,70 @@
           // height: 100%;
           transition: all .25s ease-in-out;
 
-          .scWrapper{
-            padding: 10px;
+          .ContainerContent {
+            min-width: 200px;
+            max-width: 350px;
+            min-height: 200px;
+            margin: 12px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            box-shadow: 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
 
-            .scTitle, .scHelpText{
-              font-size: 16px;
-              color: rgba(0, 0, 0, 0.50);
-            }
-
-            .scButton{
-              cursor: pointer;
+            .titleWrapper {
               display: flex;
+              justify-content: center;
               align-items: center;
-              padding: 6px 16px;
-              margin: 6px 0 3px;
-              font-size: 14px;
-              background-color: rgba(0, 0, 0, .5);
-              color: #fff;
-              transition: all .5s ease-in-out;
+              height: 50%;
+              padding: 0 24px;
+              color: rgba(0, 0, 0, .4);
+              background-color: rgba(255, 255, 255, .2);
+
+              .titleIcon {
+                font-size: 30px;
+              }
+
+              .settingIcon::before {
+                content: "\F0493";
+                font-family: 'md';
+              }
+
+              .title {
+                font-weight: bold;
+                font-size: 20px;
+                margin-left: 22px;
+              }
             }
 
-            .scButton:hover{
-              opacity: .7;
+            .actionWrapper {
+              background-color: rgba(255, 255, 255, .5);
+              height: 50%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              cursor: pointer;
+              .action {
+                color: rgba(0, 0, 0, 0.75);
+                transition: all .5s ease-in-out;
+              }
+
+              .textAction{
+                font-weight: bold;
+                font-size: 16px;
+              }
+
+
+              .buttonAction::before {
+                font-size: 48px;
+                content: "\F0140";
+                font-family: 'md';
+              }
             }
 
+            .actionWrapper:hover {
+              .action {
+                opacity: .7;
+              }
+            }
           }
         }
 
@@ -635,10 +697,10 @@
   padding: 20px;
   opacity: 0;
   transition: opacity .25s ease-in-out;
-  top:0;
+  top: 0;
   left: 0;
   bottom: 0;
-  
+
   .inputBoxWrapper {
     margin: 12px;
     box-shadow: 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
@@ -754,8 +816,8 @@
   }
 }
 
-#syncHolder{
-  #syncHolderOutside{
+#syncHolder {
+  #syncHolderOutside {
     width: 100%;
     height: 100%;
     z-index: -1;
@@ -766,29 +828,32 @@
 
 @media (max-width: 660px) {
   .NavBarTitle {
-    display: none !important;;
-  }
-  .MediaContainerContent{
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))!important;
+    display: none !important;
+    ;
   }
 
-  .inputWrapper{
+  .MediaContainerContent {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+  }
+
+  .inputWrapper {
     max-width: 250px !important;
   }
-  
+
 }
 
-@media(max-width:980px){
-  .ContentItem{
-    max-height: 100%!important;
+@media(max-width:980px) {
+  .ContentItem {
+    max-height: 100% !important;
   }
 }
 
 @keyframes spin {
-  0%{
+  0% {
     transform: rotate(0deg);
   }
-  100%{
+
+  100% {
     transform: rotate(360deg);
   }
 }

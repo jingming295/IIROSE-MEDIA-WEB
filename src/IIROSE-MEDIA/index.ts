@@ -1,5 +1,4 @@
 import { CreateNavBar } from "./NavBar";
-import '../SCSS/IIROSE_MEDIA.scss';
 import { MediaContainer } from "./MediaContainer";
 import { IIROSE_MEDIASelectHolder } from "./IIROSE_MEDIASelectHolder";
 import { Music } from "../Platform/Music";

@@ -21,13 +21,13 @@ interface SettingContainerSubNavBarItem{
     title: string;
     class?: string;
     id: string;
-    onclick: () => void;
-    item: settingContainerItem[]
+    onclick: () => void
 }
 
 export interface settingContainerItem{
     type:number;
     title: string;
+    mdiClass?: string;
     getSelectOption?: () => (string | number)[][];
     cb?: (htmlElement?:HTMLElement) => void;
 }
@@ -51,6 +51,7 @@ export interface MediaContainerItem{
     author: Promise<string> | string;
     duration: string;
     multipage?:Promise<boolean>;
+    collectable?: boolean;
     MediaRequest?: () => void;
 }
 

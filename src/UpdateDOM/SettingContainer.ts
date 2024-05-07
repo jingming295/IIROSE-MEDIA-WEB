@@ -18,13 +18,12 @@ export class MediaSettingContainer{
         if (!MediaContainerWrapper) return;
 
         const setting = new Setting()
-
+        const settingPlatforms = setting.Setting();
         const mediaContainer = new SettingContainer();
-        const MediaSettingContainer = mediaContainer.createSettingContainer(setting.Setting(),'SettingContainer')
+        const MediaSettingContainer = mediaContainer.createSettingContainer(settingPlatforms,'SettingContainer')
         MediaSettingContainer.style.opacity = '0';
 
         MediaContainerWrapper.appendChild(MediaSettingContainer);
-
         setTimeout(() =>
         {
             // videoMediaContainer.style.transform = 'translateX(0)';

@@ -158,7 +158,6 @@ export class CreateNavBar
             Text: '设置',
             onClick: () =>
             {
-                console.log('设置')
                 const settingContainer = new MediaSettingContainer()
                 settingContainer.showSettingContainer()
             }

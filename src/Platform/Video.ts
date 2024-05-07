@@ -12,9 +12,11 @@ import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
 import { ShowMessage } from "../IIROSE/ShowMessage";
+import { BilibiliSetting } from "./SettingInterface";
 
 export class Video
 {
+    bvSetting: BilibiliSetting = this.getBilibiliSetting();
     public video()
     {
         const platforms: MediaContainerNavBarPlatform[] = [
@@ -23,9 +25,24 @@ export class Video
         return platforms;
     }
 
+    public getBilibiliSetting(): BilibiliSetting
+    {
+        const lsBiliBiliSetting = localStorage.getItem('bilibiliSetting');
+        if (lsBiliBiliSetting)
+        {
+            return JSON.parse(lsBiliBiliSetting) as BilibiliSetting;
+        } else
+        {
+            return {
+                qn: 112,
+                streamqn: 10000,
+                streamSeconds: 43200
+            };
+        }
+    }
+
     private bilibili()
     {
-        const BilibiliRecommandVideoitem = this.bilibiliRecommendVideoMediaContainerItem();
         return {
             id: 'BilibiliVideo',
             containerID: 'VideoContainer',
@@ -34,11 +51,11 @@ export class Video
             buttonBackgroundColor: 'rgb(209, 79, 118)',
             inputEvent: {
                 title: '请输入搜索关键词',
-                InputAreaConfirmBtnOnClick: (userInput:string | null) =>
+                InputAreaConfirmBtnOnClick: (userInput: string | null) =>
                 {
                     const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
                     if (!mediaSearchBarInput) return;
-                    if(!userInput) return;
+                    if (!userInput) return;
                     mediaSearchBarInput.innerHTML = userInput;
                     const SubNavBarItemBilibiliVideo = document.getElementById('SubNavBarItemBilibiliVideo');
                     if (!SubNavBarItemBilibiliVideo) return;
@@ -58,29 +75,45 @@ export class Video
                     {
                         const mediaContainer = new MediaContainer();
                         const BilibiliRecommandVideoitem = this.bilibiliRecommendVideoMediaContainerItem();
-                        const MediaContainerContent = document.getElementById('MediaContainerContent');
-                        if (!MediaContainerContent) return;
-                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
-                        const parent = MediaContainerContent.parentElement;
-                        MediaContainerContent.style.opacity = '0';
+                        const mediaContainers = document.querySelectorAll('.MediaContainer');
+                        let MediaContainerContent = document.getElementById('MediaContainerContent');
 
-                        MediaContainerContent.addEventListener('transitionend', () =>
+                        if (mediaContainers.length > 1)
                         {
-                            MediaContainerContent.remove();
-                            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                            if (currentMediaContainerContent) return;
+                            MediaContainerContent = null;
+                        }
+                        if (!MediaContainerContent)
+                        {
+                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
+                            const parent = mediaContainers[1] ? mediaContainers[1] : mediaContainers[0];
                             if (parent)
                             {
-                                newMediaContainerContent.style.opacity = '0';
                                 parent.appendChild(newMediaContainerContent);
-                                setTimeout(() =>
-                                {
-                                    newMediaContainerContent.style.opacity = '1';
-                                }, 1);
                             }
-                        }, { once: true });
-                    },
-                    item: BilibiliRecommandVideoitem
+                        } else
+                        {
+                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
+                            const parent = MediaContainerContent.parentElement;
+                            MediaContainerContent.style.opacity = '0';
+
+                            MediaContainerContent.addEventListener('transitionend', () =>
+                            {
+                                MediaContainerContent.remove();
+                                const currentMediaContainerContent = document.getElementById('MediaContainerContent');
+                                if (currentMediaContainerContent) return;
+                                if (parent)
+                                {
+                                    newMediaContainerContent.style.opacity = '0';
+                                    parent.appendChild(newMediaContainerContent);
+                                    setTimeout(() =>
+                                    {
+                                        newMediaContainerContent.style.opacity = '1';
+                                    }, 1);
+                                }
+                            }, { once: true });
+                        }
+
+                    }
                 }, {
                     title: '搜索视频',
                     class: 'SubNavBarItemSearch',
@@ -192,7 +225,7 @@ export class Video
                 {
                     const socket = new Socket();
                     const sMedia = new Media();
-                    const bvResource = bv.getBilibiliVideoStream(rcmdItem.id, rcmdItem.bvid, rcmdItem.cid, 112, 'html5');
+                    const bvResource = bv.getBilibiliVideoStream(rcmdItem.id, rcmdItem.bvid, rcmdItem.cid, this.bvSetting.qn, 'html5');
                     const updateDom = new UpdateDom();
                     updateDom.changeStatusIIROSE_MEDIA();
                     bvResource.then(bvResource =>
@@ -266,13 +299,13 @@ export class Video
                 url: item.url,
                 author: item.author,
                 duration: item.duration,
-                MediaRequest()
+                MediaRequest: () =>
                 {
                     if (!item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
                     const socket = new Socket();
                     const sMedia = new Media();
                     const bv = new BiliBiliVideoApi();
-                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili?.bvid, item.bilibili.cid, 112, 'html5');
+                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili?.bvid, item.bilibili.cid, this.bvSetting.qn, 'html5');
                     const updateDom = new UpdateDom();
                     updateDom.changeStatusIIROSE_MEDIA();
                     bvResource.then(bvResource =>
@@ -505,7 +538,7 @@ export class Video
             url: item.url,
             author: item.author,
             duration: item.duration,
-            MediaRequest()
+            MediaRequest: () =>
             {
                 if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
                 const bv = new BiliBiliVideoApi();
@@ -519,7 +552,8 @@ export class Video
                 {
                     if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
                     if (!bvDetail || !bvDetail.data) return;
-                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili.bvid, item.bilibili.cid, 112, 'html5');
+
+                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili.bvid, item.bilibili.cid, this.bvSetting.qn, 'html5');
 
                     bvResource.then(bvResource =>
                     {
@@ -565,7 +599,7 @@ export class Video
                 const bl = new BiliBiliLiveApi();
                 const updateDom = new UpdateDom();
                 updateDom.changeStatusIIROSE_MEDIA();
-                const blstream = bl.getLiveStream(result.roomid, 'h5', null, 30000);
+                const blstream = bl.getLiveStream(result.roomid, 'h5', null, this.bvSetting.streamqn);
 
                 blstream.then(async blstream =>
                 {
@@ -584,7 +618,7 @@ export class Video
                                 cover: `https:${result.user_cover}`,
                                 link: `https://live.bilibili.com/${result.roomid}`,
                                 url: durl.url,
-                                duration: 43200,
+                                duration: this.bvSetting.streamSeconds,
                                 bitRate: blstream.data.current_qn,
                                 color: 'FFFFFF',
                                 origin: 'bilibililive'
@@ -618,6 +652,9 @@ export class Video
     {
         if (!keyword) return null;
         const bv = new BiliBiliVideoApi();
+        result.duration = result.duration.replace(/^(\d):(\d)$/, '0$1:0$2') // 处理 "1:5" 这样的情况
+            .replace(/^(\d{2}):(\d)$/, '$1:0$2') // 处理 "10:5" 这样的情况
+            .replace(/^(\d):(\d{2})$/, '0$1:$2'); // 处理 "1:50" 这样的情况
         const mediaContainerItem: MediaContainerItem = {
             id: result.id,
             title: result.title,
@@ -626,7 +663,7 @@ export class Video
             author: result.author,
             multipage: multipage,
             duration: result.duration,
-            MediaRequest()
+            MediaRequest: () =>
             {
                 if (!result.bvid) return;
                 const socket = new Socket();
@@ -646,7 +683,7 @@ export class Video
                     {
                         const updateDom = new UpdateDom();
                         updateDom.changeStatusIIROSE_MEDIA();
-                        const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, 112, 'html5');
+                        const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, this.bvSetting.qn, 'html5');
                         bvResource.then(bvResource =>
                         {
                             if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;

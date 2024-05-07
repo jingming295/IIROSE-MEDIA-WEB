@@ -3,29 +3,38 @@ import { settingContainerItem, SettingContainerNavBarPlatform } from "./MediaCon
 
 export class SettingContainer extends MediaContainer
 {
-
-
     public createSettingContainer(platforms: SettingContainerNavBarPlatform[], mediaContainerID: string, whichPlatform: number = 0)
     {
         const MediaContainer = document.createElement('div');
         MediaContainer.id = mediaContainerID;
         MediaContainer.classList.add('MediaContainer');
 
-        const mediaContainerNavBar = this.createSettingMediaContainerNavBar(platforms);
+        const mediaContainerNavBar = this.createSettingMediaContainerNavBar(platforms, whichPlatform);
         MediaContainer.appendChild(mediaContainerNavBar);
 
-        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms);
+        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms, whichPlatform);
         MediaContainer.appendChild(mediaContainerSubNavBar);
 
-        const mediaContainerContent = this.createSettingContainerContent(platforms[whichPlatform].subNavBarItems[0].item);
-        MediaContainer.appendChild(mediaContainerContent);
-
-
+        const iiroseMedia = document.getElementById('IIROSE_MEDIA');
+        if (iiroseMedia)
+        {
+            const observer = new MutationObserver(mutationList =>
+                mutationList.filter(m => m.type === 'childList').forEach(m =>
+                {
+                    m.addedNodes.forEach(node =>
+                    {
+                        if(node === MediaContainer) {
+                            platforms[whichPlatform].subNavBarItems[0].onclick();
+                        }
+                    });
+                }));
+            observer.observe(iiroseMedia, { childList: true, subtree: true });
+        };
 
         return MediaContainer;
     }
 
-    private createSettingMediaContainerNavBar(platforms: SettingContainerNavBarPlatform[])
+    private createSettingMediaContainerNavBar(platforms: SettingContainerNavBarPlatform[], whichPlatform: number)
     {
         const PlatFormSelector = document.createElement('div');
         PlatFormSelector.classList.add('PlatformSelector');
@@ -78,7 +87,7 @@ export class SettingContainer extends MediaContainer
             PlatFormSelector.appendChild(PlatformButton);
 
             // 判断是否是第一个 platform
-            if (index === 0)
+            if (index === whichPlatform)
             {
                 PlatformButton.style.opacity = '1';
                 PlatFormSelector.style.backgroundColor = platform.buttonBackgroundColor;
@@ -88,9 +97,8 @@ export class SettingContainer extends MediaContainer
         return PlatFormSelector;
     }
 
-    private createSettingContainerContent(items: settingContainerItem[])
+    public createSettingContainerContent(items: settingContainerItem[])
     {
-
         function createContainerContent(titleText: string, titleIcon: string, actionType: string, cb?: ((htmlElement: HTMLElement) => void), selectOption?: () => (string | number)[][])
         {
             const ContainerContent = document.createElement('div');
@@ -116,7 +124,8 @@ export class SettingContainer extends MediaContainer
             const action = document.createElement('div');
             action.classList.add('action');
             action.classList.add(actionType);
-            if(selectOption){
+            if (selectOption)
+            {
                 action.innerText = selectOption()[0][1].toString();
             }
 
@@ -137,13 +146,14 @@ export class SettingContainer extends MediaContainer
 
         const SettingContainerContent = document.createElement('div');
         SettingContainerContent.classList.add('SettingContainerContent');
+        SettingContainerContent.id = 'SettingContainerContent';
 
         items.forEach((item) =>
         {
             let actionType = '';
             if (item.type === 0) actionType = 'buttonAction';
             if (item.type === 1) actionType = 'textAction';
-            const container = createContainerContent(item.title, 'settingIcon', actionType, item.cb, item.getSelectOption);
+            const container = createContainerContent(item.title, item?.mdiClass ||'settingIcon', actionType, item.cb, item.getSelectOption);
             SettingContainerContent.appendChild(container);
         });
 

@@ -18,28 +18,43 @@ export class MediaContainer
         const MediaSearchBar = this.createMediaSearchBar(platforms[whichPlatform].inputEvent, platforms[whichPlatform].buttonBackgroundColor);
         MediaContainer.appendChild(MediaSearchBar);
 
-        const mediaContainerNavBar = this.createMediaContainerNavBar(platforms);
+        const mediaContainerNavBar = this.createMediaContainerNavBar(platforms, whichPlatform);
         MediaContainer.appendChild(mediaContainerNavBar);
 
-        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms);
+        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms, whichPlatform);
         MediaContainer.appendChild(mediaContainerSubNavBar);
 
-        const mediaContainerContent = this.createMediaContainerContent(platforms[whichPlatform].subNavBarItems[0].item, platforms[whichPlatform].buttonBackgroundColor);
-        MediaContainer.appendChild(mediaContainerContent);
+        const iiroseMedia = document.getElementById('IIROSE_MEDIA');
+        if (iiroseMedia)
+        {
+            const observer = new MutationObserver(mutationList =>
+                mutationList.filter(m => m.type === 'childList').forEach(m =>
+                {
+                    m.addedNodes.forEach(node =>
+                    {
+                        if (node === MediaContainer)
+                        {
+                            platforms[whichPlatform].subNavBarItems[0].onclick();
+                        }
+                    });
+                }));
+            observer.observe(iiroseMedia, { childList: true, subtree: true });
+        };
+
+
 
         return MediaContainer;
     }
-    
+
     /**
      * 平台的按钮
      * @param platforms 
      * @returns 
      */
-    private createMediaContainerNavBar(platforms: MediaContainerNavBarPlatform[])
+    private createMediaContainerNavBar(platforms: MediaContainerNavBarPlatform[], whichPlatform: number)
     {
         const PlatFormSelector = document.createElement('div');
         PlatFormSelector.classList.add('PlatformSelector');
-
         platforms.forEach((platform, index) =>
         {
             const PlatformButton = document.createElement('div');
@@ -88,7 +103,7 @@ export class MediaContainer
             PlatFormSelector.appendChild(PlatformButton);
 
             // 判断是否是第一个 platform
-            if (index === 0)
+            if (index === whichPlatform)
             {
                 PlatformButton.style.opacity = '1';
                 PlatFormSelector.style.backgroundColor = platform.buttonBackgroundColor;
@@ -97,12 +112,12 @@ export class MediaContainer
         return PlatFormSelector;
     }
 
-    protected createMediaContainerSubNavBar(item: MediaContainerNavBarPlatform[] | SettingContainerNavBarPlatform[])
+    protected createMediaContainerSubNavBar(item: MediaContainerNavBarPlatform[] | SettingContainerNavBarPlatform[], whichPlatform: number)
     {
         const MediaContainerSubNavBar = document.createElement('div');
         MediaContainerSubNavBar.classList.add('MediaContainerSubNavBar');
-        MediaContainerSubNavBar.style.backgroundColor = item[0].buttonBackgroundColor;
-        item[0].subNavBarItems.forEach((item, index) =>
+        MediaContainerSubNavBar.style.backgroundColor = item[whichPlatform].buttonBackgroundColor;
+        item[whichPlatform].subNavBarItems.forEach((item, index) =>
         {
             const SubNavBarItem = document.createElement('div');
             SubNavBarItem.classList.add('SubNavBarItem');
@@ -312,14 +327,15 @@ export class MediaContainer
             contentTitle.classList.add('contentTitle');
             contentTitle.innerText = item.title;
 
-            if(item.subTitle){
+            if (item.subTitle)
+            {
                 const contentSubTitle = document.createElement('div');
                 contentSubTitle.classList.add('contentSubTitle');
                 contentSubTitle.innerText = item.subTitle;
 
                 contentTitle.appendChild(contentSubTitle);
             }
-            
+
 
             if (item.duration)
             {
@@ -368,6 +384,13 @@ export class MediaContainer
                         }, interval);
                     }
                 });
+            }
+
+            if(item.collectable){
+                const collectIcon = document.createElement('div');
+                collectIcon.classList.add('collectIcon');
+
+                contentImgCover.appendChild(collectIcon);
             }
 
 

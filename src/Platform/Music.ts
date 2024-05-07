@@ -9,9 +9,11 @@ import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
 import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
+import { NeteaseSetting } from "./SettingInterface";
 
 export class Music
 {
+    neteaseSetting = this.getNeteaseSetting();
     public music()
     {
         const platforms: MediaContainerNavBarPlatform[] = [
@@ -23,7 +25,6 @@ export class Music
 
     private netease()
     {
-        const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
         return {
             id: 'Netease',
             containerID: 'MusicContainer',
@@ -57,30 +58,47 @@ export class Music
                     {
                         const mediaContainer = new MediaContainer();
                         const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
-                        const MediaContainerContent = document.getElementById('MediaContainerContent');
-                        if (!MediaContainerContent) return;
-                        mediaContainer.updatePaginationNotings();
-                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
-                        const parent = MediaContainerContent.parentElement;
-                        MediaContainerContent.style.opacity = '0';
+                        let MediaContainerContent = document.getElementById('MediaContainerContent');
+                        const mediaContainers = document.querySelectorAll('.MediaContainer');
 
-                        MediaContainerContent.addEventListener('transitionend', () =>
+                        if (mediaContainers.length > 1)
                         {
-                            MediaContainerContent.remove();
-                            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                            if (currentMediaContainerContent) return;
+                            MediaContainerContent = null;
+                        }
+
+                        if (!MediaContainerContent)
+                        {
+                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
+                            const parent = mediaContainers[1] ? mediaContainers[1] : mediaContainers[0];
                             if (parent)
                             {
-                                newMediaContainerContent.style.opacity = '0';
                                 parent.appendChild(newMediaContainerContent);
-                                setTimeout(() =>
-                                {
-                                    newMediaContainerContent.style.opacity = '1';
-                                }, 1);
                             }
-                        }, { once: true });
-                    },
-                    item: NetEaseRecommandPlayListitem
+                        } else
+                        {
+                            mediaContainer.updatePaginationNotings();
+                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
+                            const parent = MediaContainerContent.parentElement;
+                            MediaContainerContent.style.opacity = '0';
+
+                            MediaContainerContent.addEventListener('transitionend', () =>
+                            {
+                                MediaContainerContent.remove();
+                                const currentMediaContainerContent = document.getElementById('MediaContainerContent');
+                                if (currentMediaContainerContent) return;
+                                if (parent)
+                                {
+                                    newMediaContainerContent.style.opacity = '0';
+                                    parent.appendChild(newMediaContainerContent);
+                                    setTimeout(() =>
+                                    {
+                                        newMediaContainerContent.style.opacity = '1';
+                                    }, 1);
+                                }
+                            }, { once: true });
+                        }
+
+                    }
                 },
                 {
                     title: '搜索歌曲',
@@ -137,6 +155,17 @@ export class Music
         };
     }
 
+    private getNeteaseSetting():NeteaseSetting{
+        const neteaseSetting = localStorage.getItem('neteaseSetting')
+        if(neteaseSetting){
+            return JSON.parse(neteaseSetting) as NeteaseSetting;
+        } else {
+            return {
+                quality: 'lossless'
+            };
+        }
+    }
+
     private formatMillisecondsToMinutes(sec: number): string
     {
         const totalSeconds = Math.floor(sec);
@@ -181,6 +210,7 @@ export class Music
                     url: `https://music.163.com/#/playlist?id=${resultElement.id}`,
                     author: author,
                     duration: `歌单/${resultElement.trackCount}首`,
+                    collectable: true,
                     MediaRequest: () =>
                     {
                         const iiROSE_MEDIASelectHolder = new IIROSE_MEDIASelectHolder();
@@ -311,6 +341,7 @@ export class Music
                     url: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
+                    collectable: true,
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
@@ -323,8 +354,9 @@ export class Music
                             if (!songDetailElement) return null;
                             if (!songResource) return null;
                             let linkname = name;
-                            if(subTitle){
-                                linkname = `${name} - ${subTitle}`
+                            if (subTitle)
+                            {
+                                linkname = `${name} - ${subTitle}`;
                             }
                             const mediaData: MediaData = {
                                 type: 'music',
@@ -408,6 +440,7 @@ export class Music
                     url: `https://music.163.com/#/song?id=${mediaItem.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
+                    collectable: true,
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
@@ -421,7 +454,7 @@ export class Music
                         {
                             if (!data) return;
                             let linkname = name;
-                            if(subTitle) linkname = `${name} - ${subTitle}`
+                            if (subTitle) linkname = `${name} - ${subTitle}`;
                             const mediaData: MediaData = {
                                 type: 'music',
                                 name: linkname,
@@ -562,7 +595,7 @@ export class Music
         if (window.netease && window.netease.xc)
         {
 
-            const songResource = await neteaseMusicAPI.getSongResource(id, 'jymaster');
+            const songResource = await neteaseMusicAPI.getSongResource(id, this.neteaseSetting.quality);
             if (!songResource) return null;
 
             const url = songResource.url;
@@ -657,7 +690,7 @@ export class Music
         let name = '';
         let singer = '';
         let cover = '';
-        let subTitle: string | undefined = undefined
+        let subTitle: string | undefined = undefined;
         let duration = 0;
         if (songDetail)
         {

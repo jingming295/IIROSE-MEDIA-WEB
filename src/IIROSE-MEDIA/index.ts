@@ -22,36 +22,29 @@ export class IIROSEMEDIA
 
             if (mainContainer)
             {
-                const IIROSE_MEDIA = this.createIIROSE_MEDIA();
+                const IIROSE_MEDIA = document.createElement('div');
+                IIROSE_MEDIA.id = 'IIROSE_MEDIA';
+
                 mainContainer.appendChild(IIROSE_MEDIA_CONTAINER);
                 mainContainer.appendChild(SelectHolder)
                 IIROSE_MEDIA_CONTAINER.appendChild(IIROSE_MEDIA);
+
+                const createNavBar = new CreateNavBar();
+                const navBar = createNavBar.createNavBar();
+                IIROSE_MEDIA.appendChild(navBar);
+        
+                const MediaContainerWrapper = document.createElement('div');
+                MediaContainerWrapper.classList.add('MediaContainerWrapper');
+                MediaContainerWrapper.id = 'MediaContainerWrapper';
+                IIROSE_MEDIA.appendChild(MediaContainerWrapper)
+        
+                const video = new Video()
+                const videoPlatforms = video.video()
+        
+                const mediaContainer = new MediaContainer()
+                MediaContainerWrapper.appendChild(mediaContainer.createMediaCOntainer(videoPlatforms, 'VideoContainer'))
             }
         }
     }
 
-    private createIIROSE_MEDIA()
-    {
-        const IIROSE_MEDIA = document.createElement('div');
-        IIROSE_MEDIA.id = 'IIROSE_MEDIA';
-        const createNavBar = new CreateNavBar();
-        const navBar = createNavBar.createNavBar();
-        IIROSE_MEDIA.appendChild(navBar);
-
-        const MediaContainerWrapper = document.createElement('div');
-        MediaContainerWrapper.classList.add('MediaContainerWrapper');
-        MediaContainerWrapper.id = 'MediaContainerWrapper';
-
-        // const music = new Music()
-        // const platforms = music.music()
-
-        const video = new Video()
-        const videoPlatforms = video.video()
-
-        const mediaContainer = new MediaContainer()
-        MediaContainerWrapper.appendChild(mediaContainer.createMediaCOntainer(videoPlatforms, 'VideoContainer'))
-        IIROSE_MEDIA.appendChild(MediaContainerWrapper)
-
-        return IIROSE_MEDIA;
-    }
 }

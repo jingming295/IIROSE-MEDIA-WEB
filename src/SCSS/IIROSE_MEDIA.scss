@@ -135,21 +135,13 @@
           padding: 0 10px;
           background-color: rgb(221, 28, 4);
 
-          #NeteaseButton {
-            opacity: 1;
-          }
-
-          #NeteaseButton:hover {
-            opacity: .7;
-          }
-
           .PlatformButton {
             display: flex;
             align-items: center;
             color: #fff;
             height: 40px;
             padding: 0 10px;
-            opacity: .4;
+            opacity: .3;
             cursor: pointer;
             transition: all .5s ease-in-out;
 
@@ -437,6 +429,21 @@
                 font-weight: bold;
 
               }
+
+              .collectIcon{
+                position: absolute;
+                font-size: 30px;
+                color: #e5e903;
+                top:0;
+                right:0px;
+                cursor: pointer;
+              }
+
+              .collectIcon::before{
+                content: "\F04D2";
+                font-family: 'md';
+              }
+
             }
 
 
@@ -523,7 +530,7 @@
         .SettingContainerContent {
           position: relative;
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(355.2px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
           grid-gap: 12px;
           overflow-y: auto;
           overflow-x: auto;
@@ -533,8 +540,8 @@
           transition: all .25s ease-in-out;
 
           .ContainerContent {
-            min-width: 200px;
-            max-width: 350px;
+            // min-width: 200px;
+            // max-width: 350px;
             min-height: 200px;
             margin: 12px;
             display: flex;
@@ -552,6 +559,7 @@
 
               .titleIcon {
                 font-size: 30px;
+                font-family: 'md';
               }
 
               .settingIcon::before {

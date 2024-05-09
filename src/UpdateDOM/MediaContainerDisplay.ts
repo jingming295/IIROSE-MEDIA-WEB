@@ -2,7 +2,7 @@ import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
 
 export class MediaContainerDisplay{
 
-    public displayMessage(color:string, type:number){
+    public displayMessage(color:string, type:number, MediaContainerContent:HTMLElement | null){
 
         function createPleaseSearchMsg(){
             const msgWrapper = document.createElement('div');
@@ -31,7 +31,6 @@ export class MediaContainerDisplay{
             msgWrapper.appendChild(msgText);
             return msgWrapper;
         }
-        const MediaContainerContent = document.getElementById('MediaContainerContent');
         if(!MediaContainerContent) return;
         const parent = MediaContainerContent.parentElement;
         if(!parent) return;

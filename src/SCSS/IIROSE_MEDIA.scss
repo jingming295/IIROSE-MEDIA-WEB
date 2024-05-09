@@ -430,26 +430,72 @@
 
               }
 
-              .collectIcon{
-                position: absolute;
-                font-size: 30px;
-                color: #e5e903;
-                top:0;
-                right:0px;
-                cursor: pointer;
+            }
+
+            .collectIcomWrapper {
+              position: absolute;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              bottom: 15px;
+              right: 18px;
+              border-radius: 18px 0 0 18px;
+              background-color: rgba(0,0,0,0.05);
+              transition: all .5s ease-in-out;
+
+              .collectText{
+                font-size: 14px;
+                color: #757575;
+                font-weight: bold;
+                margin: 0 10px;
               }
 
-              .collectIcon::before{
-                content: "\F04D2";
+              .collectIcon {
+                margin-left: 10px;
+                font-size: 25px;
+                color: #757575;
+                transition: all .5s ease-in-out;
+              }
+
+              .collectedIcon {
+                font-size: 25px;
+                margin-left: 10px;
+                color: #ff5600;
+                cursor: pointer;
+                transition: all .5s ease-in-out;
+              }
+
+              .collectedIcon::before {
+                content: "\F02D1";
                 font-family: 'md';
               }
 
+              .collectIcon::before {
+                content: "\F02D1";
+                font-family: 'md';
+              }
+
+              // .collectIcon:hover {
+              //   opacity: .7;
+              //   color: #ff5600;
+              // }
+              // .collectedIcon:hover {
+              //   opacity: .7;
+              //   color: #757575;
+              // }
             }
+
+            .collectIcomWrapper:hover {
+              background-color: rgba(0,0,0,0.1);
+            }
+
 
 
             .infoArea {
               padding: 24px;
               color: rgba(0, 0, 0, 0.75);
+              position: relative;
 
               .contentTitle {
                 overflow: hidden;
@@ -581,12 +627,13 @@
               justify-content: center;
               align-items: center;
               cursor: pointer;
+
               .action {
                 color: rgba(0, 0, 0, 0.75);
                 transition: all .5s ease-in-out;
               }
 
-              .textAction{
+              .textAction {
                 font-weight: bold;
                 font-size: 16px;
               }

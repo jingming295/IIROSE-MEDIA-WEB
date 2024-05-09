@@ -150,13 +150,13 @@ export class Video
         if (!mediaSearchBarInput) return;
         if (mediaSearchBarInput.innerHTML === '')
         {
-            const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
-            if (containerMsgWrapper) return;
+            // const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
+            // if (containerMsgWrapper) return;
             MediaContainerContent.style.opacity = '0';
             MediaContainerContent.addEventListener('transitionend', function ()
             {
                 const mediaContainerDisplay = new MediaContainerDisplay();
-                mediaContainerDisplay.displayMessage('rgb(209, 79, 118)', 1);
+                mediaContainerDisplay.displayMessage('rgb(209, 79, 118)', 1, MediaContainerContent);
                 return;
             }, { once: true });
             return;

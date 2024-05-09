@@ -280,10 +280,11 @@ export class MediaContainer
 
             const contentImgCover = document.createElement('div');
             contentImgCover.classList.add('contentImgCover');
-            contentImgCover.onclick = () => { window.open(item.url || ''); };
+            
 
             const contentImg = document.createElement('img');
             contentImg.classList.add('contentImg');
+            contentImg.onclick = () => { window.open(item.url || ''); };
 
             observer.observe(contentImgCover);
             window.addEventListener('resize', setHeightToWidth);
@@ -387,10 +388,21 @@ export class MediaContainer
             }
 
             if(item.collectable){
+                const collectIcomWrapper = document.createElement('div');
+                collectIcomWrapper.classList.add('collectIcomWrapper');
+
                 const collectIcon = document.createElement('div');
                 collectIcon.classList.add('collectIcon');
 
-                contentImgCover.appendChild(collectIcon);
+                collectIcomWrapper.onclick = () =>{
+                    collectIcon.classList.toggle('collectedIcon');
+                }
+                const collectText = document.createElement('div');
+                collectText.classList.add('collectText');
+                collectText.innerText = '收藏';
+                collectIcomWrapper.appendChild(collectIcon);
+                collectIcomWrapper.appendChild(collectText);
+                infoArea.appendChild(collectIcomWrapper);
             }
 
 
@@ -424,11 +436,11 @@ export class MediaContainer
             if (!pMediaContainerItem || pMediaContainerItem.length === 0)
             {
                 if (spin) spin.remove();
-                const showmessage = new ShowMessage();
-                showmessage.show('搜索无结果');
+                // const showmessage = new ShowMessage();
+                // showmessage.show('搜索无结果');
 
                 const mediaContainerDisplay = new MediaContainerDisplay();
-                mediaContainerDisplay.displayMessage(playColor, 2);
+                mediaContainerDisplay.displayMessage(playColor, 2, MediaContainerContent);
                 return;
             }
             pMediaContainerItem.forEach(pMediaContainerItem =>

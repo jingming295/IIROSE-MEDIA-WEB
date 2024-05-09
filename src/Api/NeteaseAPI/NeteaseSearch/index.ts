@@ -118,14 +118,14 @@ export class NeteaseSearchAPI extends SendFetch
 
     }
 
-    public async getNeteaseRecommandPlayListXC(limit:number = 30){
+    public async getNeteaseRecommandPlayListXC(limit:number = 30, warn = true){
         const url = `https://xc.null.red:8043/api/netease/personalized`
         const params = new URLSearchParams();
         params.append('limit', limit.toString());
 
         const headers = new Headers();
 
-        const response = await this.sendGet(url, params, headers);
+        const response = await this.sendGet(url, params, headers, warn);
 
         if (response && response.ok)
         {

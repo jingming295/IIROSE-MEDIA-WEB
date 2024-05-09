@@ -197,6 +197,18 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
+    public async getSonggResourceFromIARC(url:string){
+        const response = await this.sendHead(url, new URLSearchParams(), new Headers(), false, false)
+        if (response && response.ok)
+        {
+            const redirect = response.headers.get('x-final-url')
+            return redirect;
+        } else
+        {
+            return null;
+        }
+    }
+
     public async testGetSongResource()
     {
         const url = `https://xc.null.red:8043/meting-api/`;
@@ -291,7 +303,6 @@ export class NeteaseMusicAPI extends SendFetch
             const resp = await fetch(`https://ifs.imoe.xyz/api/v1/163?id=${id}&type=metadata&time=${time}&sign=${sign}`);
             const metadata: xcSongResource = await resp.json();
             metadata.url += `#.mp3`;
-            metadata.time += 6000;
             return metadata;
         } catch (error)
         {

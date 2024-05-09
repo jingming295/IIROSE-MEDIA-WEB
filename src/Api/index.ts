@@ -32,7 +32,7 @@ export class SendFetch
                 signal: signal
             });
 
-            if (!response.ok)
+            if (!response.ok && warn)
             {
                 const showmessage = new ShowMessage();
                 showmessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
@@ -111,6 +111,49 @@ export class SendFetch
             return null;
         }
 
+
+    }
+
+    public async sendHead(url: string, params:URLSearchParams, headers: Headers, followredirect:boolean = false, warn: boolean = true, signal?: AbortSignal)
+    {
+        try{
+
+            if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+            {
+                if (headers.get('cookie-trans'))
+                {
+                    headers.append('cookie', headers.get('cookie-trans') as string);
+                }
+            }
+
+            const fullUrl = `${url}?${params.toString()}`;
+
+            const response = await fetch(fullUrl, {
+                method: 'HEAD',
+                headers: headers,
+                redirect: followredirect ? 'follow' : 'manual',
+                signal: signal
+            });
+
+            if (!response.ok && warn)
+            {
+                const showmessage = new ShowMessage();
+                showmessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+            }
+
+            return response;
+            
+
+        }catch(error)
+        {
+            if(warn)
+            {
+                const showmessage = new ShowMessage();
+                showmessage.show(`HEAD请求失败，url: ${url} 信息：${error}`);
+            }
+            return null;
+        
+        }
 
     }
 

@@ -57,9 +57,11 @@ export class Music
                     onclick: () =>
                     {
                         const mediaContainer = new MediaContainer();
-                        const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
                         let MediaContainerContent = document.getElementById('MediaContainerContent');
                         const mediaContainers = document.querySelectorAll('.MediaContainer');
+                        const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
+
+
 
                         if (mediaContainers.length > 1)
                         {
@@ -114,13 +116,13 @@ export class Music
                         if (!mediaSearchBarInput) return;
                         if (mediaSearchBarInput.innerHTML === '')
                         {
-                            const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
-                            if (containerMsgWrapper) return;
+                            // const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
+                            // if (containerMsgWrapper) return;
                             MediaContainerContent.style.opacity = '0';
                             MediaContainerContent.addEventListener('transitionend', function ()
                             {
                                 const mediaContainerDisplay = new MediaContainerDisplay();
-                                mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1);
+                                mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1, MediaContainerContent);
                                 return;
                             }, { once: true });
                             return;
@@ -155,11 +157,14 @@ export class Music
         };
     }
 
-    private getNeteaseSetting():NeteaseSetting{
-        const neteaseSetting = localStorage.getItem('neteaseSetting')
-        if(neteaseSetting){
+    private getNeteaseSetting(): NeteaseSetting
+    {
+        const neteaseSetting = localStorage.getItem('neteaseSetting');
+        if (neteaseSetting)
+        {
             return JSON.parse(neteaseSetting) as NeteaseSetting;
-        } else {
+        } else
+        {
             return {
                 quality: 'lossless'
             };
@@ -184,8 +189,7 @@ export class Music
     private async neteaseRecommendSongListMediaContainerItem()
     {
         const neteaseSearchAPI = new NeteaseSearchAPI();
-        const limit = 100;
-        const RecommandPlayList = await neteaseSearchAPI.getNeteaseRecommandPlayListXC(limit);
+        const limit = 100; const RecommandPlayList = await neteaseSearchAPI.getNeteaseRecommandPlayListXC(limit, false);
         const x: Promise<MediaContainerItem[] | null>[] = [];
 
         let index = 0;
@@ -605,9 +609,33 @@ export class Music
             return { url, lyric, br };
         } else
         {
-            const url = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/https://v.iarc.top//?server=netease&type=url&id=${id}#.mp3`;
-            const br = 320;
+
+            const songResource = await neteaseMusicAPI.imoeGetSongResource(id);
+            let url;
+            let br;
             let lyric = ``;
+            // if(!songResource) {
+            //     url = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/https://v.iarc.top//?server=netease&type=url&id=${id}#.mp3`;
+            //     br = 320;
+            //     const lyrdata = await neteaseMusicAPI.getLyric(id);
+            //     if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
+            //     {
+            //         lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
+            //     } else if (lyrdata && lyrdata.lrc)
+            //     {
+            //         lyric = lyrdata.lrc.lyric;
+            //     }
+            // }else {
+            //     url = songResource.url;
+            //     br = songResource.br;
+            //     if (songResource.lrc)
+            //     {
+            //         lyric = songResource.lrc_control;
+            //     }
+            // }  
+
+            url = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/https://v.iarc.top//?server=netease&type=url&id=${id}#.mp3`;
+            br = 320;
             const lyrdata = await neteaseMusicAPI.getLyric(id);
             if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
             {

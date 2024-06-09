@@ -1,4 +1,5 @@
-export interface MediaContainerNavBarPlatform{
+export interface MediaContainerNavBarPlatform
+{
     id: string;
     containerID: string;
     title: string;
@@ -8,7 +9,8 @@ export interface MediaContainerNavBarPlatform{
     inputEvent: InputEvent;
 }
 
-export interface SettingContainerNavBarPlatform{
+export interface SettingContainerNavBarPlatform
+{
     id: string;
     containerID: string;
     title: string;
@@ -17,22 +19,25 @@ export interface SettingContainerNavBarPlatform{
     subNavBarItems: SettingContainerSubNavBarItem[];
 }
 
-interface SettingContainerSubNavBarItem{
+interface SettingContainerSubNavBarItem
+{
     title: string;
     class?: string;
     id: string;
-    onclick: () => void
+    onclick: () => void;
 }
 
-export interface settingContainerItem{
-    type:number;
+export interface settingContainerItem
+{
+    type: number;
     title: string;
     mdiClass?: string;
     getSelectOption?: () => (string | number)[][];
-    cb?: (htmlElement?:HTMLElement) => void;
+    cb?: (htmlElement?: HTMLElement) => void;
 }
 
-interface MediaContainerSubNavBarItem{
+interface MediaContainerSubNavBarItem
+{
     title: string;
     class?: string;
     id: string;
@@ -41,26 +46,32 @@ interface MediaContainerSubNavBarItem{
 
 }
 
-export interface MediaContainerItem{
+export interface MediaContainerItem
+{
     formatMillisecondsToMinutes?(arg0: number): string | undefined;
     id: number;
     title: string;
     subTitle?: string;
     img: string;
-    url?: string;
+    url: string;
     author: Promise<string> | string;
     duration: string;
-    multipage?:Promise<boolean>;
-    collectable?: boolean;
+    multipage?: Promise<boolean>;
+    collect?: {
+        collectFolder: string;
+        lsKeyWord: string;
+    };
     MediaRequest?: () => void;
 }
 
-export interface InputEvent{
+export interface InputEvent
+{
     title: string;
-    InputAreaConfirmBtnOnClick: (userInput:string | null) => void;
+    InputAreaConfirmBtnOnClick: (userInput: string | null) => void;
 }
 
-export interface MediaItem{
+export interface MediaItem
+{
     id: number;
     keyword?: string;
     title?: string;
@@ -71,5 +82,5 @@ export interface MediaItem{
     bilibili?: {
         bvid?: string;
         cid?: number;
-    }
+    };
 }

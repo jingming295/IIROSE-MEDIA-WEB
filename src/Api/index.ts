@@ -203,8 +203,6 @@ export class SendFetch
                     !excludedKeys.includes(key))
                 .map(([key, value]) => `${key}=${value}`)
                 .join(';');
-
-            console.log(cookieString);
             headers.append('cookie-trans', cookieString);
         }
         return headers;

@@ -5,6 +5,7 @@ import { ShowMessage } from "../IIROSE/ShowMessage";
 import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
 import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem, SettingContainerNavBarPlatform } from "./MediaContainerInterface";
 import { InputEvent } from "./MediaContainerInterface";
+import { LSMediaCollectData } from "../Platform/LocalStorageCollectDataInterface";
 // import { noloadGifBase64 } from "../ImageTools/Gif";
 export class MediaContainer
 {
@@ -261,6 +262,43 @@ export class MediaContainer
                 if (width > 0)
                     contentImgCover.style.height = width + 'px'; // 设置高度等于宽度的像素值
             }
+            function onclickCollect(collectIcon: HTMLDivElement)
+            {
+                if (!item.collect) return;
+                const ls = localStorage.getItem(item.collect.lsKeyWord);
+                collectIcon.classList.toggle('collectedIcon');
+                if (ls && collectIcon.classList.contains('collectedIcon'))
+                {
+                    const collect: LSMediaCollectData[] = JSON.parse(ls);
+                    Promise.resolve(item.author).then((a) =>
+                    {
+                        Promise.resolve(item.multipage).then((m) =>
+                        {
+                            if (!item.collect) return;
+                            const lsmcd: LSMediaCollectData = {
+                                id: item.id,
+                                title: item.title,
+                                subTitle: item.subTitle,
+                                img: item.img,
+                                url: item.url,
+                                author: a,
+                                duration: item.duration,
+                                multipage: m,
+                                collect: item.collect,
+                            };
+                            collect.push(lsmcd);
+                            localStorage.setItem(item.collect.lsKeyWord, JSON.stringify(collect));
+                        });
+
+                    });
+                } else if (ls)
+                {
+                    const collect: LSMediaCollectData[] = JSON.parse(ls);
+                    const index = collect.findIndex((c) => c.id === item.id);
+                    collect.splice(index, 1);
+                    localStorage.setItem(item.collect.lsKeyWord, JSON.stringify(collect));
+                }
+            }
             const observer = new IntersectionObserver(entries =>
             {
                 entries.forEach(entry =>
@@ -280,7 +318,7 @@ export class MediaContainer
 
             const contentImgCover = document.createElement('div');
             contentImgCover.classList.add('contentImgCover');
-            
+
 
             const contentImg = document.createElement('img');
             contentImg.classList.add('contentImg');
@@ -387,16 +425,28 @@ export class MediaContainer
                 });
             }
 
-            if(item.collectable){
+            if (item.collect)
+            {
                 const collectIcomWrapper = document.createElement('div');
                 collectIcomWrapper.classList.add('collectIcomWrapper');
 
                 const collectIcon = document.createElement('div');
                 collectIcon.classList.add('collectIcon');
 
-                collectIcomWrapper.onclick = () =>{
-                    collectIcon.classList.toggle('collectedIcon');
+                const ls = localStorage.getItem(item.collect.lsKeyWord);
+                if (ls)
+                {
+                    const collect: LSMediaCollectData[] = JSON.parse(ls);
+                    const index = collect.findIndex((c) => c.id === item.id);
+                    if (index !== -1)
+                    {
+                        collectIcon.classList.add('collectedIcon');
+                    }
                 }
+                collectIcomWrapper.onclick = () =>
+                {
+                    onclickCollect(collectIcon);
+                };
                 const collectText = document.createElement('div');
                 collectText.classList.add('collectText');
                 collectText.innerText = '收藏';

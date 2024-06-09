@@ -341,6 +341,73 @@ export class Setting
 
                     utils.sync(2, t, Callback)
                 }
+            },{
+                type: 1,
+                title: '视频获取格式',
+                mdiClass: 'iirose-media-web-videoFormat',
+                getSelectOption: () =>
+                {
+                    const selectOption = [
+                        [0, 'durl (最稳定)'],
+                        [1, 'dash (实验性，能获取720p60帧以上的画质)'],
+                        [2, '混合 (高于720p自动使用dash)']
+                    ];
+
+                    const bilibiliSetting = localStorage.getItem('bilibiliSetting');
+                    if (bilibiliSetting)
+                    {
+                        const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
+                        if(parseBilibiliSetting){
+                            const option = selectOption.find((item) => item[0] === parseBilibiliSetting.getVideoStreamFormat);
+                            return option ? [option] : selectOption;
+                        }
+                    }
+                    return selectOption;
+                },
+                cb: (htmlElement?: HTMLElement) =>
+                {
+                    const noSelectCallback = () =>
+                    {
+                        console.log('No Select');
+                    };
+
+                    const selectCallback = (htmlElement: HTMLElement, index: string) =>
+                    {
+                        const bilibiliSetting = localStorage.getItem('bilibiliSetting');
+                        if (bilibiliSetting)
+                        {
+                            const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
+                            parseBilibiliSetting.getVideoStreamFormat = parseInt(index);
+                            localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
+                        }
+                        const optionText = selectOption.find((item) => item[0] === parseInt(index));
+                        if (optionText)
+                        {
+                            htmlElement.innerText = optionText[1].toString();
+                        }
+
+                    };
+
+                    const utils = new Utils();
+
+                    const mdiClass = [
+                        'iirose-media-web-play',
+                        'iirose-media-web-hdbox',
+                        `iirose-media-web-mixed`
+                    ];
+
+                    const selectOption = [
+                        [0, 'durl (最稳定)'],
+                        [1, 'dash (实验性，能获取720p60帧以上的画质)'],
+                        [2, '混合 (高于720p自动使用dash)']
+                    ];
+
+                    selectOption.forEach((item, index) =>
+                    {
+                        item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
+                    });
+                    utils.buildSelect2(htmlElement, selectOption, selectCallback, false, true, null, false, null, noSelectCallback);
+                }
             }
         ];
     }

@@ -1,5 +1,6 @@
 export class UpdateDom{
     public changeStatusIIROSE_MEDIA(){
+        console.log('changeStatusIIROSE_MEDIA')
         const IIROSE_MEDIA = document.getElementById('IIROSE_MEDIA_CONTAINER')
         const mainHolder = document.getElementById('mainHolder');
         if(IIROSE_MEDIA && mainHolder){

@@ -1,7 +1,8 @@
 export interface BilibiliSetting{
     qn: number,
     streamqn: number,
-    streamSeconds: number
+    streamSeconds: number,
+    getVideoStreamFormat: number,
 }
 
 export interface NeteaseSetting{

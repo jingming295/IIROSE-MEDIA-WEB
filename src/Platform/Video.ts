@@ -36,7 +36,8 @@ export class Video
             return {
                 qn: 112,
                 streamqn: 10000,
-                streamSeconds: 43200
+                streamSeconds: 43200,
+                getVideoStreamFormat: 2
             };
         }
     }
@@ -223,30 +224,7 @@ export class Video
                 duration: this.formatMillisecondsToMinutes(rcmdItem.duration * 1000),
                 MediaRequest: () =>
                 {
-                    const socket = new Socket();
-                    const sMedia = new Media();
-                    const bvResource = bv.getBilibiliVideoStream(rcmdItem.id, rcmdItem.bvid, rcmdItem.cid, this.bvSetting.qn, 'html5');
-                    const updateDom = new UpdateDom();
-                    updateDom.changeStatusIIROSE_MEDIA();
-                    bvResource.then(bvResource =>
-                    {
-                        if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                        const mediaData: MediaData = {
-                            type: 'video',
-                            name: rcmdItem.title,
-                            singer: rcmdItem.owner.name,
-                            cover: rcmdItem.pic,
-                            link: rcmdItem.uri,
-                            url: bvResource.data.durl[0].url,
-                            duration: rcmdItem.duration,
-                            bitRate: bvResource.data.quality,
-                            color: 'FFFFFF',
-                            origin: 'bilibili'
-                        };
-                        socket.sendMessage(sMedia.mediaCard(mediaData));
-                        socket.sendMessage(sMedia.mediaEvent(mediaData));
-
-                    });
+                    this.goMediaRequest(rcmdItem.id, rcmdItem.bvid, rcmdItem.cid, rcmdItem.title, rcmdItem.owner.name, rcmdItem.pic, rcmdItem.uri);
                 }
             };
             x.push(Promise.resolve([item]));
@@ -302,32 +280,8 @@ export class Video
                 MediaRequest: () =>
                 {
                     if (!item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-                    const socket = new Socket();
-                    const sMedia = new Media();
-                    const bv = new BiliBiliVideoApi();
-                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili?.bvid, item.bilibili.cid, this.bvSetting.qn, 'html5');
-                    const updateDom = new UpdateDom();
-                    updateDom.changeStatusIIROSE_MEDIA();
-                    bvResource.then(bvResource =>
-                    {
-                        if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-
-                        if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                        const mediaData: MediaData = {
-                            type: 'video',
-                            name: item.title,
-                            singer: item.author,
-                            cover: item.img,
-                            link: item.url,
-                            url: bvResource.data.durl[0].url,
-                            duration: bvResource.data.durl[0].length / 1000,
-                            bitRate: bvResource.data.quality,
-                            color: 'FFFFFF',
-                            origin: 'bilibili'
-                        };
-                        socket.sendMessage(sMedia.mediaCard(mediaData));
-                        socket.sendMessage(sMedia.mediaEvent(mediaData));
-                    });
+                    if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url) return;
+                    this.goMediaRequest(item.id, item.bilibili.bvid, item.bilibili.cid, item.title, item.author, item.img, item.url);
                 },
             };
             x.push(Promise.resolve([mediaContainerItem]));
@@ -460,7 +414,6 @@ export class Video
         const itemPerPage = 10;
         const StartItem = (currentPage - 1) * itemPerPage;
         mediaItems = mediaItems.slice(StartItem, StartItem + itemPerPage);
-        console.log(StartItem);
         const x: Promise<MediaContainerItem[] | null>[] = [];
         for (const item of mediaItems)
         {
@@ -542,40 +495,8 @@ export class Video
             {
                 if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
                 const bv = new BiliBiliVideoApi();
-                const bvDetail = bv.getBilibiliVideoData(item.id, item.bilibili.bvid);
-                const socket = new Socket();
-                const sMedia = new Media();
 
-                const updateDom = new UpdateDom();
-                updateDom.changeStatusIIROSE_MEDIA();
-                bvDetail.then(bvDetail =>
-                {
-                    if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-                    if (!bvDetail || !bvDetail.data) return;
-
-                    const bvResource = bv.getBilibiliVideoStream(item.id, item.bilibili.bvid, item.bilibili.cid, this.bvSetting.qn, 'html5');
-
-                    bvResource.then(bvResource =>
-                    {
-                        if (!item.author || !item.duration || !item.id || !item.img || !item.title || !item.url || !item.bilibili || !item.bilibili.bvid || !item.bilibili.cid) return;
-                        if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                        if (bvResource.data.quality === 6) bvResource.data.quality = 2;
-                        const mediaData: MediaData = {
-                            type: 'video',
-                            name: item.title,
-                            singer: item.author,
-                            cover: `${item.img}`,
-                            link: item.url,
-                            url: bvResource.data.durl[0].url,
-                            duration: bvResource.data.durl[0].length / 1000,
-                            bitRate: bvResource.data.quality,
-                            color: 'FFFFFF',
-                            origin: 'bilibili'
-                        };
-                        socket.sendMessage(sMedia.mediaCard(mediaData));
-                        socket.sendMessage(sMedia.mediaEvent(mediaData));
-                    });
-                });
+                this.goMediaRequest(item.id, item.bilibili.bvid, item.bilibili.cid, item.title, item.author, item.img, item.url);
             }
         };
 
@@ -623,8 +544,8 @@ export class Video
                                 color: 'FFFFFF',
                                 origin: 'bilibililive'
                             };
-                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                            socket.send(sMedia.mediaCard(mediaData));
+                            socket.send(sMedia.mediaEvent(mediaData));
                             done = true;
                         }
                     }
@@ -681,28 +602,7 @@ export class Video
 
                     if (bvDetail.data.pages.length === 1)
                     {
-                        const updateDom = new UpdateDom();
-                        updateDom.changeStatusIIROSE_MEDIA();
-                        const bvResource = bv.getBilibiliVideoStream(result.id, result.bvid, bvDetail.data.cid, this.bvSetting.qn, 'html5');
-                        bvResource.then(bvResource =>
-                        {
-                            if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                            if (bvResource.data.quality === 6) bvResource.data.quality = 2;
-                            const mediaData: MediaData = {
-                                type: 'video',
-                                name: result.title,
-                                singer: result.author,
-                                cover: `https:${result.pic}`,
-                                link: result.arcurl,
-                                url: bvResource.data.durl[0].url,
-                                duration: bvResource.data.durl[0].length / 1000,
-                                bitRate: bvResource.data.quality,
-                                color: 'FFFFFF',
-                                origin: 'bilibili'
-                            };
-                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                            socket.sendMessage(sMedia.mediaEvent(mediaData));
-                        });
+                        this.goMediaRequest(result.id, result.bvid, bvDetail.data.pages[0].cid, result.title, result.author, result.pic, result.arcurl);
                     } else
                     {
                         const cids = bvDetail.data.pages.map((page) => page.cid);
@@ -728,7 +628,6 @@ export class Video
                                 }
                             });
                         }
-                        console.log(newMediaItems);
                         const videoContainer = document.getElementById('VideoContainer') as HTMLDivElement;
                         const mediaContainer = new MediaContainer();
                         mediaContainer.goMultiPage(videoContainer, newMediaItems, 'rgb(221, 28, 4)');
@@ -739,6 +638,139 @@ export class Video
 
         };
         return Promise.resolve([mediaContainerItem]);
+    }
+
+    private goMediaRequest(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string){
+        
+        if(this.bvSetting.getVideoStreamFormat === 2){
+            if(this.bvSetting.qn > 64){
+                this.onMediaRequestDash(id, bvid, cid, title, author, pic, arcurl);
+            } else {
+                this.onMediaRequestDurl(id, bvid, cid, title, author, pic, arcurl);
+            }
+        } else if(this.bvSetting.getVideoStreamFormat === 1){
+            this.onMediaRequestDash(id, bvid, cid, title, author, pic, arcurl);
+        } else if(this.bvSetting.getVideoStreamFormat === 0){
+            this.onMediaRequestDurl(id, bvid, cid, title, author, pic, arcurl);
+        }
+        
+
+    }
+
+    private async onMediaRequestDash(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string)
+    {
+        const bv = new BiliBiliVideoApi();
+        const bvResource = bv.getBilibiliVideoStream(id, bvid, cid, this.bvSetting.qn, 4048);
+        const socket = new Socket();
+        const sMedia = new Media();
+
+        const updateDom = new UpdateDom();
+        updateDom.changeStatusIIROSE_MEDIA();
+        bvResource.then(bvResource =>
+        {
+            if (!bvResource || !bvResource.data || !bvResource.data.dash || !bvResource.data.quality) return null;
+            if (bvResource.data.quality === 6) bvResource.data.quality = 2;
+            let qn = this.bvSetting.qn;
+            let playurl: string | null = null;
+            let audiourl: string | null = null;
+            let codecid = 0;
+            bvResource.data.dash.video.forEach((video) =>
+            {
+                if (video.id === this.bvSetting.qn && video.codecid === 13)
+                {
+                    playurl = video.baseUrl;
+                    qn = video.id;
+                    codecid = video.codecid;
+                }
+            });
+
+            if (playurl === null)
+            {
+                bvResource.data.dash.video.forEach((video) =>
+                {
+                    if ((video.codecid === 13 || video.codecid === 7) && !playurl)
+                    {
+                        playurl = video.baseUrl;
+                        qn = video.id;
+                        codecid = video.codecid;
+                    }
+                });
+            }
+
+            const audioArray = bvResource.data.dash.audio;
+
+            // 使用 filter 过滤掉 id 为 30250 的对象，然后找到 id 最高的对象
+            const filteredAudioArray = audioArray.filter(audio => audio.id !== 30250);
+
+            // 使用 reduce 找到 id 最高的对象
+            const highestIdAudio = filteredAudioArray.reduce((max, audio) => (audio.id > max.id ? audio : max), filteredAudioArray[0]);
+
+            const lowest = filteredAudioArray.reduce((min, audio) => (audio.id < min.id ? audio : min), filteredAudioArray[0]);
+
+            // 获取最高 id 的对象的 baseUrl
+            const highestIdBaseUrl = highestIdAudio.baseUrl;
+
+            const lowestIdBaseUrl = lowest.baseUrl;
+
+            const highestId = highestIdAudio.id;
+
+            const middle = filteredAudioArray.reduce((middle, audio) => (audio.id > lowest.id && audio.id < highestId ? audio : middle), filteredAudioArray[0]);
+
+            const middleIdBaseUrl = middle.baseUrl;
+
+            audiourl = `${lowestIdBaseUrl}`;
+            pic = pic.replace(/^https:\/\//, 'http://');
+            pic = pic.replace(/^\/\//, 'http://');
+            const mediaData: MediaData = {
+                type: 'video',
+                name: title,
+                singer: author,
+                cover: pic,
+                link: arcurl,
+                url: `${playurl}#audio=${audiourl}`,
+                duration: bvResource.data.dash.duration,
+                bitRate: qn,
+                color: 'FFFFFF',
+                origin: 'bilibili'
+            };
+            socket.send(sMedia.mediaCard(mediaData));
+            socket.send(sMedia.mediaEvent(mediaData));
+        });
+    }
+
+    private async onMediaRequestDurl(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string){
+        const bv = new BiliBiliVideoApi();
+        const bvResource = bv.getBilibiliVideoStream(id, bvid, cid, this.bvSetting.qn, 1);
+
+        const socket = new Socket();
+        const sMedia = new Media();
+
+        const updateDom = new UpdateDom();
+        updateDom.changeStatusIIROSE_MEDIA();
+
+        bvResource.then(bvResource =>
+            {
+                if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
+                if (bvResource.data.quality === 6) bvResource.data.quality = 2;
+                const playurl: string = bvResource.data.durl[0].url;
+                pic = pic.replace(/^https:\/\//, 'http://');
+                pic = pic.replace(/^\/\//, 'http://');
+                const mediaData: MediaData = {
+                    type: 'video',
+                    name: title,
+                    singer: author,
+                    cover: pic,
+                    link: arcurl,
+                    url: `${playurl}`,
+                    duration: bvResource.data.durl[0].length / 1000,
+                    bitRate: bvResource.data.quality,
+                    color: 'FFFFFF',
+                    origin: 'bilibili'
+                };
+                socket.send(sMedia.mediaCard(mediaData));
+                socket.send(sMedia.mediaEvent(mediaData));
+            });
+
     }
 
 }

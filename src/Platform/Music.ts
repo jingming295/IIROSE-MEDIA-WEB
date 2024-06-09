@@ -14,6 +14,9 @@ import { NeteaseSetting } from "./SettingInterface";
 export class Music
 {
     neteaseSetting = this.getNeteaseSetting();
+    neteaseSongListCollectLSKeyWord = 'neteaseSongListCollect';
+    neteaseSongCollectLSKeyword = 'neteaseSongCollect';
+    
     public music()
     {
         const platforms: MediaContainerNavBarPlatform[] = [
@@ -214,7 +217,10 @@ export class Music
                     url: `https://music.163.com/#/playlist?id=${resultElement.id}`,
                     author: author,
                     duration: `歌单/${resultElement.trackCount}首`,
-                    collectable: true,
+                    collect:{
+                        collectFolder: '歌单默认收藏夹',
+                        lsKeyWord: this.neteaseSongListCollectLSKeyWord
+                    },
                     MediaRequest: () =>
                     {
                         const iiROSE_MEDIASelectHolder = new IIROSE_MEDIASelectHolder();
@@ -263,11 +269,11 @@ export class Music
                                                 // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
                                                 //     mediaData.color = color
                                                 //     console.log(color)
-                                                //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
+                                                //     socket.send(sMedia.mediaCard(mediaData), color)
                                                 // })
                                                 // console.log(mediaData)
-                                                socket.sendMessage(sMedia.mediaCard(mediaData));
-                                                socket.sendMessage(sMedia.mediaEvent(mediaData));
+                                                socket.send(sMedia.mediaCard(mediaData));
+                                                socket.send(sMedia.mediaEvent(mediaData));
 
                                             });
                                         });
@@ -345,7 +351,10 @@ export class Music
                     url: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
-                    collectable: true,
+                    collect:{
+                        collectFolder: '歌曲默认收藏夹',
+                        lsKeyWord: this.neteaseSongCollectLSKeyword
+                    },
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
@@ -375,8 +384,8 @@ export class Music
                                 lyrics: songResource.lyric,
                                 origin: 'netease'
                             };
-                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                            socket.send(sMedia.mediaCard(mediaData));
+                            socket.send(sMedia.mediaEvent(mediaData));
 
                         });
                     }
@@ -444,7 +453,10 @@ export class Music
                     url: `https://music.163.com/#/song?id=${mediaItem.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
-                    collectable: true,
+                    collect:{
+                        collectFolder: '歌曲默认收藏夹',
+                        lsKeyWord: this.neteaseSongCollectLSKeyword
+                    },
                     MediaRequest: () =>
                     {
                         const socket = new Socket();
@@ -473,8 +485,8 @@ export class Music
                                 origin: 'netease'
                             };
 
-                            socket.sendMessage(sMedia.mediaCard(mediaData));
-                            socket.sendMessage(sMedia.mediaEvent(mediaData));
+                            socket.send(sMedia.mediaCard(mediaData));
+                            socket.send(sMedia.mediaEvent(mediaData));
 
                         });
                     }
@@ -559,11 +571,11 @@ export class Music
                                                 // iImageTools.getImageAverageColor(mediaData.cover, 0.5).then(color => {
                                                 //     mediaData.color = color
                                                 //     console.log(color)
-                                                //     socket.sendMessage(sMedia.mediaCard(mediaData), color)
+                                                //     socket.send(sMedia.mediaCard(mediaData), color)
                                                 // })
                                                 // console.log(mediaData)
-                                                socket.sendMessage(sMedia.mediaCard(mediaData));
-                                                socket.sendMessage(sMedia.mediaEvent(mediaData));
+                                                socket.send(sMedia.mediaCard(mediaData));
+                                                socket.send(sMedia.mediaEvent(mediaData));
 
                                             });
                                         });

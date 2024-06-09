@@ -5,6 +5,7 @@ import { BiliBiliAccount } from "./Account/SetBiliBili";
 import './SCSS/IIROSE_MEDIA.scss';
 import './SCSS/MaterialDesignIcon.scss';
 import { BilibiliSetting, NeteaseSetting } from "./Platform/SettingInterface";
+import { LSMediaCollectData } from "./Platform/LocalStorageCollectDataInterface";
 class init{
     constructor(){
         const env = new ENV();
@@ -15,6 +16,7 @@ class init{
     async init(){
         this.setBiliBiliSetting()
         this.setNeteaseSetting()
+        this.setNeteaseSongCollect()
         if(typeof document === 'undefined') {
             console.log('[IIROSE-MEDIA] - 加载失败，当前环境不支持document对象')
             return
@@ -31,7 +33,8 @@ class init{
             const parseBilibiliSetting:BilibiliSetting = {
                 qn: 64,
                 streamqn: 10000,
-                streamSeconds: 43200
+                streamSeconds: 43200,
+                getVideoStreamFormat: 2
             }
             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting))
         } else {
@@ -44,6 +47,9 @@ class init{
             }
             if(!parseBilibiliSetting.streamSeconds){
                 parseBilibiliSetting.streamSeconds = 43200
+            }
+            if(!parseBilibiliSetting.getVideoStreamFormat){
+                parseBilibiliSetting.getVideoStreamFormat = 2
             }
             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting))
         }
@@ -64,6 +70,19 @@ class init{
             localStorage.setItem('neteaseSetting', JSON.stringify(parseNeteaseSetting))
         }
     
+    }
+
+    setNeteaseSongCollect(){
+        const neteaseSongListCollect = localStorage.getItem('neteaseSongListCollect')
+        if(!neteaseSongListCollect){
+            const neteaseSongListCollect: LSMediaCollectData[] = []
+            localStorage.setItem('neteaseSongListCollect', JSON.stringify(neteaseSongListCollect))
+        }
+        const neteaseSongCollect = localStorage.getItem('neteaseSongCollect')
+        if(!neteaseSongCollect){
+            const neteaseSongCollect: LSMediaCollectData[] = []
+            localStorage.setItem('neteaseSongCollect', JSON.stringify(neteaseSongCollect))
+        }
     }
 }
   

@@ -63,8 +63,9 @@ export class BiliBiliVideoApi extends SendFetch
             bvid: string | null = null,
             cid: number,
             qn: number,
-            platform: string | null = null,
-            fnval: number | null = null
+            fnval: number = 16,
+            platform: string = 'html5',
+            
         )
     {
         const url = `${this.cors}https://api.bilibili.com/x/player/wbi/playurl`;
@@ -73,13 +74,14 @@ export class BiliBiliVideoApi extends SendFetch
             cid: cid.toString(),
             qn: qn.toString(),
             high_quality: '1',
+            platform: platform,
             fnver: '0',
             fourk: '1',
+            fnval: fnval.toString()
         });
+
         aid && params.set('avid', aid.toString());
         bvid && params.set('bvid', bvid);
-        fnval && params.set('fnval', fnval.toString());
-        platform && params.set('platform', platform);
         const wbi = new WBI();
         const wbidata = await wbi.main(params);
         wbidata.w_rid && params.set('w_rid', wbidata.w_rid);

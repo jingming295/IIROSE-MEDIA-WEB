@@ -1,4 +1,7 @@
 .IIROSE_MEDIA_CONTAINER {
+  * {
+    transition: all 0.5s ease-in-out;
+  }
   position: fixed;
   top: 0;
   left: 0;
@@ -18,53 +21,50 @@
     height: 100%;
     // background-color: rgba(0, 0, 0, 0.786);
 
-    .NavBar {
+    .IIroseMainNavigationBar {
       display: flex;
       flex-wrap: wrap;
       min-height: 40px;
-      background-color: #3e3e3f00;
+      background-color: transparent;
       justify-content: space-between;
 
-      .LeftComponent {
+      .LeftComponent,
+      .RightComponent {
         display: flex;
 
-        #BackIcon {
+        .NavBarButtonIcon {
           font-size: 24px;
+          padding-left: 10px;
+          margin-right: 20px;
           cursor: pointer;
+        }
+
+        .NavBarButtonIcon::before {
+          font-family: "md";
         }
 
         #BackIcon::before {
           content: "\F0141";
-          font-family: "md";
         }
 
         #TitleIcon {
-          font-size: 24px;
           margin-right: 20px;
         }
 
         #TitleIcon::before {
           content: "\F0025";
-          font-family: "md";
         }
-      }
-
-      .RightComponent {
-        display: flex;
 
         #SettingIcon::before {
           content: "\F0493";
-          font-family: "md";
         }
 
         #MusicIcon::before {
           content: "\F075A";
-          font-family: "md";
         }
 
         #VideoIcon::before {
           content: "\F0381";
-          font-family: "md";
         }
       }
 
@@ -75,42 +75,35 @@
         align-items: center;
         cursor: pointer;
         font-size: 24px;
-        background-color: rgba(0, 0, 0, .5);
+        background-color: rgba(0, 0, 0, 0.5);
         color: #fff;
-        transition: opacity .3s ease-in-out;
+        transition: opacity 0.3s ease-in-out;
 
         .NavBarButtonText {
           font-size: 14px;
-          transition: all .5s ease-in-out;
-        }
-
-
-        .NavBarButtonIcon {
-          padding-left: 10px;
-          margin-right: 20px;
+          transition: all 0.5s ease-in-out;
         }
       }
 
       .NavBarButton {
-        background-color: rgba(255, 255, 255, .2);
-        transition: all .5s ease-in-out;
+        background-color: rgba(255, 255, 255, 0.2);
+        transition: all 0.5s ease-in-out;
       }
 
       .NavBarButton:hover {
-        opacity: .7;
+        opacity: 0.7;
       }
 
       .NavBarButtonActive {
-        background-color: rgba(0, 0, 0, 0.5)
+        background-color: rgba(0, 0, 0, 0.5);
       }
 
       #NavBarTitle {
         cursor: auto;
-        background-color: rgba(255, 255, 255, .2);
+        background-color: rgba(255, 255, 255, 0.2);
         font-size: 16px;
         color: #fff;
       }
-
     }
 
     .MediaContainerWrapper {
@@ -125,14 +118,14 @@
         background-color: rgba(224, 224, 224, 0.8);
         height: 100%;
         width: 100%;
-        transition: all .25s ease-in-out;
+        transition: all 0.25s ease-in-out;
         display: flex;
         flex-direction: column;
         position: absolute;
 
         .PlatformSelector {
           display: flex;
-          padding: 0 10px;
+          padding: 0 20px;
           background-color: rgb(221, 28, 4);
 
           .PlatformButton {
@@ -141,9 +134,13 @@
             color: #fff;
             height: 40px;
             padding: 0 10px;
-            opacity: .3;
+            background-color: rgba(0, 0, 0, 0.5);
             cursor: pointer;
-            transition: all .5s ease-in-out;
+            transition: all 0.5s ease-in-out;
+
+            &:hover {
+              opacity: 0.7;
+            }
 
             .PlatformIcon {
               width: 32px;
@@ -154,43 +151,35 @@
               margin: 0 10px;
             }
           }
-
-          .PlatformButton:hover {
-            opacity: 1;
-          }
         }
 
         .MediaContainerSubNavBar {
           display: flex;
           flex-wrap: wrap;
           color: #fff;
-          transition: all .25s ease-in-out;
 
-          // padding: 5px;
           .SubNavBarItem,
           .subNavBarItemPlaceHolder {
-            transition: all .5s ease-in-out;
             display: flex;
             align-items: center;
-            cursor: pointer;
             height: 30px;
             padding: 0 20px;
-            // border-radius: 10px;
-            background-color: rgba(0, 0, 0, .3);
-            // margin-left: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.5s ease-in-out;
           }
 
           .subNavBarItemPlaceHolder {
-            background-color: rgba(0, 0, 0, .0);
+            background-color: transparent;
             cursor: auto;
           }
 
-          .subNavBarItemActive {
-            background-color: rgba(0, 0, 0, .7);
+          .SubNavBarItem:hover {
+            opacity: 0.7;
           }
 
-          .SubNavBarItem:hover {
-            opacity: .7;
+          .subNavBarItemActive {
+            background-color: rgba(0, 0, 0, 0.7);
           }
         }
 
@@ -199,24 +188,29 @@
           align-items: center;
           justify-content: flex-end;
           flex-wrap: wrap;
-          // padding: 0 10px;
+
+          .inputWrapper,
+          .paginationWrapper,
+          .controllerWrapper {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            cursor: pointer;
+            height: 100%;
+            transition: all 0.25s ease-in-out;
+          }
 
           .inputWrapper {
-            cursor: pointer;
-            align-items: center;
-            display: flex;
-            color: #fff;
-            transition: all .25s ease-in-out;
             max-width: 460px;
+
+            .inputIcon::before {
+              content: "\F0349";
+              font-family: "md";
+            }
 
             .inputIcon {
               font-size: 24px;
               margin-right: 22px;
-            }
-
-            .inputIcon::before {
-              content: "\F0349";
-              font-family: 'md';
             }
 
             .mediaSearchBarInput {
@@ -226,105 +220,83 @@
               text-overflow: ellipsis;
               white-space: pre;
             }
-          }
 
-          .inputWrapper:hover {
-            opacity: .7;
+            &:hover {
+              opacity: 0.7;
+            }
           }
 
           .paginationWrapper {
-            margin-left: 24px;
-            margin-right: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            color: #fff;
-            transition: all .25s ease-in-out;
-
-            .paginationIcon {
-              font-size: 24px;
-            }
+            margin: 0 24px;
 
             .paginationIcon::before {
               content: "\F14F7";
-              font-family: 'md';
+              font-family: "md";
+            }
+
+            .paginationIcon {
+              font-size: 24px;
             }
 
             .pagination {
               margin-left: 22px;
               font-size: 14px;
             }
-          }
 
-          .paginationWrapper:hover {
-            opacity: .7;
+            &:hover {
+              opacity: 0.7;
+            }
           }
 
           .controllerWrapper {
-            display: flex;
-            align-items: center;
-            color: #fff;
-            transition: all .25s ease-in-out;
+            .returnButtonWrapper,
+            .prevButtonWrapper,
+            .nextButtonWrapper {
+              background-color: rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
 
-            .returnButtonWrapper {
-              background-color: rgba(0, 0, 0, .5);
-
-              .returnIcon {
+              .returnIcon,
+              .prevIcon,
+              .nextIcon {
+                font-family: "md";
                 font-size: 24px;
               }
 
               .returnIcon::before {
                 content: "\F17A7";
-                font-family: 'md';
-              }
-            }
-
-            .prevButtonWrapper {
-              background-color: rgba(255, 255, 255, .2);
-
-              .prevIcon {
-                font-size: 24px;
               }
 
               .prevIcon::before {
                 content: "\F0141";
-                font-family: 'md';
-              }
-            }
-
-            .nextButtonWrapper {
-              background-color: rgba(0, 0, 0, .5);
-
-              .nextIcon {
-                font-size: 24px;
               }
 
               .nextIcon::before {
                 content: "\F0142";
-                font-family: 'md';
               }
+            }
+
+            .prevButtonWrapper {
+              background-color: rgba(255, 255, 255, 0.2);
             }
 
             .PaginationControllerButtonWrapper {
               display: flex;
               align-items: center;
-              cursor: pointer;
               height: 100%;
               padding: 0 20px;
-              transition: all .5s ease-in-out;
+              transition: all 0.5s ease-in-out;
 
               .PaginationControllerButton {
                 font-weight: bold;
                 margin-left: 22px;
               }
-            }
 
-            .PaginationControllerButtonWrapper:hover {
-              opacity: .7;
+              &:hover {
+                opacity: 0.7;
+              }
             }
-
           }
-
         }
 
         .MediaContainerContent {
@@ -336,8 +308,7 @@
           overflow-x: auto;
           box-sizing: border-box;
           padding: 12px;
-          // height: 100%;
-          transition: all .25s ease-in-out;
+          transition: all 0.25s ease-in-out;
 
           .containerSpin {
             display: flex;
@@ -353,7 +324,7 @@
             content: "\F0772";
             font: normal normal normal 24px / 1 "md";
             font-size: inherit;
-            color: rgba(0, 0, 0, .5);
+            color: rgba(0, 0, 0, 0.5);
             animation: spin 2s linear infinite;
           }
 
@@ -365,8 +336,8 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            opacity: .4;
-            transition: all .25s ease-in-out;
+            opacity: 0.4;
+            transition: all 0.25s ease-in-out;
 
             .searchLogo,
             .noresultLogo {
@@ -376,12 +347,12 @@
 
             .searchLogo::before {
               content: "\F1A7E";
-              font-family: 'md';
+              font-family: "md";
             }
 
             .noresultLogo::before {
               content: "\F0413";
-              font-family: 'md';
+              font-family: "md";
             }
 
             .containerMsg {
@@ -399,7 +370,7 @@
             flex-direction: column;
             background-color: rgba(255, 255, 255, 0.5);
             margin: 12px;
-            transition: all .5s ease-in-out;
+            transition: all 0.5s ease-in-out;
             position: relative;
             // max-height: 520px;
             /* 添加外边距，控制项目之间的间距 */
@@ -409,6 +380,7 @@
               position: relative;
               height: 100%;
               width: 100%;
+              transition: none;
 
               .contentImg {
                 object-fit: contain;
@@ -421,15 +393,17 @@
               .contentDuration {
                 position: absolute;
                 color: #fff;
-                text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000;
+                text-shadow:
+                  1px 0 #000,
+                  -1px 0 #000,
+                  0 1px #000,
+                  0 -1px #000;
                 bottom: 24px;
                 right: 24px;
                 left: 24px;
                 text-align: right;
                 font-weight: bold;
-
               }
-
             }
 
             .collectIcomWrapper {
@@ -441,10 +415,10 @@
               bottom: 15px;
               right: 18px;
               border-radius: 18px 0 0 18px;
-              background-color: rgba(0,0,0,0.05);
-              transition: all .5s ease-in-out;
+              background-color: rgba(0, 0, 0, 0.05);
+              transition: all 0.5s ease-in-out;
 
-              .collectText{
+              .collectText {
                 font-size: 14px;
                 color: #757575;
                 font-weight: bold;
@@ -455,7 +429,7 @@
                 margin-left: 10px;
                 font-size: 25px;
                 color: #757575;
-                transition: all .5s ease-in-out;
+                transition: all 0.5s ease-in-out;
               }
 
               .collectedIcon {
@@ -463,17 +437,17 @@
                 margin-left: 10px;
                 color: #ff5600;
                 cursor: pointer;
-                transition: all .5s ease-in-out;
+                transition: all 0.5s ease-in-out;
               }
 
               .collectedIcon::before {
                 content: "\F02D1";
-                font-family: 'md';
+                font-family: "md";
               }
 
               .collectIcon::before {
                 content: "\F02D1";
-                font-family: 'md';
+                font-family: "md";
               }
 
               // .collectIcon:hover {
@@ -487,27 +461,30 @@
             }
 
             .collectIcomWrapper:hover {
-              background-color: rgba(0,0,0,0.1);
+              background-color: rgba(0, 0, 0, 0.1);
             }
-
-
 
             .infoArea {
               padding: 24px;
               color: rgba(0, 0, 0, 0.75);
               position: relative;
 
-              .contentTitle {
-                overflow: hidden;
+              .contentTitleWrapper {
+                position: relative;
                 font-weight: bold;
-                text-overflow: ellipsis;
-                white-space: pre;
                 line-height: 25px;
-                font-size: 17px;
-                margin-bottom: 24px;
+                .contentTitle {
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: pre;
+                  font-size: 17px;
+                  margin-bottom: 24px;
+                }
 
                 .contentSubTitle {
                   position: absolute;
+                  top: 100%;
+                  left: 0;
                   font-size: 11px;
                   max-width: 80%;
                   overflow: hidden;
@@ -547,7 +524,7 @@
               .playButtonTitle,
               .playButtonIcon,
               .pickButtonIcon {
-                transition: all .5s ease-in-out;
+                transition: all 0.5s ease-in-out;
               }
 
               .playButtonIcon::before {
@@ -559,21 +536,18 @@
                 content: "\F0412";
                 font-family: "md";
               }
-
             }
 
             .contentPlayButton:hover {
-
               .playButtonTitle,
               .playButtonIcon {
-                opacity: .7;
+                opacity: 0.7;
               }
             }
           }
-
         }
 
-        .SettingContainerContent {
+        .MediaContainerContent {
           position: relative;
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
@@ -583,7 +557,7 @@
           box-sizing: border-box;
           padding: 12px;
           // height: 100%;
-          transition: all .25s ease-in-out;
+          transition: all 0.25s ease-in-out;
 
           .ContainerContent {
             // min-width: 200px;
@@ -592,7 +566,9 @@
             margin: 12px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
+            box-shadow:
+              0 0 1px rgba(0, 0, 0, 0.12),
+              0 1px 1px rgba(0, 0, 0, 0.24);
 
             .titleWrapper {
               display: flex;
@@ -600,17 +576,17 @@
               align-items: center;
               height: 50%;
               padding: 0 24px;
-              color: rgba(0, 0, 0, .4);
-              background-color: rgba(255, 255, 255, .2);
+              color: rgba(0, 0, 0, 0.4);
+              background-color: rgba(255, 255, 255, 0.2);
 
               .titleIcon {
                 font-size: 30px;
-                font-family: 'md';
+                font-family: "md";
               }
 
               .settingIcon::before {
                 content: "\F0493";
-                font-family: 'md';
+                font-family: "md";
               }
 
               .title {
@@ -621,7 +597,7 @@
             }
 
             .actionWrapper {
-              background-color: rgba(255, 255, 255, .5);
+              background-color: rgba(255, 255, 255, 0.5);
               height: 50%;
               display: flex;
               justify-content: center;
@@ -630,7 +606,7 @@
 
               .action {
                 color: rgba(0, 0, 0, 0.75);
-                transition: all .5s ease-in-out;
+                transition: all 0.5s ease-in-out;
               }
 
               .textAction {
@@ -638,29 +614,22 @@
                 font-size: 16px;
               }
 
-
               .buttonAction::before {
                 font-size: 48px;
                 content: "\F0140";
-                font-family: 'md';
+                font-family: "md";
               }
             }
 
             .actionWrapper:hover {
               .action {
-                opacity: .7;
+                opacity: 0.7;
               }
             }
           }
         }
-
       }
     }
-
-
-
-
-
   }
 }
 
@@ -688,10 +657,10 @@
   z-index: -1;
   padding: 20px;
   opacity: 0;
-  transition: opacity .25s ease-in-out;
+  transition: opacity 0.25s ease-in-out;
 
   .IIROSE_MEDIASelectHolderWrapper {
-    background-color: rgba(255, 255, 255, .8);
+    background-color: rgba(255, 255, 255, 0.8);
     color: rgba(0, 0, 0, 0.75);
     width: 100%;
     max-width: 700px;
@@ -701,7 +670,7 @@
       cursor: pointer;
       font-size: 24px;
       padding: 32px 48px 32px 124px;
-      transition: all .5s ease-in-out;
+      transition: all 0.5s ease-in-out;
       text-align: center;
       position: relative;
 
@@ -718,12 +687,12 @@
 
       #sequence::before {
         content: "\F04BB";
-        font-family: 'md';
+        font-family: "md";
       }
 
       #random::before {
         content: "\F04BA";
-        font-family: 'md';
+        font-family: "md";
       }
     }
 
@@ -731,10 +700,6 @@
       background-color: rgba(0, 0, 0, 0.1);
     }
   }
-
-
-
-
 }
 
 .IIROSE_MEDIAInput {
@@ -751,15 +716,17 @@
   z-index: -1;
   padding: 20px;
   opacity: 0;
-  transition: opacity .25s ease-in-out;
+  transition: opacity 0.25s ease-in-out;
   top: 0;
   left: 0;
   bottom: 0;
 
   .inputBoxWrapper {
     margin: 12px;
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
-    max-width: 568.0px;
+    box-shadow:
+      0 0 1px rgba(0, 0, 0, 0.12),
+      0 1px 1px rgba(0, 0, 0, 0.24);
+    max-width: 568px;
     width: 100%;
 
     .inputBoxTitleWrapper {
@@ -769,7 +736,7 @@
       background-color: #707abf;
       padding: 0 64px 0 24px;
       color: #fff;
-      opacity: .7;
+      opacity: 0.7;
 
       .inputBoxTitleLogo {
         font-size: 26px;
@@ -777,7 +744,7 @@
 
       .inputBoxTitleLogo::before {
         content: "\F060E";
-        font-family: 'md';
+        font-family: "md";
       }
 
       .inputBoxTitle {
@@ -803,8 +770,6 @@
       ::placeholder {
         color: rgba(0, 0, 0, 0.5);
       }
-
-
     }
 
     .IIROSE_MEDIA_ButtonWrapper {
@@ -819,12 +784,12 @@
         padding: 0 24px;
         width: 100%;
         height: 100%;
-        transition: all .5s ease-in-out;
-        opacity: .8;
+        transition: all 0.5s ease-in-out;
+        opacity: 0.8;
         justify-content: center;
 
         div {
-          transition: all .5s ease-in-out;
+          transition: all 0.5s ease-in-out;
         }
 
         .IIROSE_MEDIA_cancelIcon {
@@ -833,7 +798,7 @@
 
         .IIROSE_MEDIA_cancelIcon::before {
           content: "\F073A";
-          font-family: 'md';
+          font-family: "md";
         }
 
         .IIROSE_MEDIA_confirmIcon {
@@ -842,7 +807,7 @@
 
         .IIROSE_MEDIA_confirmIcon::before {
           content: "\F012C";
-          font-family: 'md';
+          font-family: "md";
         }
 
         .IIROSE_MEDIA_Button {
@@ -851,10 +816,10 @@
       }
 
       .IIROSE_MEDIA_ButtonItemWrapper:hover {
-        opacity: .7;
+        opacity: 0.7;
 
         div {
-          opacity: .7;
+          opacity: 0.7;
         }
       }
 
@@ -880,11 +845,9 @@
   }
 }
 
-
 @media (max-width: 660px) {
   .NavBarTitle {
     display: none !important;
-    ;
   }
 
   .MediaContainerContent {
@@ -894,10 +857,9 @@
   .inputWrapper {
     max-width: 250px !important;
   }
-
 }
 
-@media(max-width:980px) {
+@media (max-width: 980px) {
   .ContentItem {
     max-height: 100% !important;
   }

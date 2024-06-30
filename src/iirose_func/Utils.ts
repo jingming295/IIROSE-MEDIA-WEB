@@ -14,16 +14,24 @@ export class Utils
 
         const syncHolder = document.getElementById('syncHolder')
 
-        if(syncHolder){
-            const syncHolderOutside = document.createElement('div')
-            syncHolderOutside.id = 'syncHolderOutside'
-            syncHolderOutside.onclick = () => {
-                const syncPromptHolder = syncHolder.childNodes[0]
-                const contentItemBtn = syncPromptHolder.childNodes[3]
-                const cancelBtn = contentItemBtn.childNodes[0] as HTMLButtonElement
-                if(cancelBtn) cancelBtn.click()
+        if (syncHolder)
+        {
+            let syncHolderOutside = document.getElementById('syncHolderOutside')
+            if (!syncHolderOutside)
+            {
+                syncHolderOutside = document.createElement('div')
+                syncHolderOutside.id = 'syncHolderOutside'
+                syncHolderOutside.onclick = () =>
+                {
+                    const syncPromptHolder = syncHolder.childNodes[0]
+                    const contentItemBtn = syncPromptHolder.childNodes[3]
+                    const cancelBtn = contentItemBtn.childNodes[0] as HTMLButtonElement
+                    if (cancelBtn) cancelBtn.click()
+                }
+                syncHolder.appendChild(syncHolderOutside)
             }
-            syncHolder.appendChild(syncHolderOutside)
+
+
         }
 
     }

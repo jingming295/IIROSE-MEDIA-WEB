@@ -1,19 +1,21 @@
-import { MediaContainer } from "./MediaContainer";
-import { settingContainerItem, SettingContainerNavBarPlatform } from "./MediaContainerInterface";
+import { MediaContainerUtils } from "./MediaContainer";
+import { settingContainerItem, SettingContainerNavBarPlatform } from "./interfaces/MediaContainerInterface";
 
-export class SettingContainer extends MediaContainer
+export class SettingContainer extends MediaContainerUtils
 {
-    public createSettingContainer(platforms: SettingContainerNavBarPlatform[], mediaContainerID: string, whichPlatform: number = 0)
+    public createSettingContainer(platforms: SettingContainerNavBarPlatform[], whichPlatform: number = 0)
     {
-        const MediaContainer = document.createElement('div');
-        MediaContainer.id = mediaContainerID;
-        MediaContainer.classList.add('MediaContainer');
-
+        let MediaContainer = document.querySelector('.MediaContainer') as HTMLDivElement;
         const mediaContainerNavBar = this.createSettingMediaContainerNavBar(platforms, whichPlatform);
-        MediaContainer.appendChild(mediaContainerNavBar);
-
-        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms, whichPlatform);
-        MediaContainer.appendChild(mediaContainerSubNavBar);
+        const mediaContainerSubNavBar = this.createPlatformNavigationBar(platforms, whichPlatform);
+        this.updateMediaSearchBar(platforms[whichPlatform].buttonBackgroundColor);
+        if (!MediaContainer)
+        {
+            MediaContainer = document.createElement('div')
+            MediaContainer.classList.add('MediaContainer');
+            MediaContainer.appendChild(mediaContainerNavBar);
+            MediaContainer.appendChild(mediaContainerSubNavBar);
+        }
 
         const iiroseMedia = document.getElementById('IIROSE_MEDIA');
         if (iiroseMedia)
@@ -23,68 +25,98 @@ export class SettingContainer extends MediaContainer
                 {
                     m.addedNodes.forEach(node =>
                     {
-                        if(node === MediaContainer) {
+                        if (node === MediaContainer)
+                        {
                             platforms[whichPlatform].subNavBarItems[0].onclick();
                         }
                     });
                 }));
             observer.observe(iiroseMedia, { childList: true, subtree: true });
         };
+        platforms[whichPlatform].subNavBarItems[0].onclick();
+    }
 
-        return MediaContainer;
+    private updateMediaSearchBar(bgColor: string)
+    {
+        let MediaSearchBar = document.querySelector('.MediaSearchBar') as HTMLDivElement;
+        if (!MediaSearchBar) return;
+
+        MediaSearchBar.style.backgroundColor = bgColor;
+
+        const clild = Array.from(MediaSearchBar.children) as HTMLElement[];
+
+        clild.forEach((element) =>
+        {
+            element.style.opacity = '0';
+            element.style.visibility = 'hidden';
+            element.style.pointerEvents = 'none'; // 禁止点击
+        });
+
+
     }
 
     private createSettingMediaContainerNavBar(platforms: SettingContainerNavBarPlatform[], whichPlatform: number)
     {
-        const PlatFormSelector = document.createElement('div');
-        PlatFormSelector.classList.add('PlatformSelector');
+        let PlatFormSelector = document.querySelector('.PlatformSelector') as HTMLDivElement;
+
+        if (!PlatFormSelector)
+        {
+            PlatFormSelector = document.createElement('div');
+            PlatFormSelector.classList.add('PlatformSelector');
+        }
+
+        let PlatformButtonGroup = document.querySelectorAll('.PlatformButton') as NodeListOf<HTMLDivElement>;
+        if (PlatformButtonGroup.length)
+        {
+            const platformLength = platforms.length;
+
+            // Convert NodeList to Array to avoid issues with static NodeList
+            Array.from(PlatformButtonGroup).forEach((element, index) =>
+            {
+                if (index >= platformLength)
+                {
+                    element.parentNode?.removeChild(element);
+                }
+            });
+
+            // Re-query the DOM to get the updated list of elements
+            PlatformButtonGroup = document.querySelectorAll('.PlatformButton') as NodeListOf<HTMLDivElement>;
+        }
 
         platforms.forEach((platform, index) =>
         {
-            const PlatformButton = document.createElement('div');
-            PlatformButton.classList.add('PlatformButton');
-            PlatformButton.id = `${platform.id}Button`;
-            PlatformButton.style.backgroundColor = platform.buttonBackgroundColor;
+            let PlatformButton: HTMLDivElement;
+            let PlatformIcon: HTMLImageElement;
+            let PlatformTitle: HTMLDivElement;
 
-            const PlatformIcon = document.createElement('img');
-            PlatformIcon.classList.add('PlatformIcon');
+            if (!PlatformButtonGroup[index])
+            {
+                PlatformButton = document.createElement('div');
+                PlatformButton.classList.add('PlatformButton');
+                PlatformIcon = document.createElement('img');
+                PlatformIcon.classList.add('PlatformIcon');
+                PlatformTitle = document.createElement('div');
+                PlatformTitle.classList.add('PlatformTitle');
+                PlatformButton.appendChild(PlatformIcon);
+                PlatformButton.appendChild(PlatformTitle);
+                PlatFormSelector.appendChild(PlatformButton);
+            } else
+            {
+                PlatformButton = PlatformButtonGroup[index];
+                PlatformIcon = PlatformButton.querySelector('.PlatformIcon') as HTMLImageElement;
+                PlatformTitle = PlatformButton.querySelector('.PlatformTitle') as HTMLDivElement;
+            }
+
+            PlatformButton.id = `${platform.id}Button`;
             PlatformIcon.id = `${platform.id}Icon`;
             PlatformIcon.src = platform.iconsrc;
 
-            const PlatformTitle = document.createElement('div');
-            PlatformTitle.classList.add('PlatformTitle');
             PlatformTitle.innerText = platform.title;
 
             PlatformButton.onclick = () =>
             {
-                const prevmediaContainer = Array.from(document.querySelectorAll('.MediaContainer')) as HTMLDivElement[] | null;
-                // if (!prevmediaContainer || prevmediaContainer.id === 'MusicContainer') return;
-                if (!prevmediaContainer || prevmediaContainer.length > 1) return;
-                prevmediaContainer[0].style.opacity = '0';
-
-                // 添加动画结束事件的监听器
-                prevmediaContainer[0].addEventListener('transitionend', () =>
-                {
-                    prevmediaContainer[0].remove();
-                }, { once: true });
-
-                const MediaContainerWrapper = document.getElementById('MediaContainerWrapper');
-                if (!MediaContainerWrapper) return;
-                const sc = new SettingContainer();
-                const scc = sc.createSettingContainer(platforms, platform.containerID, index);
-                scc.style.opacity = '0';
-
-                MediaContainerWrapper.appendChild(scc);
-
-                setTimeout(() =>
-                {
-                    scc.style.opacity = '1';
-                }, 1);
+                this.createSettingContainer(platforms, index);
             };
-
-            PlatformButton.appendChild(PlatformIcon);
-            PlatformButton.appendChild(PlatformTitle);
-            PlatFormSelector.appendChild(PlatformButton);
 
             // 判断是否是第一个 platform
             if (index === whichPlatform)
@@ -97,7 +129,7 @@ export class SettingContainer extends MediaContainer
         return PlatFormSelector;
     }
 
-    public createSettingContainerContent(items: settingContainerItem[])
+    public async createSettingContainerContent(items: settingContainerItem[], parent: HTMLElement)
     {
         function createContainerContent(titleText: string, titleIcon: string, actionType: string, cb?: ((htmlElement: HTMLElement) => void), selectOption?: () => (string | number)[][])
         {
@@ -144,20 +176,27 @@ export class SettingContainer extends MediaContainer
             return ContainerContent;
         }
 
-        const SettingContainerContent = document.createElement('div');
-        SettingContainerContent.classList.add('SettingContainerContent');
-        SettingContainerContent.id = 'SettingContainerContent';
 
+        await this.clearMediaContainerContent()
+        const SettingContainerContent = document.createElement('div');
+        SettingContainerContent.classList.add('MediaContainerContent');
+        SettingContainerContent.id = 'MediaContainerContent';
+        SettingContainerContent.style.opacity = '0';
         items.forEach((item) =>
         {
             let actionType = '';
             if (item.type === 0) actionType = 'buttonAction';
             if (item.type === 1) actionType = 'textAction';
-            const container = createContainerContent(item.title, item?.mdiClass ||'settingIcon', actionType, item.cb, item.getSelectOption);
+            const container = createContainerContent(item.title, item?.mdiClass || 'settingIcon', actionType, item.cb, item.getSelectOption);
             SettingContainerContent.appendChild(container);
         });
 
-        return SettingContainerContent;
+        parent.appendChild(SettingContainerContent);
+
+        setTimeout(() =>
+        {
+            SettingContainerContent.style.opacity = '1';
+        }, 10);
 
     }
 }

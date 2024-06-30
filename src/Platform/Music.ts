@@ -1,14 +1,15 @@
 import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
 import { NeteaseSearchAPI } from "../Api/NeteaseAPI/NeteaseSearch/index";
-import { IIROSE_MEDIASelectHolder } from "../IIROSE-MEDIA/IIROSE_MEDIASelectHolder";
-import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
-import { MediaContainerItem, MediaContainerNavBarPlatform, MediaItem } from "../IIROSE-MEDIA/MediaContainerInterface";
-import { SelectHolderItem } from "../IIROSE-MEDIA/SelectHolderItemInterface";
+import { IIROSE_MEDIASelectHolder } from "../IIROSE-MEDIA/elements/IIROSE_MEDIASelectHolder";
+import { MediaContainerUtils } from "../IIROSE-MEDIA/MediaContainer";
+import { Pagination } from "../UpdateDOM/Pagination/Pagination";
+import { MediaContainerItem, MediaContainerNavBarPlatform, MediaItem } from "../IIROSE-MEDIA/interfaces/MediaContainerInterface";
+import { SelectHolderItem } from "../IIROSE-MEDIA/interfaces/SelectHolderItemInterface";
 import { Socket } from "../Socket";
 import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
-import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
+import { MediaContainerMessage } from "../IIROSE-MEDIA/elements/MediaContainerMessage";
 import { NeteaseSetting } from "./SettingInterface";
 
 export class Music
@@ -16,7 +17,15 @@ export class Music
     neteaseSetting = this.getNeteaseSetting();
     neteaseSongListCollectLSKeyWord = 'neteaseSongListCollect';
     neteaseSongCollectLSKeyword = 'neteaseSongCollect';
-    
+    pagination: Pagination
+    mcu: MediaContainerUtils
+
+    constructor(mcu: MediaContainerUtils)
+    {
+        this.mcu = mcu;
+        this.pagination = new Pagination(mcu)
+    }
+
     public music()
     {
         const platforms: MediaContainerNavBarPlatform[] = [
@@ -59,7 +68,6 @@ export class Music
                     id: 'SubNavBarItemNeteaseRecommandPlayList',
                     onclick: () =>
                     {
-                        const mediaContainer = new MediaContainer();
                         let MediaContainerContent = document.getElementById('MediaContainerContent');
                         const mediaContainers = document.querySelectorAll('.MediaContainer');
                         const NetEaseRecommandPlayListitem = this.neteaseRecommendSongListMediaContainerItem();
@@ -70,37 +78,15 @@ export class Music
                         {
                             MediaContainerContent = null;
                         }
-
+                        const parent = mediaContainers[1] ? mediaContainers[1] : mediaContainers[0];
+                        if (!parent) return;
                         if (!MediaContainerContent)
                         {
-                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
-                            const parent = mediaContainers[1] ? mediaContainers[1] : mediaContainers[0];
-                            if (parent)
-                            {
-                                parent.appendChild(newMediaContainerContent);
-                            }
+                            this.mcu.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)', parent);
                         } else
                         {
-                            mediaContainer.updatePaginationNotings();
-                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)');
-                            const parent = MediaContainerContent.parentElement;
-                            MediaContainerContent.style.opacity = '0';
-
-                            MediaContainerContent.addEventListener('transitionend', () =>
-                            {
-                                MediaContainerContent.remove();
-                                const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                                if (currentMediaContainerContent) return;
-                                if (parent)
-                                {
-                                    newMediaContainerContent.style.opacity = '0';
-                                    parent.appendChild(newMediaContainerContent);
-                                    setTimeout(() =>
-                                    {
-                                        newMediaContainerContent.style.opacity = '1';
-                                    }, 1);
-                                }
-                            }, { once: true });
+                            this.pagination.updatePaginationNotings();
+                            this.mcu.createMediaContainerContent(NetEaseRecommandPlayListitem, 'rgb(221, 28, 4)', parent);
                         }
 
                     }
@@ -111,7 +97,6 @@ export class Music
                     id: 'SubNavBarItemSearchMusic',
                     onclick: () =>
                     {
-                        const mediaContainer = new MediaContainer();
                         const MediaContainerContent = document.getElementById('MediaContainerContent');
                         if (!MediaContainerContent) return;
 
@@ -122,36 +107,20 @@ export class Music
                             // const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
                             // if (containerMsgWrapper) return;
                             MediaContainerContent.style.opacity = '0';
-                            MediaContainerContent.addEventListener('transitionend', function ()
+                            MediaContainerContent.addEventListener('transitionend', () =>
                             {
-                                const mediaContainerDisplay = new MediaContainerDisplay();
-                                mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1, MediaContainerContent);
+                                const mediaContainerDisplay = new MediaContainerMessage();
+                                mediaContainerDisplay.displayMessage('rgb(221, 28, 4)', 1, MediaContainerContent, this.mcu);
                                 return;
                             }, { once: true });
                             return;
                         }
-                        mediaContainer.updatePaginationNotings();
+                        this.pagination.updatePaginationNotings();
                         const keyword = mediaSearchBarInput.innerHTML;
                         const NeteaseSearchMediaContainerItem = this.NeteaseSearchMediaContainerItem(keyword);
-                        const newMediaContainerContent = mediaContainer.createMediaContainerContent(NeteaseSearchMediaContainerItem, 'rgb(221, 28, 4)');
                         const parent = MediaContainerContent.parentElement;
-                        MediaContainerContent.style.opacity = '0';
-
-                        MediaContainerContent.addEventListener('transitionend', () =>
-                        {
-                            MediaContainerContent.remove();
-                            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                            if (currentMediaContainerContent) return;
-                            if (parent)
-                            {
-                                newMediaContainerContent.style.opacity = '0';
-                                parent.appendChild(newMediaContainerContent);
-                                setTimeout(() =>
-                                {
-                                    newMediaContainerContent.style.opacity = '1';
-                                }, 1);
-                            }
-                        }, { once: true });
+                        if (!parent) return;
+                        this.mcu.createMediaContainerContent(NeteaseSearchMediaContainerItem, 'rgb(221, 28, 4)', parent);
 
                     }
 
@@ -217,7 +186,7 @@ export class Music
                     url: `https://music.163.com/#/playlist?id=${resultElement.id}`,
                     author: author,
                     duration: `歌单/${resultElement.trackCount}首`,
-                    collect:{
+                    collect: {
                         collectFolder: '歌单默认收藏夹',
                         lsKeyWord: this.neteaseSongListCollectLSKeyWord
                     },
@@ -304,7 +273,6 @@ export class Music
         }
 
         const mediaItem: MediaItem[] = [];
-        const mediaContainer = new MediaContainer();
         RecommandPlayList.result.forEach((element, index) =>
         {
             mediaItem[index] = {
@@ -314,7 +282,7 @@ export class Music
                 url: `https://music.163.com/#/playlist?id=${element.id}`,
             };
         });
-        mediaContainer.updatePaginationNeteasePlayList(1, mediaItem);
+        this.pagination.updatePaginationNeteasePlayList(1, mediaItem);
         return x;
     }
 
@@ -351,7 +319,7 @@ export class Music
                     url: `https://music.163.com/#/song?id=${searchDataElement.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
-                    collect:{
+                    collect: {
                         collectFolder: '歌曲默认收藏夹',
                         lsKeyWord: this.neteaseSongCollectLSKeyword
                     },
@@ -396,7 +364,6 @@ export class Music
             index += 1;
             if (index >= 10) break;
         }
-        const mediaContainer = new MediaContainer();
         let songCount: number;
         if (searchData.result.songCount < limit && searchData.result.songCount <= 100)
         {
@@ -415,7 +382,7 @@ export class Music
                 duration: this.formatMillisecondsToMinutes(element.duration),
             };
         });
-        mediaContainer.updatePaginationNeteaseMusic(1, MediaItem);
+        this.pagination.updatePaginationNeteaseMusic(1, MediaItem);
         return x;
     }
 
@@ -453,7 +420,7 @@ export class Music
                     url: `https://music.163.com/#/song?id=${mediaItem.id}`,
                     author: singer,
                     duration: this.formatMillisecondsToMinutes(duration),
-                    collect:{
+                    collect: {
                         collectFolder: '歌曲默认收藏夹',
                         lsKeyWord: this.neteaseSongCollectLSKeyword
                     },

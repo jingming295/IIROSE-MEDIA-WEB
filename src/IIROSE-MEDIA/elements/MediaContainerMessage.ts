@@ -1,10 +1,14 @@
-import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
+import { Pagination } from "../../UpdateDOM/Pagination/Pagination";
+import { MediaContainerUtils } from "../MediaContainer";
 
-export class MediaContainerDisplay{
+export class MediaContainerMessage
+{
 
-    public displayMessage(color:string, type:number, MediaContainerContent:HTMLElement | null){
+    public displayMessage(color: string, type: number, MediaContainerContent: HTMLElement | null, mcu: MediaContainerUtils)
+    {
 
-        function createPleaseSearchMsg(){
+        function createPleaseSearchMsg()
+        {
             const msgWrapper = document.createElement('div');
             msgWrapper.classList.add('containerMsgWrapper')
             msgWrapper.style.color = color;
@@ -18,7 +22,8 @@ export class MediaContainerDisplay{
             return msgWrapper;
         }
 
-        function createNoResultMsg(){
+        function createNoResultMsg()
+        {
             const msgWrapper = document.createElement('div');
             msgWrapper.classList.add('containerMsgWrapper')
             msgWrapper.style.color = color;
@@ -31,25 +36,28 @@ export class MediaContainerDisplay{
             msgWrapper.appendChild(msgText);
             return msgWrapper;
         }
-        if(!MediaContainerContent) return;
+        if (!MediaContainerContent) return;
         const parent = MediaContainerContent.parentElement;
-        if(!parent) return;
+        if (!parent) return;
         MediaContainerContent.remove()
         const newMediaContainerContent = document.createElement('div');
         newMediaContainerContent.classList.add('MediaContainerContent');
         newMediaContainerContent.id = 'MediaContainerContent';
         newMediaContainerContent.style.opacity = '0';
-        if(type === 1){
-        newMediaContainerContent.appendChild(createPleaseSearchMsg());
-        } else if(type === 2){
-        newMediaContainerContent.appendChild(createNoResultMsg());
+        if (type === 1)
+        {
+            newMediaContainerContent.appendChild(createPleaseSearchMsg());
+        } else if (type === 2)
+        {
+            newMediaContainerContent.appendChild(createNoResultMsg());
         }
         newMediaContainerContent.style.height = '100%';
-        const mediacontainer = new MediaContainer();
-        mediacontainer.updatePaginationNotings()
+        const pagination = new Pagination(mcu)
+        pagination.updatePaginationNotings()
         parent.appendChild(newMediaContainerContent);
-        setTimeout(() => {
+        setTimeout(() =>
+        {
             newMediaContainerContent.style.opacity = '1';
-        }, 1);        
+        }, 1);
     }
 }

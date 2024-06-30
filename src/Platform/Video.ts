@@ -4,20 +4,31 @@ import { BiliBiliSearchApi } from "../Api/BilibiliAPI/BiliBiliSearch";
 import { live_roomResult, VideoResult } from "../Api/BilibiliAPI/BiliBiliSearch/SearchRequestInterface";
 import { BiliBiliVideoApi } from "../Api/BilibiliAPI/BiliBiliVideoAPI";
 import { BVideoDetail } from "../Api/BilibiliAPI/BiliBiliVideoAPI/VideoDetailInterface";
-import { MediaContainer } from "../IIROSE-MEDIA/MediaContainer";
-import { MediaContainerItem, MediaContainerNavBarPlatform, MediaItem } from "../IIROSE-MEDIA/MediaContainerInterface";
+import { MediaContainerUtils } from "../IIROSE-MEDIA/MediaContainer";
+import { Pagination } from "../UpdateDOM/Pagination/Pagination";
+import { MediaContainerItem, MediaContainerNavBarPlatform, MediaItem } from "../IIROSE-MEDIA/interfaces/MediaContainerInterface";
 import { Socket } from "../Socket";
 import { Media } from "../Socket/Media";
 import { MediaData } from "../Socket/Media/MediaCardInterface";
 import { UpdateDom } from "../UpdateDOM";
-import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
-import { ShowMessage } from "../IIROSE/ShowMessage";
+import { MediaContainerMessage } from "../IIROSE-MEDIA/elements/MediaContainerMessage";
+import { ShowMessage } from "../iirose_func/ShowMessage";
 import { BilibiliSetting } from "./SettingInterface";
 
 export class Video
 {
     bvSetting: BilibiliSetting = this.getBilibiliSetting();
-    public video()
+    pagination: Pagination;
+    mcu: MediaContainerUtils;
+    ppMediaContainerItems: Promise<Promise<MediaContainerItem[] | null>[] | null> = Promise.resolve(null);
+
+    constructor(mcu: MediaContainerUtils)
+    {
+        this.mcu = mcu;
+        this.pagination = new Pagination(mcu);
+    }
+
+    public createVideoPlatform()
     {
         const platforms: MediaContainerNavBarPlatform[] = [
             this.bilibili()
@@ -74,8 +85,8 @@ export class Video
                     id: 'SubNavBarItemBilibiliRecommend',
                     onclick: () =>
                     {
-                        const mediaContainer = new MediaContainer();
                         const BilibiliRecommandVideoitem = this.bilibiliRecommendVideoMediaContainerItem();
+                        this.ppMediaContainerItems = BilibiliRecommandVideoitem;
                         const mediaContainers = document.querySelectorAll('.MediaContainer');
                         let MediaContainerContent = document.getElementById('MediaContainerContent');
 
@@ -85,33 +96,14 @@ export class Video
                         }
                         if (!MediaContainerContent)
                         {
-                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
                             const parent = mediaContainers[1] ? mediaContainers[1] : mediaContainers[0];
-                            if (parent)
-                            {
-                                parent.appendChild(newMediaContainerContent);
-                            }
+                            if (!parent) return;
+                            this.mcu.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)', parent);
                         } else
                         {
-                            const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
                             const parent = MediaContainerContent.parentElement;
-                            MediaContainerContent.style.opacity = '0';
-
-                            MediaContainerContent.addEventListener('transitionend', () =>
-                            {
-                                MediaContainerContent.remove();
-                                const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                                if (currentMediaContainerContent) return;
-                                if (parent)
-                                {
-                                    newMediaContainerContent.style.opacity = '0';
-                                    parent.appendChild(newMediaContainerContent);
-                                    setTimeout(() =>
-                                    {
-                                        newMediaContainerContent.style.opacity = '1';
-                                    }, 1);
-                                }
-                            }, { once: true });
+                            if (!parent) return;
+                            this.mcu.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)', parent);
                         }
 
                     }
@@ -121,7 +113,8 @@ export class Video
                     id: 'SubNavBarItemBilibiliVideo',
                     onclick: () =>
                     {
-                        this.bilibiliOnclickSubNavBarNeedSearchItem(this.bilibiliVideoSearchMediaContainer.bind(this));
+                        const vsMediaContainer = this.bilibiliVideoSearchMediaContainer.bind(this)
+                        this.bilibiliOnclickSubNavBarNeedSearchItem(vsMediaContainer);
                     }
                 }, {
                     title: '搜索直播',
@@ -144,7 +137,6 @@ export class Video
      */
     private bilibiliOnclickSubNavBarNeedSearchItem(VideoContainerFunc: (keyword: string) => Promise<Promise<MediaContainerItem[] | null>[]>)
     {
-        const mediaContainer = new MediaContainer();
         const mediaSearchBarInput = document.getElementById('mediaSearchBarInput');
         const MediaContainerContent = document.getElementById('MediaContainerContent');
         if (!MediaContainerContent) return;
@@ -154,37 +146,23 @@ export class Video
             // const containerMsgWrapper = document.querySelector('.containerMsgWrapper');
             // if (containerMsgWrapper) return;
             MediaContainerContent.style.opacity = '0';
-            MediaContainerContent.addEventListener('transitionend', function ()
+            MediaContainerContent.addEventListener('transitionend', () =>
             {
-                const mediaContainerDisplay = new MediaContainerDisplay();
-                mediaContainerDisplay.displayMessage('rgb(209, 79, 118)', 1, MediaContainerContent);
+                const mediaContainerDisplay = new MediaContainerMessage();
+                mediaContainerDisplay.displayMessage('rgb(209, 79, 118)', 1, MediaContainerContent, this.mcu);
                 return;
             }, { once: true });
             return;
         }
-        mediaContainer.updatePaginationNotings();
+        this.pagination.updatePaginationNotings();
         const keyword = mediaSearchBarInput.innerHTML;
 
         const BilibiliRecommandVideoitem = VideoContainerFunc(keyword);
-        const newMediaContainerContent = mediaContainer.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)');
+        this.ppMediaContainerItems = BilibiliRecommandVideoitem;
         const parent = MediaContainerContent.parentElement;
-        MediaContainerContent.style.opacity = '0';
+        if (!parent) return;
+        this.mcu.createMediaContainerContent(BilibiliRecommandVideoitem, 'rgb(209, 79, 118)', parent);
 
-        MediaContainerContent.addEventListener('transitionend', () =>
-        {
-            MediaContainerContent.remove();
-            const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-            if (currentMediaContainerContent) return;
-            if (parent)
-            {
-                newMediaContainerContent.style.opacity = '0';
-                parent.appendChild(newMediaContainerContent);
-                setTimeout(() =>
-                {
-                    newMediaContainerContent.style.opacity = '1';
-                }, 1);
-            }
-        }, { once: true });
     }
 
     private formatMillisecondsToMinutes(milliseconds: number): string
@@ -204,8 +182,9 @@ export class Video
      */
     private async bilibiliRecommendVideoMediaContainerItem(): Promise<Promise<MediaContainerItem[] | null>[] | null>
     {
+        let i = 0
         const bv = new BiliBiliVideoApi();
-        const bvrcmd = await bv.getRecommendVideoFromMainPage(3, 1, 30, window.bilibili.rcmdVideo.fresh_idx_1h, window.bilibili.rcmdVideo.fresh_idx, window.bilibili.rcmdVideo.brush);
+        const bvrcmd = await bv.getRecommendVideoFromMainPage(3, 1, 10, window.bilibili.rcmdVideo.fresh_idx_1h, window.bilibili.rcmdVideo.fresh_idx, window.bilibili.rcmdVideo.brush);
         window.bilibili.rcmdVideo.fresh_idx_1h += 1;
         window.bilibili.rcmdVideo.fresh_idx += 1;
         window.bilibili.rcmdVideo.brush += 1;
@@ -249,9 +228,7 @@ export class Video
                 }
             });
         }
-
-        const mediaContainer = new MediaContainer();
-        mediaContainer.updatePaginationBilibiliRCMDVideo(1, mediaItems);
+        this.pagination.updatePaginationBilibiliRCMDVideo(1, mediaItems);
         return x;
     }
 
@@ -347,9 +324,7 @@ export class Video
                 keyword: keyword,
             });
         }
-
-        const mediaContainer = new MediaContainer();
-        mediaContainer.updatePaginationBilibiliSearchVideo(currentpage, mediaItems);
+        this.pagination.updatePaginationBilibiliSearchVideo(currentpage, mediaItems);
 
         return x;
     }
@@ -400,6 +375,7 @@ export class Video
             if (mediaContainerItem) x.push(mediaContainerItem);
 
         });
+        this.ppMediaContainerItems = Promise.resolve(x);
         return x;
     }
 
@@ -448,9 +424,7 @@ export class Video
                 keyword: keyword,
             });
         }
-
-        const mediaContainer = new MediaContainer();
-        mediaContainer.updatePaginationBilibiliLive(1, mediaItems);
+        this.pagination.updatePaginationBilibiliLive(1, mediaItems);
 
         return x;
     }
@@ -628,9 +602,10 @@ export class Video
                                 }
                             });
                         }
-                        const videoContainer = document.getElementById('VideoContainer') as HTMLDivElement;
-                        const mediaContainer = new MediaContainer();
-                        mediaContainer.goMultiPage(videoContainer, newMediaItems, 'rgb(221, 28, 4)');
+                        const videoContainer = document.querySelector('.MediaContainer') as HTMLDivElement;
+                        if (!videoContainer) return;
+
+                        this.mcu.goMultiPage(videoContainer, newMediaItems, 'rgb(221, 28, 4)', this.ppMediaContainerItems);
                     }
                 });
 
@@ -640,20 +615,26 @@ export class Video
         return Promise.resolve([mediaContainerItem]);
     }
 
-    private goMediaRequest(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string){
-        
-        if(this.bvSetting.getVideoStreamFormat === 2){
-            if(this.bvSetting.qn > 64){
+    private goMediaRequest(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string)
+    {
+
+        if (this.bvSetting.getVideoStreamFormat === 2)
+        {
+            if (this.bvSetting.qn > 64)
+            {
                 this.onMediaRequestDash(id, bvid, cid, title, author, pic, arcurl);
-            } else {
+            } else
+            {
                 this.onMediaRequestDurl(id, bvid, cid, title, author, pic, arcurl);
             }
-        } else if(this.bvSetting.getVideoStreamFormat === 1){
+        } else if (this.bvSetting.getVideoStreamFormat === 1)
+        {
             this.onMediaRequestDash(id, bvid, cid, title, author, pic, arcurl);
-        } else if(this.bvSetting.getVideoStreamFormat === 0){
+        } else if (this.bvSetting.getVideoStreamFormat === 0)
+        {
             this.onMediaRequestDurl(id, bvid, cid, title, author, pic, arcurl);
         }
-        
+
 
     }
 
@@ -738,7 +719,8 @@ export class Video
         });
     }
 
-    private async onMediaRequestDurl(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string){
+    private async onMediaRequestDurl(id: number, bvid: string, cid: number, title: string, author: string, pic: string, arcurl: string)
+    {
         const bv = new BiliBiliVideoApi();
         const bvResource = bv.getBilibiliVideoStream(id, bvid, cid, this.bvSetting.qn, 1);
 
@@ -749,27 +731,27 @@ export class Video
         updateDom.changeStatusIIROSE_MEDIA();
 
         bvResource.then(bvResource =>
-            {
-                if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
-                if (bvResource.data.quality === 6) bvResource.data.quality = 2;
-                const playurl: string = bvResource.data.durl[0].url;
-                pic = pic.replace(/^https:\/\//, 'http://');
-                pic = pic.replace(/^\/\//, 'http://');
-                const mediaData: MediaData = {
-                    type: 'video',
-                    name: title,
-                    singer: author,
-                    cover: pic,
-                    link: arcurl,
-                    url: `${playurl}`,
-                    duration: bvResource.data.durl[0].length / 1000,
-                    bitRate: bvResource.data.quality,
-                    color: 'FFFFFF',
-                    origin: 'bilibili'
-                };
-                socket.send(sMedia.mediaCard(mediaData));
-                socket.send(sMedia.mediaEvent(mediaData));
-            });
+        {
+            if (!bvResource || !bvResource.data || !bvResource.data.durl || !bvResource.data.quality) return null;
+            if (bvResource.data.quality === 6) bvResource.data.quality = 2;
+            const playurl: string = bvResource.data.durl[0].url;
+            pic = pic.replace(/^https:\/\//, 'http://');
+            pic = pic.replace(/^\/\//, 'http://');
+            const mediaData: MediaData = {
+                type: 'video',
+                name: title,
+                singer: author,
+                cover: pic,
+                link: arcurl,
+                url: `${playurl}`,
+                duration: bvResource.data.durl[0].length / 1000,
+                bitRate: bvResource.data.quality,
+                color: 'FFFFFF',
+                origin: 'bilibili'
+            };
+            socket.send(sMedia.mediaCard(mediaData));
+            socket.send(sMedia.mediaEvent(mediaData));
+        });
 
     }
 

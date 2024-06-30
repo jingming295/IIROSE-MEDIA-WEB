@@ -23,7 +23,8 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.2",
     "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "worker-loader": "^3.0.8"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",

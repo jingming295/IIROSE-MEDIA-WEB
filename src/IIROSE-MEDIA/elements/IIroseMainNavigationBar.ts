@@ -1,7 +1,8 @@
-import { MusicMediaContainer } from "../UpdateDOM/MusicMediaContainer";
-import { MediaSettingContainer } from "../UpdateDOM/SettingContainer";
-import { VideoMediaContainer } from "../UpdateDOM/VideoMediaContainer";
-import { UpdateDom } from "../UpdateDOM/index";
+import { MusicMediaContainer } from "../../UpdateDOM/UpdateMediaContainer/MusicMediaContainer";
+import { MediaSettingContainer } from "../../UpdateDOM/UpdateMediaContainer/SettingContainer";
+import { VideoMediaContainer } from "../../UpdateDOM/UpdateMediaContainer/VideoMediaContainer";
+import { UpdateDom } from "../../UpdateDOM/index";
+import { MediaContainerUtils } from "../MediaContainer";
 
 interface NavBarButton
 {
@@ -14,14 +15,19 @@ interface NavBarButton
 }
 
 
-export class CreateNavBar
+export class IIroseMainNavigationBar
 {
 
+    mcu: MediaContainerUtils;
+    constructor(mcu: MediaContainerUtils)
+    {
+        this.mcu = mcu;
+    }
 
-    public createNavBar()
+    public create()
     {
         const NavBar = document.createElement('div');
-        NavBar.className = 'NavBar';
+        NavBar.className = 'IIroseMainNavigationBar';
 
         NavBar.appendChild(this.CreateLeftComponent());
         NavBar.appendChild(this.CreateRightComponent());
@@ -33,7 +39,7 @@ export class CreateNavBar
         function createNavBarButton(Button: NavBarButton)
         {
             const NavBarButton = document.createElement('div');
-            if(Button.active) NavBarButton.classList.add('NavBarButtonActive');
+            if (Button.active) NavBarButton.classList.add('NavBarButtonActive');
             if (Button.ButtonClass) NavBarButton.classList.add(Button.ButtonClass);
             else NavBarButton.classList.add('NavBarButton')
             if (Button.ButtonID) NavBarButton.id = Button.ButtonID;
@@ -82,51 +88,59 @@ export class CreateNavBar
 
     private CreateRightComponent()
     {
-        function createNavBarButton(Button: NavBarButton) {
+        function createNavBarButton(Button: NavBarButton)
+        {
             const NavBarButton = document.createElement('div');
             NavBarButton.classList.add('NavBarButton');
-        
-            if (Button.active) {
+
+            if (Button.active)
+            {
                 NavBarButton.classList.add('NavBarButtonActive');
             }
-        
-            if (Button.ButtonID) {
+
+            if (Button.ButtonID)
+            {
                 NavBarButton.id = Button.ButtonID;
             }
-        
-            if (Button.onClick) {
-                NavBarButton.onclick = () => {
-                    if (Button.onClick)
-                    Button.onClick()
-        
-                    // 然后执行额外的逻辑
+
+            if (Button.onClick)
+            {
+                NavBarButton.onclick = () =>
+                {
+                    if (Button.onClick) Button.onClick();
+
+
                     const parent = NavBarButton.parentElement;
-                    if (parent) {
+                    if (parent)
+                    {
                         const siblings = Array.from(parent.children).filter(child => child !== NavBarButton);
                         siblings.forEach(sibling => sibling.classList.remove('NavBarButtonActive'));
                         NavBarButton.classList.add('NavBarButtonActive');
                     }
                 };
             }
-        
-            if (Button.IconID) {
+
+            if (Button.IconID)
+            {
                 const Icon = document.createElement('div');
                 Icon.className = 'NavBarButtonIcon';
                 Icon.id = Button.IconID;
+
                 NavBarButton.appendChild(Icon);
             }
-        
+
             const Text = document.createElement('div');
             Text.className = 'NavBarButtonText';
-            if (Button.Text) {
+            if (Button.Text)
+            {
                 Text.innerText = Button.Text;
             }
-        
+
             NavBarButton.appendChild(Text);
-        
+
             return NavBarButton;
         }
-        
+
 
         const RightComponent = document.createElement('div');
         RightComponent.className = 'RightComponent';
@@ -137,7 +151,7 @@ export class CreateNavBar
             active: false,
             onClick: () =>
             {
-                const musicMediaContainer = new MusicMediaContainer();
+                const musicMediaContainer = new MusicMediaContainer(this.mcu);
                 musicMediaContainer.showMusicMediaContainer();
             }
         },
@@ -149,7 +163,7 @@ export class CreateNavBar
             onClick: () =>
             {
                 const videoMediaContainer = new VideoMediaContainer();
-                videoMediaContainer.showVideoMediaContainer();
+                videoMediaContainer.showVideoMediaContainer(this.mcu);
             }
         },
         {

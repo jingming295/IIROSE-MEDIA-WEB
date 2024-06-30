@@ -1,8 +1,8 @@
 import { BilibiliACC } from "../Account/BilibiliAccountInterface";
 import { BiliBiliAccount } from "../Account/SetBiliBili";
-import { settingContainerItem, SettingContainerNavBarPlatform } from "../IIROSE-MEDIA/MediaContainerInterface";
+import { settingContainerItem, SettingContainerNavBarPlatform } from "../IIROSE-MEDIA/interfaces/MediaContainerInterface";
 import { SettingContainer } from "../IIROSE-MEDIA/SettingContainer";
-import { Utils } from "../IIROSE/Utils";
+import { Utils } from "../iirose_func/Utils";
 import { BilibiliSetting, NeteaseSetting } from "./SettingInterface";
 
 export class Setting
@@ -161,8 +161,9 @@ export class Setting
                     const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                     if (bilibiliSetting)
                     {
-                        const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
-                        if(parseBilibiliSetting){
+                        const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
+                        if (parseBilibiliSetting)
+                        {
                             const option = selectOption.find((item) => item[0] === parseBilibiliSetting.qn);
                             return option ? [option] : selectOption;
                         }
@@ -181,7 +182,7 @@ export class Setting
                         const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                         if (bilibiliSetting)
                         {
-                            const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
+                            const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
                             parseBilibiliSetting.qn = parseInt(index);
                             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
                         }
@@ -244,8 +245,9 @@ export class Setting
                     const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                     if (bilibiliSetting)
                     {
-                        const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
-                        if(parseBilibiliSetting){
+                        const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
+                        if (parseBilibiliSetting)
+                        {
                             const option = selectOption.find((item) => item[0] === parseBilibiliSetting.streamqn);
                             return option ? [option] : selectOption;
                         }
@@ -264,7 +266,7 @@ export class Setting
                         const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                         if (bilibiliSetting)
                         {
-                            const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
+                            const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
                             parseBilibiliSetting.streamqn = parseInt(index);
                             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
                         }
@@ -302,36 +304,38 @@ export class Setting
                 getSelectOption: () =>
                 {
                     let selectOption = [
-                        [0, 43200/60 + ' 分钟'],
+                        [0, 43200 / 60 + ' 分钟'],
                     ];
 
                     const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                     if (bilibiliSetting)
                     {
-                        const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
-                        if(parseBilibiliSetting){
-                            return [[0, parseBilibiliSetting.streamSeconds/60 + ' 分钟']];
+                        const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
+                        if (parseBilibiliSetting)
+                        {
+                            return [[0, parseBilibiliSetting.streamSeconds / 60 + ' 分钟']];
                         }
                     }
                     return selectOption;
                 },
                 cb: (htmlElement?: HTMLElement) =>
                 {
-                    const Callback = (userInput:string | null) =>
+                    const Callback = (userInput: string | null) =>
                     {
-                        if(!userInput) return;
+                        if (!userInput) return;
                         const minutes = parseInt(userInput || '0');
                         const seconds = minutes * 60;
                         const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                         if (bilibiliSetting)
                         {
-                            const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
-                            
+                            const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
+
                             parseBilibiliSetting.streamSeconds = seconds;
                             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
                         }
                         const optionText = `${minutes} 分钟`
-                        if(htmlElement){
+                        if (htmlElement)
+                        {
                             htmlElement.innerText = optionText;
                         }
                     };
@@ -341,7 +345,7 @@ export class Setting
 
                     utils.sync(2, t, Callback)
                 }
-            },{
+            }, {
                 type: 1,
                 title: '视频获取格式',
                 mdiClass: 'iirose-media-web-videoFormat',
@@ -356,8 +360,9 @@ export class Setting
                     const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                     if (bilibiliSetting)
                     {
-                        const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
-                        if(parseBilibiliSetting){
+                        const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
+                        if (parseBilibiliSetting)
+                        {
                             const option = selectOption.find((item) => item[0] === parseBilibiliSetting.getVideoStreamFormat);
                             return option ? [option] : selectOption;
                         }
@@ -376,7 +381,7 @@ export class Setting
                         const bilibiliSetting = localStorage.getItem('bilibiliSetting');
                         if (bilibiliSetting)
                         {
-                            const parseBilibiliSetting:BilibiliSetting = JSON.parse(bilibiliSetting);
+                            const parseBilibiliSetting: BilibiliSetting = JSON.parse(bilibiliSetting);
                             parseBilibiliSetting.getVideoStreamFormat = parseInt(index);
                             localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
                         }
@@ -412,7 +417,8 @@ export class Setting
         ];
     }
 
-    private neteaseSetting(){
+    private neteaseSetting()
+    {
         const neteaseSetting: SettingContainerNavBarPlatform = {
             id: 'NeteaseMusic',
             containerID: 'SettingContainer',
@@ -433,7 +439,8 @@ export class Setting
         return neteaseSetting;
     }
 
-    private neteaseMusicItem(){
+    private neteaseMusicItem()
+    {
         return [
             {
                 type: 1,
@@ -455,8 +462,9 @@ export class Setting
                     const neteaseSetting = localStorage.getItem('neteaseSetting');
                     if (neteaseSetting)
                     {
-                        const parseNeteaseSetting:NeteaseSetting = JSON.parse(neteaseSetting);
-                        if(parseNeteaseSetting){
+                        const parseNeteaseSetting: NeteaseSetting = JSON.parse(neteaseSetting);
+                        if (parseNeteaseSetting)
+                        {
                             const option = selectOption.find((item) => item[0] === parseNeteaseSetting.quality);
                             return option ? [option] : selectOption;
                         }
@@ -475,7 +483,7 @@ export class Setting
                         const neteaseSetting = localStorage.getItem('neteaseSetting');
                         if (neteaseSetting)
                         {
-                            const parseNeteaseSetting:NeteaseSetting = JSON.parse(neteaseSetting);
+                            const parseNeteaseSetting: NeteaseSetting = JSON.parse(neteaseSetting);
                             parseNeteaseSetting.quality = userSelect as 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster';
                             localStorage.setItem('neteaseSetting', JSON.stringify(parseNeteaseSetting));
                         }
@@ -525,7 +533,7 @@ export class Setting
     {
         const sC = new SettingContainer();
         const settingContainers = document.querySelectorAll('.MediaContainer');
-        let settingContainerContent = document.getElementById('SettingContainerContent');
+        let settingContainerContent = document.getElementById('MediaContainerContent');
 
         // 如果有多个设置容器
         if (settingContainers.length > 1)
@@ -534,44 +542,11 @@ export class Setting
         }
 
         // 如果没有设置容器内容
-        if (!settingContainerContent)
+        if (settingContainerContent)
         {
-            const newSettingContainerDiv = sC.createSettingContainerContent(item);
-            const settingContainer = settingContainers[1] ? settingContainers[1] : settingContainers[0];
-            if (settingContainer)
-            {
-                newSettingContainerDiv.style.opacity = '0';
-                settingContainer.appendChild(newSettingContainerDiv);
-                setTimeout(() =>
-                {
-                    newSettingContainerDiv.style.opacity = '1';
-                }, 1);
-            }
-        } else
-        {
-            const newSettingContainerDiv = sC.createSettingContainerContent(item);
             const parent = settingContainerContent.parentElement;
-            settingContainerContent.style.opacity = '0';
-            settingContainerContent.addEventListener('transitionend', () =>
-            {
-                settingContainerContent.remove();
-                const currentsettingContainerDiv = document.getElementById('SettingContainerContent');
-                if (currentsettingContainerDiv) return;
-                if (parent)
-                {
-                    newSettingContainerDiv.style.opacity = '0';
-                    parent.appendChild(newSettingContainerDiv);
-                    setTimeout(() =>
-                    {
-                        newSettingContainerDiv.style.opacity = '1';
-                    }, 1);
-                }
-            }, { once: true });
+            if (!parent) return;
+            sC.createSettingContainerContent(item, parent);
         }
-
-
-
     }
-
-
 }

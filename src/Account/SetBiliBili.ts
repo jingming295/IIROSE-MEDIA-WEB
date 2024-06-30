@@ -1,6 +1,6 @@
 import { BiliBiliLoginApi } from "../Api/BilibiliAPI/LoginAPI";
-import { ShowImage } from "../IIROSE/ShowImg";
-import { ShowMessage } from "../IIROSE/ShowMessage";
+import { ShowImage } from "../iirose_func/ShowImg";
+import { ShowMessage } from "../iirose_func/ShowMessage";
 import { BilibiliACC } from "./BilibiliAccountInterface";
 
 import QRCode from 'qrcode';
@@ -145,12 +145,14 @@ export class BiliBiliAccount
             lsBilibiliAccountParsed.gourl = bilibiliaccount.gourl;
             lsBilibiliAccountParsed.refresh_token = bilibiliaccount.refresh_token;
             localStorage.setItem('bilibiliAccount', JSON.stringify(lsBilibiliAccountParsed));
-            
+
         } else localStorage.setItem('bilibiliAccount', JSON.stringify(bilibiliaccount));
-        const navUserData =  await bilibiliLoginApi.getNavUserData();
-        if(navUserData && navUserData.data){
+        const navUserData = await bilibiliLoginApi.getNavUserData();
+        if (navUserData && navUserData.data)
+        {
             lsBilibiliAccount = localStorage.getItem('bilibiliAccount');
-            if(lsBilibiliAccount){
+            if (lsBilibiliAccount)
+            {
                 const lsBilibiliAccountParsed: BilibiliACC = JSON.parse(lsBilibiliAccount);
                 lsBilibiliAccountParsed.uname = navUserData.data.uname;
                 lsBilibiliAccountParsed.face = navUserData.data.face;

@@ -1,6 +1,7 @@
-import { UpdateDom } from "../UpdateDOM";
-import { SelectHolderItem } from "./SelectHolderItemInterface";
+import { UpdateDom } from "../../UpdateDOM";
+import { SelectHolderItem } from "../interfaces/SelectHolderItemInterface";
 
+// TODO: 希望能够逐渐放弃使用
 export class IIROSE_MEDIASelectHolder
 {
 

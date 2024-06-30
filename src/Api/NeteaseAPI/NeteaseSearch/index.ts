@@ -1,4 +1,4 @@
-import { MediaContainerItem } from "../../../IIROSE-MEDIA/MediaContainerInterface";
+import { MediaContainerItem } from "../../../IIROSE-MEDIA/interfaces/MediaContainerInterface";
 import { SendFetch } from "../../index";
 import { NeteaseMusicAPI } from "../NeteaseMusic/index";
 import { d } from "../Crypto";
@@ -88,7 +88,7 @@ export class NeteaseSearchAPI extends SendFetch
      * @param limit 
      * @returns 
      */
-    public async getNeteaseMusicSearchData(keyWord: string, limit:number = 100)
+    public async getNeteaseMusicSearchData(keyWord: string, limit: number = 100)
     {
         const url = `${this.cors}https://music.163.com/weapi/search/get`;
         const params = {
@@ -99,7 +99,7 @@ export class NeteaseSearchAPI extends SendFetch
         };
         const headers = new Headers();
         const we = d(params);
-        const enc ={
+        const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
         }
@@ -108,7 +108,7 @@ export class NeteaseSearchAPI extends SendFetch
         const response = await this.sendPost(url, encparams, headers);
         if (response && response.ok)
         {
-            const data:SearchData = await response.json();
+            const data: SearchData = await response.json();
             console.log(data)
             return data;
         } else
@@ -118,7 +118,8 @@ export class NeteaseSearchAPI extends SendFetch
 
     }
 
-    public async getNeteaseRecommandPlayListXC(limit:number = 30, warn = true){
+    public async getNeteaseRecommandPlayListXC(limit: number = 30, warn = true)
+    {
         const url = `https://xc.null.red:8043/api/netease/personalized`
         const params = new URLSearchParams();
         params.append('limit', limit.toString());
@@ -129,7 +130,7 @@ export class NeteaseSearchAPI extends SendFetch
 
         if (response && response.ok)
         {
-            const data:RecommendSongList = await response.json();
+            const data: RecommendSongList = await response.json();
             return data;
         } else
         {

@@ -1,34 +1,48 @@
-import { Music } from "../Platform/Music";
 import { Video } from "../Platform/Video";
-import { MediaContainerDisplay } from "../UpdateDOM/MediaContainerDisplay";
-import { ShowMessage } from "../IIROSE/ShowMessage";
-import { IIROSE_MEDIAInput } from "./IIROSE_MEDIAInput";
-import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem, SettingContainerNavBarPlatform } from "./MediaContainerInterface";
-import { InputEvent } from "./MediaContainerInterface";
+import { MediaContainerMessage } from "./elements/MediaContainerMessage";
+import { MediaContainerNavBarPlatform, MediaContainerItem, MediaItem, SettingContainerNavBarPlatform } from "./interfaces/MediaContainerInterface";
+import { InputEvent } from "./interfaces/MediaContainerInterface";
 import { LSMediaCollectData } from "../Platform/LocalStorageCollectDataInterface";
-// import { noloadGifBase64 } from "../ImageTools/Gif";
-export class MediaContainer
+import { Utils } from "../iirose_func/Utils";
+import { Pagination } from "../UpdateDOM/Pagination/Pagination";
+export class MediaContainerUtils
 {
 
-    public createMediaCOntainer(platforms: MediaContainerNavBarPlatform[], mediaContainerID: string, whichPlatform: number = 0)
+    /**
+     * 
+     * @param platforms 
+     * @param mediaContainerID 
+     * @param whichPlatform 
+     * @returns 
+     */
+    observer: MutationObserver | null = null;
+    timeout: NodeJS.Timeout | null = null;
+
+    public createMediaContainer(platforms: MediaContainerNavBarPlatform[], MediaContainerWrapper?: HTMLDivElement, whichPlatform: number = 0)
     {
-        const MediaContainer = document.createElement('div');
-        MediaContainer.id = mediaContainerID;
-        MediaContainer.classList.add('MediaContainer');
-
-        const MediaSearchBar = this.createMediaSearchBar(platforms[whichPlatform].inputEvent, platforms[whichPlatform].buttonBackgroundColor);
-        MediaContainer.appendChild(MediaSearchBar);
-
-        const mediaContainerNavBar = this.createMediaContainerNavBar(platforms, whichPlatform);
-        MediaContainer.appendChild(mediaContainerNavBar);
-
-        const mediaContainerSubNavBar = this.createMediaContainerSubNavBar(platforms, whichPlatform);
-        MediaContainer.appendChild(mediaContainerSubNavBar);
-
+        let MediaContainer = document.querySelector('.MediaContainer') as HTMLDivElement;
         const iiroseMedia = document.getElementById('IIROSE_MEDIA');
-        if (iiroseMedia)
+        const MediaSearchBar = this.createMediaSearchBar(platforms[whichPlatform].inputEvent, platforms[whichPlatform].buttonBackgroundColor);
+        const mediaContainerNavBar = this.createMediaContainerNavBar(platforms, whichPlatform);
+        const mediaContainerSubNavBar = this.createPlatformNavigationBar(platforms, whichPlatform);
+
+        if (!MediaContainer)
         {
-            const observer = new MutationObserver(mutationList =>
+            MediaContainer = document.createElement('div')
+            MediaContainer.classList.add('MediaContainer');
+            MediaContainer.appendChild(MediaSearchBar);
+            MediaContainer.appendChild(mediaContainerNavBar);
+            MediaContainer.appendChild(mediaContainerSubNavBar);
+        }
+
+
+        if (iiroseMedia && MediaContainerWrapper)
+        {
+            if (this.observer)
+            {
+                this.observer.disconnect();
+            }
+            this.observer = new MutationObserver(mutationList =>
                 mutationList.filter(m => m.type === 'childList').forEach(m =>
                 {
                     m.addedNodes.forEach(node =>
@@ -39,137 +53,57 @@ export class MediaContainer
                         }
                     });
                 }));
-            observer.observe(iiroseMedia, { childList: true, subtree: true });
-        };
+            this.observer.observe(iiroseMedia, { childList: true, subtree: true });
+            MediaContainerWrapper.appendChild(MediaContainer);
+        } else
+        {
+            platforms[whichPlatform].subNavBarItems[0].onclick();
 
-
-
-        return MediaContainer;
+        }
     }
+
 
     /**
-     * 平台的按钮
-     * @param platforms 
+     * 创建媒体搜索栏 （第二排）
+     * @param inputEvent 
+     * @param bgColor 
+     * @param id 
      * @returns 
      */
-    private createMediaContainerNavBar(platforms: MediaContainerNavBarPlatform[], whichPlatform: number)
-    {
-        const PlatFormSelector = document.createElement('div');
-        PlatFormSelector.classList.add('PlatformSelector');
-        platforms.forEach((platform, index) =>
-        {
-            const PlatformButton = document.createElement('div');
-            PlatformButton.classList.add('PlatformButton');
-            PlatformButton.id = `${platform.id}Button`;
-            PlatformButton.style.backgroundColor = platform.buttonBackgroundColor;
-
-            const PlatformIcon = document.createElement('img');
-            PlatformIcon.classList.add('PlatformIcon');
-            PlatformIcon.id = `${platform.id}Icon`;
-            PlatformIcon.src = platform.iconsrc;
-
-            const PlatformTitle = document.createElement('div');
-            PlatformTitle.classList.add('PlatformTitle');
-            PlatformTitle.innerText = platform.title;
-
-            PlatformButton.onclick = () =>
-            {
-                const prevmediaContainer = Array.from(document.querySelectorAll('.MediaContainer')) as HTMLDivElement[] | null;
-                // if (!prevmediaContainer || prevmediaContainer.id === 'MusicContainer') return;
-                if (!prevmediaContainer || prevmediaContainer.length > 1) return;
-                prevmediaContainer[0].style.opacity = '0';
-
-                // 添加动画结束事件的监听器
-                prevmediaContainer[0].addEventListener('transitionend', () =>
-                {
-                    prevmediaContainer[0].remove();
-                }, { once: true });
-
-                const MediaContainerWrapper = document.getElementById('MediaContainerWrapper');
-                if (!MediaContainerWrapper) return;
-                const mediaContainer = new MediaContainer();
-                const musicMediaContainer = mediaContainer.createMediaCOntainer(platforms, platform.containerID, index);
-                musicMediaContainer.style.opacity = '0';
-
-                MediaContainerWrapper.appendChild(musicMediaContainer);
-
-                setTimeout(() =>
-                {
-                    musicMediaContainer.style.opacity = '1';
-                }, 1);
-            };
-
-            PlatformButton.appendChild(PlatformIcon);
-            PlatformButton.appendChild(PlatformTitle);
-            PlatFormSelector.appendChild(PlatformButton);
-
-            // 判断是否是第一个 platform
-            if (index === whichPlatform)
-            {
-                PlatformButton.style.opacity = '1';
-                PlatFormSelector.style.backgroundColor = platform.buttonBackgroundColor;
-            }
-        });
-        return PlatFormSelector;
-    }
-
-    protected createMediaContainerSubNavBar(item: MediaContainerNavBarPlatform[] | SettingContainerNavBarPlatform[], whichPlatform: number)
-    {
-        const MediaContainerSubNavBar = document.createElement('div');
-        MediaContainerSubNavBar.classList.add('MediaContainerSubNavBar');
-        MediaContainerSubNavBar.style.backgroundColor = item[whichPlatform].buttonBackgroundColor;
-        item[whichPlatform].subNavBarItems.forEach((item, index) =>
-        {
-            const SubNavBarItem = document.createElement('div');
-            SubNavBarItem.classList.add('SubNavBarItem');
-            if (item.class) SubNavBarItem.classList.add(item.class);
-            SubNavBarItem.id = item.id;
-            SubNavBarItem.innerHTML = item.title;
-            SubNavBarItem.onclick = () =>
-            {
-                item.onclick();
-                const parent = SubNavBarItem.parentElement;
-                if (parent)
-                {
-                    const siblings = Array.from(parent.children).filter(child => child !== SubNavBarItem);
-                    siblings.forEach(sibling => sibling.classList.remove('subNavBarItemActive'));
-                    SubNavBarItem.classList.add('subNavBarItemActive');
-                }
-
-            };
-            if (index === 0)
-            {
-                SubNavBarItem.classList.add('subNavBarItemActive');
-            }
-            MediaContainerSubNavBar.appendChild(SubNavBarItem);
-        });
-
-        return MediaContainerSubNavBar;
-    }
-
-    public createMediaSearchBar(inputEvent: InputEvent, bgColor: string, id?: string)
+    protected createMediaSearchBar(inputEvent: InputEvent, bgColor: string, id?: string, mediaContainer?: HTMLDivElement)
     {
 
         function createInput()
         {
-            const inputWrapper = document.createElement('div');
-            inputWrapper.classList.add('inputWrapper');
-
-            const inputIcon = document.createElement('div');
-            inputIcon.classList.add('inputIcon');
-
-            const input = document.createElement('div');
-            input.classList.add('mediaSearchBarInput');
-            input.id = 'mediaSearchBarInput';
-
-            inputWrapper.onclick = () =>
+            function updateInput()
             {
-                const iiROSE_MEDIAInput = new IIROSE_MEDIAInput();
-                iiROSE_MEDIAInput.showIIROSE_MEDIAInput(inputEvent);
-            };
+                inputWrapper.onclick = () =>
+                {
+                    const utils = new Utils();
+                    utils.sync(2, [inputEvent.title, 'none', 10000], inputEvent.InputAreaConfirmBtnOnClick);
+                };
+            }
+            let inputWrapper = document.querySelector('.inputWrapper') as HTMLDivElement;
 
-            inputWrapper.appendChild(inputIcon);
-            inputWrapper.appendChild(input);
+            if (!inputWrapper)
+            {
+                inputWrapper = document.createElement('div');
+                inputWrapper.classList.add('inputWrapper');
+
+                const inputIcon = document.createElement('div');
+                inputIcon.classList.add('inputIcon');
+
+                const input = document.createElement('div');
+                input.classList.add('mediaSearchBarInput');
+                input.id = 'mediaSearchBarInput';
+
+                inputWrapper.appendChild(inputIcon);
+                inputWrapper.appendChild(input);
+                updateInput();
+            } else
+            {
+                updateInput();
+            }
             return inputWrapper;
         }
 
@@ -236,33 +170,258 @@ export class MediaContainer
 
         }
 
-
-        const MediaSearchBar = document.createElement('div');
-        MediaSearchBar.classList.add('MediaSearchBar');
-        MediaSearchBar.style.backgroundColor = bgColor;
-        MediaSearchBar.id = id || 'CommonMediaSearchBar';
+        let MediaSearchBar = document.querySelector('.MediaSearchBar') as HTMLDivElement;
 
         const input = createInput();
         const pagination = createPagination();
         const controller = createPaginationController();
-        MediaSearchBar.appendChild(input);
-        MediaSearchBar.appendChild(pagination);
-        MediaSearchBar.appendChild(controller);
+        if (!MediaSearchBar)
+        {
+            MediaSearchBar = document.createElement('div');
+            MediaSearchBar.classList.add('MediaSearchBar');
+            MediaSearchBar.appendChild(input);
+            MediaSearchBar.appendChild(pagination);
+            MediaSearchBar.appendChild(controller);
+        }
+
+        MediaSearchBar.style.backgroundColor = bgColor;
+        MediaSearchBar.id = id || 'CommonMediaSearchBar';
+
+        const clild = Array.from(MediaSearchBar.children) as HTMLElement[];
+        clild.forEach((element) =>
+        {
+            element.style.opacity = '';
+            element.style.visibility = '';
+            element.style.pointerEvents = '';
+        })
 
         return MediaSearchBar;
     }
 
-    public createMediaContainerContent(ppMediaContainerItems: Promise<Promise<MediaContainerItem[] | null>[] | null> | undefined, playColor: string)
+    /**
+     * 创建媒体容器导航栏，是切换平台导航栏 （第三排）
+     * @param platforms 
+     * @param whichPlatform 
+     * @returns 
+     */
+    private createMediaContainerNavBar(platforms: MediaContainerNavBarPlatform[], whichPlatform: number)
     {
-        function createContentItem(item: MediaContainerItem)
+        let PlatFormSelector = document.querySelector('.PlatformSelector') as HTMLDivElement;
+        if (!PlatFormSelector)
         {
+            PlatFormSelector = document.createElement('div');
+            PlatFormSelector.classList.add('PlatformSelector');
+        }
+
+        let PlatformButtonGroup = document.querySelectorAll('.PlatformButton') as NodeListOf<HTMLDivElement>;
+        if (PlatformButtonGroup.length)
+        {
+            const platformLength = platforms.length;
+
+            // Convert NodeList to Array to avoid issues with static NodeList
+            Array.from(PlatformButtonGroup).forEach((element, index) =>
+            {
+                if (index >= platformLength)
+                {
+                    element.parentNode?.removeChild(element);
+                }
+            });
+
+            // Re-query the DOM to get the updated list of elements
+            PlatformButtonGroup = document.querySelectorAll('.PlatformButton') as NodeListOf<HTMLDivElement>;
+        }
+
+        platforms.forEach((platform, index) =>
+        {
+            let PlatformButton: HTMLDivElement;
+            let PlatformIcon: HTMLImageElement;
+            let PlatformTitle: HTMLDivElement;
+            if (!PlatformButtonGroup[index])
+            {
+                PlatformButton = document.createElement('div');
+                PlatformButton.classList.add('PlatformButton');
+                PlatformIcon = document.createElement('img');
+                PlatformIcon.classList.add('PlatformIcon');
+                PlatformTitle = document.createElement('div');
+                PlatformTitle.classList.add('PlatformTitle');
+                PlatformButton.appendChild(PlatformIcon);
+                PlatformButton.appendChild(PlatformTitle);
+                PlatFormSelector.appendChild(PlatformButton);
+            } else
+            {
+                PlatformButton = PlatformButtonGroup[index];
+                PlatformIcon = PlatformButton.querySelector('.PlatformIcon') as HTMLImageElement;
+                PlatformTitle = PlatformButton.querySelector('.PlatformTitle') as HTMLDivElement;
+
+            }
+
+            PlatformButton.id = `${platform.id}Button`;
+            PlatformIcon.id = `${platform.id}Icon`;
+            PlatformIcon.src = platform.iconsrc;
+
+            PlatformTitle.innerText = platform.title;
+
+            PlatformButton.onclick = () =>
+            {
+                // const prevmediaContainer = Array.from(document.querySelectorAll('.MediaContainer')) as HTMLDivElement[] | null;
+                // // if (!prevmediaContainer || prevmediaContainer.id === 'MusicContainer') return;
+                // if (!prevmediaContainer || prevmediaContainer.length > 1) return;
+
+                // // 添加动画结束事件的监听器
+                // prevmediaContainer[0].addEventListener('transitionend', () =>
+                // {
+                //     prevmediaContainer[0].remove();
+                // }, { once: true });
+
+                // const MediaContainerWrapper = document.getElementById('MediaContainerWrapper');
+                // if (!MediaContainerWrapper) return;
+                this.createMediaContainer(platforms, undefined, index);
+
+                // MediaContainerWrapper.appendChild(newMediaContainer);
+            };
+
+            // 判断是否是第一个 platform
+            if (index === whichPlatform)
+            {
+                PlatFormSelector.style.backgroundColor = platform.buttonBackgroundColor;
+            }
+        });
+        return PlatFormSelector;
+    }
+
+    /**
+     * 创建平台导航栏 （第四排）
+     * @param item 
+     * @param whichPlatform 
+     * @returns 
+     */
+    protected createPlatformNavigationBar(item: MediaContainerNavBarPlatform[] | SettingContainerNavBarPlatform[], whichPlatform: number)
+    {
+
+        function update()
+        {
+            MediaContainerSubNavBar.style.backgroundColor = item[whichPlatform].buttonBackgroundColor;
+
+        }
+
+        let MediaContainerSubNavBar = document.querySelector('.MediaContainerSubNavBar') as HTMLDivElement;
+
+        if (!MediaContainerSubNavBar)
+        {
+            MediaContainerSubNavBar = document.createElement('div');
+            MediaContainerSubNavBar.classList.add('MediaContainerSubNavBar');
+        }
+
+        let subNavBarItems = Array.from(MediaContainerSubNavBar.children) as HTMLDivElement[];
+
+        if (subNavBarItems.length)
+        {
+            const subNavBarItemsLength = subNavBarItems.length - 1;
+            subNavBarItems.forEach((item, index) =>
+            {
+                if (index >= subNavBarItemsLength)
+                {
+                    item.remove();
+                }
+            });
+            subNavBarItems = Array.from(MediaContainerSubNavBar.children) as HTMLDivElement[];
+        }
+
+
+        item[whichPlatform].subNavBarItems.forEach((item, index) =>
+        {
+
+            let SubNavBarItem: HTMLDivElement;
+
+            if (!subNavBarItems[index])
+            {
+                SubNavBarItem = document.createElement('div');
+                SubNavBarItem.classList.add('SubNavBarItem');
+                SubNavBarItem.id = item.id;
+                SubNavBarItem.innerHTML = item.title;
+                SubNavBarItem.onclick = () =>
+                {
+                    item.onclick();
+                    const parent = SubNavBarItem.parentElement;
+                    if (parent)
+                    {
+                        const siblings = Array.from(parent.children).filter(child => child !== SubNavBarItem);
+                        siblings.forEach(sibling => sibling.classList.remove('subNavBarItemActive'));
+                        SubNavBarItem.classList.add('subNavBarItemActive');
+                    }
+
+                };
+                if (index === 0)
+                {
+                    SubNavBarItem.classList.add('subNavBarItemActive');
+                }
+                MediaContainerSubNavBar.appendChild(SubNavBarItem);
+            } else
+            {
+                SubNavBarItem = subNavBarItems[index];
+            }
+
+            if (index === 0) SubNavBarItem.classList.add('subNavBarItemActive');
+            else SubNavBarItem.classList.remove('subNavBarItemActive');
+
+            if (item.class) SubNavBarItem.classList.add(item.class);
+            SubNavBarItem.id = item.id;
+            SubNavBarItem.innerHTML = item.title;
+            SubNavBarItem.onclick = () =>
+            {
+                item.onclick();
+                const parent = SubNavBarItem.parentElement;
+                if (parent)
+                {
+                    const siblings = Array.from(parent.children).filter(child => child !== SubNavBarItem);
+                    siblings.forEach(sibling => sibling.classList.remove('subNavBarItemActive'));
+                    SubNavBarItem.classList.add('subNavBarItemActive');
+                }
+
+            };
+            if (index === 0)
+            {
+                SubNavBarItem.classList.add('subNavBarItemActive');
+            }
+        });
+
+        update()
+
+        return MediaContainerSubNavBar;
+    }
+
+    /**
+     * 创建媒体容器内容
+     * @param ppMediaContainerItems 
+     * @param playColor 
+     * @returns 
+     */
+    public async createMediaContainerContent(ppMediaContainerItems: Promise<Promise<MediaContainerItem[] | null>[] | null> | undefined, playColor: string, parent: Element)
+    {
+        /**
+         * 创建内容项，即每个视频的封面，标题，作者，时长，控件等
+         * @param item 
+         * @returns 
+         */
+        function createContentItem(item: MediaContainerItem, index: number, MediaContainerContent: HTMLDivElement)
+        {
+            /**
+             * 设置高度等于宽度的像素值，用于图片
+             */
             function setHeightToWidth()
             {
+                console.log('setHeightToWidth');
                 const width = contentImgCover.clientWidth; // 获取元素的实际宽度
                 if (width > 0)
                     contentImgCover.style.height = width + 'px'; // 设置高度等于宽度的像素值
             }
-            function onclickCollect(collectIcon: HTMLDivElement)
+
+            /**
+             * 点击收藏按钮
+             * @param collectIcon
+             * @returns {void} 
+             */
+            function onclickFavorite(collectIcon: HTMLDivElement)
             {
                 if (!item.collect) return;
                 const ls = localStorage.getItem(item.collect.lsKeyWord);
@@ -299,167 +458,184 @@ export class MediaContainer
                     localStorage.setItem(item.collect.lsKeyWord, JSON.stringify(collect));
                 }
             }
-            const observer = new IntersectionObserver(entries =>
-            {
-                entries.forEach(entry =>
-                {
-                    if (entry.isIntersecting)
-                    {
-                        // 当 contentImgCover 进入视口时调用 setHeightToWidth
-                        requestAnimationFrame(setHeightToWidth);
 
-                        // 停止观察，因为我们只关心第一次出现在视口中的情况
-                        observer.unobserve(entry.target);
-                    }
+            function update()
+            {
+                contentImg.onclick = () => { window.open(item.url || ''); };
+                contentImg.src = '';
+                contentImg.src = item.img;
+                contentAuthor.innerText = '...';
+                Promise.resolve(item.author).then((author) =>
+                {
+                    // 将字符串拆分为单个字符的数组
+                    const characters = author.split('');
+                    // 初始化一个空字符串用于逐个添加字符
+                    let displayedText = '';
+
+                    // 逐个字符添加到 contentAuthor.innerText
+                    characters.forEach((char, index) =>
+                    {
+                        // 使用 setTimeout 设置延迟
+                        setTimeout(() =>
+                        {
+                            displayedText += char;
+                            contentAuthor.innerText = displayedText;
+                        }, index * (50)); // 设置延迟的时间间隔，这里是每个字符之间的间隔时间
+                    });
+                }).catch((error) =>
+                {
+                    console.error('Error fetching author:', error);
+                    contentAuthor.innerText = '无法获取'; // 默认值
                 });
-            });
+                contentDuration.innerText = item.duration;
+
+                contentTitle.innerText = item.title;
+
+                if (item.subTitle)
+                {
+                    contentSubTitle.innerText = item.subTitle;
+                } else
+                {
+                    contentSubTitle.innerText = '';
+                }
+                playButtonTitle.innerText = '点播';
+
+                contentPlayButton.style.color = playColor;
+                contentPlayButton.onclick = () =>
+                {
+                    if (item.MediaRequest) item.MediaRequest();
+                };
+                if (item.multipage)
+                {
+                    Promise.resolve(item.multipage).then((multipage) =>
+                    {
+                        if (multipage)
+                        {
+                            playButtonIcon.classList.add('pickButtonIcon');
+                            playButtonTitle.innerText = '';
+                            let index = 0;
+                            const text = '选集';
+                            const interval = 100;
+                            const timer = setInterval(() =>
+                            {
+                                playButtonTitle.innerText += text[index];
+                                index++;
+                                if (index >= text.length)
+                                {
+                                    clearInterval(timer);
+                                }
+                            }, interval);
+                        } else
+                        {
+                            playButtonIcon.classList.remove('pickButtonIcon');
+                        }
+                    });
+                } else
+                {
+                    playButtonIcon.classList.remove('pickButtonIcon');
+                }
+                if (item.collect)
+                {
+                    collectIcomWrapper.style.display = '';
+                    collectIcomWrapper.style.opacity = '';
+                    collectText.innerText = '收藏';
+                    const ls = localStorage.getItem(item.collect.lsKeyWord);
+                    if (ls)
+                    {
+                        const collect: LSMediaCollectData[] = JSON.parse(ls);
+                        const index = collect.findIndex((c) => c.id === item.id);
+                        if (index !== -1)
+                        {
+                            collectIcon.classList.add('collectedIcon');
+                        }
+                    }
+                    collectIcomWrapper.onclick = () =>
+                    {
+                        onclickFavorite(collectIcon);
+                    };
+                } else
+                {
+                    collectIcomWrapper.style.display = 'none';
+                    collectIcomWrapper.style.opacity = '0';
+                }
+
+                const observer = new IntersectionObserver(entries =>
+                {
+                    entries.forEach(entry =>
+                    {
+                        if (entry.isIntersecting)
+                        {
+                            // 当 contentImgCover 进入视口时调用 setHeightToWidth
+                            requestAnimationFrame(setHeightToWidth);
+
+                            // 停止观察，因为我们只关心第一次出现在视口中的情况
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                });
+
+                observer.observe(contentImgCover);
+                window.addEventListener('resize', setHeightToWidth);
+            }
+
             const ContentItem = document.createElement('div');
             ContentItem.classList.add('ContentItem');
+            ContentItem.id = `ContentItem${index}`;
+            ContentItem.style.opacity = '0';
 
             const contentImgCover = document.createElement('div');
             contentImgCover.classList.add('contentImgCover');
 
-
             const contentImg = document.createElement('img');
             contentImg.classList.add('contentImg');
-            contentImg.onclick = () => { window.open(item.url || ''); };
 
-            observer.observe(contentImgCover);
-            window.addEventListener('resize', setHeightToWidth);
-            contentImg.src = item.img;
             const infoArea = document.createElement('div');
             infoArea.classList.add('infoArea');
 
             const contentAuthor = document.createElement('div');
             contentAuthor.classList.add('contentAuthor');
-            contentAuthor.innerText = '...';
-
-            Promise.resolve(item.author).then((author) =>
-            {
-                // 将字符串拆分为单个字符的数组
-                const characters = author.split('');
-                // 初始化一个空字符串用于逐个添加字符
-                let displayedText = '';
-
-                // 逐个字符添加到 contentAuthor.innerText
-                characters.forEach((char, index) =>
-                {
-                    // 使用 setTimeout 设置延迟
-                    setTimeout(() =>
-                    {
-                        displayedText += char;
-                        contentAuthor.innerText = displayedText;
-                    }, index * (50)); // 设置延迟的时间间隔，这里是每个字符之间的间隔时间
-                });
-            }).catch((error) =>
-            {
-                console.error('Error fetching author:', error);
-                contentAuthor.innerText = '无法获取'; // 默认值
-            });
 
             const contentDuration = document.createElement('div');
             contentDuration.classList.add('contentDuration');
-            contentDuration.innerText = item.duration;
 
+            const contentTitleWrapper = document.createElement('div');
+            contentTitleWrapper.classList.add('contentTitleWrapper');
 
             const contentTitle = document.createElement('div');
             contentTitle.classList.add('contentTitle');
-            contentTitle.innerText = item.title;
 
-            if (item.subTitle)
-            {
-                const contentSubTitle = document.createElement('div');
-                contentSubTitle.classList.add('contentSubTitle');
-                contentSubTitle.innerText = item.subTitle;
-
-                contentTitle.appendChild(contentSubTitle);
-            }
-
-
-            if (item.duration)
-            {
-                const contentDuration = document.createElement('div');
-                contentDuration.classList.add('contentDuration');
-                contentDuration.innerText = item.duration;
-            }
-
+            const contentSubTitle = document.createElement('div');
+            contentSubTitle.classList.add('contentSubTitle');
 
             const contentPlayButton = document.createElement('div');
             contentPlayButton.classList.add('contentPlayButton');
-            contentPlayButton.onclick = () =>
-            {
-                if (item.MediaRequest) item.MediaRequest();
-            };
-
-            contentPlayButton.style.color = playColor;
 
             const playButtonIcon = document.createElement('div');
             playButtonIcon.classList.add('playButtonIcon');
 
             const playButtonTitle = document.createElement('div');
             playButtonTitle.classList.add('playButtonTitle');
-            playButtonTitle.innerText = '点播';
 
-            if (item.multipage)
-            {
-                Promise.resolve(item.multipage).then((multipage) =>
-                {
-                    if (multipage)
-                    {
-                        playButtonIcon.classList.remove('playButtonIcon');
-                        playButtonIcon.classList.add('pickButtonIcon');
-                        playButtonTitle.innerText = '';
-                        let index = 0;
-                        const text = '选集';
-                        const interval = 100;
-                        const timer = setInterval(() =>
-                        {
-                            playButtonTitle.innerText += text[index];
-                            index++;
-                            if (index >= text.length)
-                            {
-                                clearInterval(timer);
-                            }
-                        }, interval);
-                    }
-                });
-            }
 
-            if (item.collect)
-            {
-                const collectIcomWrapper = document.createElement('div');
-                collectIcomWrapper.classList.add('collectIcomWrapper');
+            const collectIcomWrapper = document.createElement('div');
+            collectIcomWrapper.classList.add('collectIcomWrapper');
 
-                const collectIcon = document.createElement('div');
-                collectIcon.classList.add('collectIcon');
+            const collectIcon = document.createElement('div');
+            collectIcon.classList.add('collectIcon');
 
-                const ls = localStorage.getItem(item.collect.lsKeyWord);
-                if (ls)
-                {
-                    const collect: LSMediaCollectData[] = JSON.parse(ls);
-                    const index = collect.findIndex((c) => c.id === item.id);
-                    if (index !== -1)
-                    {
-                        collectIcon.classList.add('collectedIcon');
-                    }
-                }
-                collectIcomWrapper.onclick = () =>
-                {
-                    onclickCollect(collectIcon);
-                };
-                const collectText = document.createElement('div');
-                collectText.classList.add('collectText');
-                collectText.innerText = '收藏';
-                collectIcomWrapper.appendChild(collectIcon);
-                collectIcomWrapper.appendChild(collectText);
-                infoArea.appendChild(collectIcomWrapper);
-            }
+            const collectText = document.createElement('div');
+            collectText.classList.add('collectText');
 
+            collectIcomWrapper.appendChild(collectIcon);
+            collectIcomWrapper.appendChild(collectText);
+            infoArea.appendChild(collectIcomWrapper);
 
             contentPlayButton.appendChild(playButtonIcon);
             contentPlayButton.appendChild(playButtonTitle);
 
-            infoArea.appendChild(contentTitle);
+            contentTitleWrapper.appendChild(contentTitle);
+            contentTitleWrapper.appendChild(contentSubTitle);
+            infoArea.appendChild(contentTitleWrapper);
             infoArea.appendChild(contentAuthor);
             // infoArea.appendChild(contentDuration);
 
@@ -468,60 +644,116 @@ export class MediaContainer
             ContentItem.appendChild(contentImgCover);
             ContentItem.appendChild(infoArea);
             ContentItem.appendChild(contentPlayButton);
-            return ContentItem;
+            MediaContainerContent.appendChild(ContentItem);
+
+            update();
+            setTimeout(() =>
+            {
+                ContentItem.style.opacity = '1';
+            }, 10);
         }
-        const MediaContainerContent = document.createElement('div');
-        MediaContainerContent.classList.add('MediaContainerContent');
-        MediaContainerContent.id = 'MediaContainerContent';
 
-        MediaContainerContent.style.height = '100%';
-        const spin = document.createElement('div');
-        spin.classList.add('containerSpin');
-
-        MediaContainerContent.appendChild(spin);
-        if (!ppMediaContainerItems) return MediaContainerContent;
-        ppMediaContainerItems.then(pMediaContainerItem =>
+        const create = (pMediaContainerItem: Promise<MediaContainerItem[] | null>[], MediaContainerContent: HTMLDivElement, spin: HTMLDivElement | null) =>
         {
-            // console.log(pMediaContainerItem)
-            if (!pMediaContainerItem || pMediaContainerItem.length === 0)
+            pMediaContainerItem.forEach((Item, index) =>
             {
-                if (spin) spin.remove();
-                // const showmessage = new ShowMessage();
-                // showmessage.show('搜索无结果');
-
-                const mediaContainerDisplay = new MediaContainerDisplay();
-                mediaContainerDisplay.displayMessage(playColor, 2, MediaContainerContent);
-                return;
-            }
-            pMediaContainerItem.forEach(pMediaContainerItem =>
-            {
-                pMediaContainerItem.then(MediaContainerItem =>
+                Item.then(MediaContainerItem =>
                 {
                     if (spin) spin.remove();
                     MediaContainerContent.style.height = '';
                     if (!MediaContainerItem) return;
                     MediaContainerItem.forEach((MediaContainerItem) =>
                     {
-                        const ContentItem = createContentItem(MediaContainerItem);
-                        ContentItem.style.opacity = '0';
-                        MediaContainerContent.appendChild(ContentItem);
-                        setTimeout(() =>
-                        {
-                            ContentItem.style.opacity = '1';
-                        }, 1);
+                        createContentItem(MediaContainerItem, index, MediaContainerContent);
                     });
-
                 });
 
             });
+
+        }
+
+        await this.clearMediaContainerContent();
+
+        const MediaContainerContent = document.createElement('div');
+        MediaContainerContent.classList.add('MediaContainerContent');
+        MediaContainerContent.id = 'MediaContainerContent';
+
+        MediaContainerContent.style.opacity = '0';
+
+        parent.appendChild(MediaContainerContent);
+
+
+        let spin = MediaContainerContent.querySelector('.containerSpin') as HTMLDivElement;
+        if (!spin)
+        {
+            spin = document.createElement('div');
+            spin.classList.add('containerSpin');
+        }
+
+        const ContentItem = Array.from(MediaContainerContent.children) as HTMLDivElement[];
+
+        if (ContentItem.length)
+        {
+            ContentItem.forEach(item =>
+            {
+                item.style.opacity = '0';
+            });
+        }
+
+        MediaContainerContent.style.height = '100%';
+
+        setTimeout(() =>
+        {
+            MediaContainerContent.style.opacity = '1';
+        }, 10);
+        MediaContainerContent.appendChild(spin);
+        if (!ppMediaContainerItems)
+        {
+            return;
+        };
+        ppMediaContainerItems.then(pMediaContainerItem =>
+        {
+            if (!pMediaContainerItem || pMediaContainerItem.length === 0)
+            {
+                if (spin) spin.remove();
+                // const showmessage = new ShowMessage();
+                // showmessage.show('搜索无结果');
+
+                const mediaContainerDisplay = new MediaContainerMessage();
+                mediaContainerDisplay.displayMessage(playColor, 2, MediaContainerContent, this);
+                return;
+            }
+            create(pMediaContainerItem, MediaContainerContent, spin);
         });
 
-        return MediaContainerContent;
     }
 
-    public goMultiPage(container: HTMLDivElement | null, mediaItems: MediaItem[], rgb: string)
+    protected clearMediaContainerContent(): Promise<void>
     {
-        function createPaginationController()
+        return new Promise((resolve, reject) =>
+        {
+            const mediaContainerContent = document.querySelector('.MediaContainerContent') as HTMLDivElement;
+            if (mediaContainerContent)
+            {
+                mediaContainerContent.style.opacity = '0';
+                mediaContainerContent.remove();
+
+            }
+            resolve();
+        });
+    }
+
+
+    /**
+     * 切换到多集页面模式
+     * @param container 
+     * @param mediaItems 
+     * @param rgb 
+     * @returns 
+     */
+    public goMultiPage(container: HTMLDivElement, mediaItems: MediaItem[], rgb: string, ppMediaContainerItems: Promise<Promise<MediaContainerItem[] | null>[] | null>)
+    {
+        const createPaginationController = () =>
         {
             const multipageControllerWrapper = document.createElement('div');
             multipageControllerWrapper.classList.add('controllerWrapper');
@@ -583,53 +815,34 @@ export class MediaContainer
 
             returnButtonWrapper.onclick = () =>
             {
-                multipageControllerWrapper.style.opacity = '0';
                 paginationTextDiv.textContent = paginationText;
-                multipageControllerWrapper.addEventListener('transitionend', () =>
+                subNavBarItems.forEach(item =>
                 {
-                    subNavBarItems.forEach(item =>
-                    {
-                        item.style.display = '';
-                        item.style.opacity = '';
-                    });
-                    subnavbaritemPlaceHolder.remove();
-                    multipageControllerWrapper.remove();
-                    inputWrapper.style.display = '';
-                    controllerWrapper.style.display = '';
+                    item.style.display = '';
+                    item.style.opacity = '';
+                });
+                subnavbaritemPlaceHolder.remove();
+                multipageControllerWrapper.remove();
+                inputWrapper.style.display = '';
+                controllerWrapper.style.display = '';
 
-                    inputWrapper.style.opacity = '';
-                    controllerWrapper.style.opacity = '';
-                    subNavBar.style.opacity = '';
-                }, { once: true });
-
-                const MediaContainerContentCollection = Array.from(document.querySelectorAll('.MediaContainerContent')) as HTMLDivElement[];
+                inputWrapper.style.opacity = '';
+                controllerWrapper.style.opacity = '';
+                subNavBar.style.opacity = '';
+                const MediaContainerContentCollection = Array.from(document.querySelectorAll('.MediaContainer')) as HTMLDivElement[];
                 // 这里判断如果有一个以上，就是进入分集了
-                if (MediaContainerContentCollection.length > 1)
-                {
-                    const multipageMediaContainerContentI = MediaContainerContentCollection[1];
-                    multipageMediaContainerContentI.style.opacity = '0';
-                    multipageMediaContainerContentI.addEventListener('transitionend', () =>
-                    {
-                        multipageMediaContainerContentI.remove();
-                        mediaContainerContent.style.display = '';
-                        setTimeout(() =>
-                        {
-                            mediaContainerContent.style.opacity = '1';
-                        }, 1);
-                    });
-                }
-
+                this.createMediaContainerContent(ppMediaContainerItems, rgb, MediaContainerContentCollection[0]);
             };
 
             return multipageControllerWrapper;
         }
-        if (!container) return;
+
         const items = Array.from(container.children) as HTMLElement[];
         const mediasearchBar = items[0];
         const subNavBar = items[2];
 
         const subnavbaritemPlaceHolder = document.createElement('div');
-        const video = new Video();
+        const video = new Video(this);
 
         subnavbaritemPlaceHolder.classList.add('subNavBarItemPlaceHolder');
         subNavBar.appendChild(subnavbaritemPlaceHolder);
@@ -654,10 +867,9 @@ export class MediaContainer
 
         controllerWrapper.style.opacity = '0';
 
-        mediaContainerContent.style.opacity = '0';
-
+        const mediaContainer = document.querySelector('.MediaContainer') as HTMLDivElement;
         const mediacontaineritem = video.bilibiliVideoMediaContainerItemByCids(1, mediaItems);
-        const multipageMediaContainerContent = this.createMediaContainerContent(mediacontaineritem, rgb);
+        this.createMediaContainerContent(mediacontaineritem, rgb, mediaContainer);
 
         subNavBarItems.forEach(item =>
         {
@@ -677,230 +889,35 @@ export class MediaContainer
 
             const multipageComponent = createPaginationController();
             mediasearchBar.appendChild(multipageComponent);
-            this.updatePaginationBilibiliMultiPageVideo(1, mediaItems);
-        }, { once: true });
-
-        mediaContainerContent.addEventListener('transitionend', () =>
-        {
-            mediaContainerContent.style.display = 'none';
-            multipageMediaContainerContent.style.opacity = '0';
-            container.appendChild(multipageMediaContainerContent);
-            setTimeout(() =>
-            {
-                multipageMediaContainerContent.style.opacity = '1';
-            }, 1);
+            const pagination = new Pagination(this);
+            pagination.updatePaginationBilibiliMultiPageVideo(1, mediaItems);
         }, { once: true });
 
     }
 
-    public updatePaginationNeteasePlayList(currentPage: number, mediaItems: MediaItem[])
+    private DestroyItem(item: HTMLElement)
     {
-        const music = new Music();
-        this.PaginationAction(currentPage, mediaItems, music.NeteaseRecommendSongListMediaContainerItemByIDs.bind(music));
-    }
-
-    public updatePaginationNeteaseMusic(currentPage: number, mediaItems: MediaItem[])
-    {
-        const music = new Music();
-        this.PaginationAction(currentPage, mediaItems, music.NeteaseSearchMediaContainerByIDs.bind(music));
-    }
-
-    public updatePaginationBilibiliRCMDVideo(currentPage: number, mediaItems: MediaItem[])
-    {
-        const video = new Video();
-        this.PaginationAction(currentPage, mediaItems, video.bilibiliVideoMediaContainerItemByIDs.bind(video));
-    }
-
-    public updatePaginationBilibiliSearchVideo(currentPage: number, mediaItems: MediaItem[])
-    {
-        const video = new Video();
-        this.PaginationAction(currentPage, mediaItems, video.bilibiliSearchMediaContainerItemByKeyword.bind(video));
-    }
-
-    public updatePaginationBilibiliMultiPageVideo(currentPage: number, mediaItems: MediaItem[])
-    {
-        const video = new Video();
-        this.PaginationAction(currentPage, mediaItems, video.bilibiliVideoMediaContainerItemByCids.bind(video));
-    }
-
-    public updatePaginationBilibiliLive(currentPage: number, mediaItems: MediaItem[])
-    {
-        const video = new Video();
-        this.PaginationAction(currentPage, mediaItems, video.bilibiliLiveMediaContainerItemByIDs.bind(video));
-    }
-
-    public updatePaginationNotings()
-    {
-        this.PaginationAction();
-    }
-
-    private PaginationAction(
-        currentPage?: number,
-        mediaItems?: MediaItem[],
-        func?: (
-            currentPage: number,
-            mediaItem: MediaItem[]
-        ) => Promise<Promise<MediaContainerItem[] | null>[]>
-    )
-    {
-        let pagination: HTMLDivElement | undefined = undefined;
-        let prevButton: HTMLDivElement | undefined = undefined;
-        let nextButton: HTMLDivElement | undefined = undefined;
-
-        const paginationList = Array.from(document.querySelectorAll('.pagination')) as HTMLDivElement[];
-        const prevButtonList = Array.from(document.querySelectorAll('.prevButtonWrapper')) as HTMLDivElement[];
-        const nextButtonList = Array.from(document.querySelectorAll('.nextButtonWrapper')) as HTMLDivElement[];
-        if (paginationList.length > 1)
+        item.style.opacity = '0';
+        item.addEventListener('transitionend', () =>
         {
-            // 使用 for...of 循环遍历 NodeListOf
-            for (const item of paginationList)
-            {
-                if (item.parentElement?.parentElement?.parentElement?.style.opacity === '1')
-                {
-                    pagination = item;
-                    break; // 找到符合条件的元素后立即退出循环
-                }
-            }
-
-            for (const item of prevButtonList)
-            {
-                if (item.parentElement?.parentElement?.parentElement?.style.opacity === '1')
-                {
-                    prevButton = item;
-                    break; // 找到符合条件的元素后立即退出循环
-                }
-            }
-
-            for (const item of nextButtonList)
-            {
-                if (item.parentElement?.parentElement?.parentElement?.style.opacity === '1')
-                {
-                    nextButton = item;
-                    break; // 找到符合条件的元素后立即退出循环
-                }
-            }
-        } else
-        {
-            pagination = paginationList[0];
-
-            // 这里判断如果有一个以上，就是进入分集了
-            if (prevButtonList.length > 1 && nextButtonList.length > 1)
-            {
-                prevButton = prevButtonList[1];
-                nextButton = nextButtonList[1];
-            } else
-            {
-                prevButton = prevButtonList[0];
-                nextButton = nextButtonList[0];
-            }
-        }
-
-        if (!pagination || !prevButton || !nextButton) return;
-
-        if (func && currentPage && mediaItems)
-        {
-            const totalPage = Math.ceil(mediaItems.length / 10);
-            pagination.innerText = `${currentPage}/${totalPage}`;
-            prevButton.onclick = () =>
-            {
-                if (!currentPage) return;
-                const MediaContainerContentCollection = Array.from(document.querySelectorAll('.MediaContainerContent')) as HTMLDivElement[];
-                let MediaContainerContent: HTMLDivElement | undefined = undefined;
-                // 这里判断如果有一个以上，就是进入分集了
-                if (MediaContainerContentCollection.length > 1)
-                {
-                    MediaContainerContent = MediaContainerContentCollection[1];
-                } else
-                {
-                    MediaContainerContent = MediaContainerContentCollection[0];
-                }
-                if (!MediaContainerContent) return;
-                if (currentPage === 1) return;
-                currentPage--;
-                const parent = MediaContainerContent.parentElement;
-
-                const NeteaseSearchMediaContainerByIDs = func(currentPage, mediaItems);
-                const newMediaContainerContent = this.createMediaContainerContent(NeteaseSearchMediaContainerByIDs, 'rgb(221, 28, 4)');
-                pagination.innerText = `${currentPage}/${totalPage}`;
-                MediaContainerContent.style.opacity = '0';
-                MediaContainerContent.addEventListener('transitionend', () =>
-                {
-                    MediaContainerContent.remove();
-                    // 这里判断如果有一个以上，就是进入分集了
-                    if (MediaContainerContentCollection.length === 1)
-                    {
-                        const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                        if (currentMediaContainerContent) return;
-                    } else
-                    {
-                        const currentMediaContainerContent = Array.from(document.querySelectorAll('.MediaContainerContent')) as HTMLDivElement[];
-                        if (currentMediaContainerContent.length > 1) return;
-                    }
-                    if (parent)
-                    {
-                        newMediaContainerContent.style.opacity = '0';
-                        parent.appendChild(newMediaContainerContent);
-                        setTimeout(() =>
-                        {
-                            newMediaContainerContent.style.opacity = '1';
-                        }, 1);
-                    }
-                }, { once: true });
-            };
-            nextButton.onclick = () =>
-            {
-                if (!currentPage) return;
-                const MediaContainerContentCollection = Array.from(document.querySelectorAll('.MediaContainerContent')) as HTMLDivElement[];
-                let MediaContainerContent: HTMLDivElement | undefined = undefined;
-                // 这里判断如果有一个以上，就是进入分集了
-                if (MediaContainerContentCollection.length > 1)
-                {
-                    MediaContainerContent = MediaContainerContentCollection[1];
-                } else
-                {
-                    MediaContainerContent = MediaContainerContentCollection[0];
-                }
-                if (!MediaContainerContent) return;
-                if (currentPage === totalPage) return;
-                currentPage++;
-                const parent = MediaContainerContent.parentElement;
-
-                const NeteaseSearchMediaContainerByIDs = func(currentPage, mediaItems);
-                pagination.innerText = `${currentPage}/${totalPage}`;
-                const newMediaContainerContent = this.createMediaContainerContent(NeteaseSearchMediaContainerByIDs, 'rgb(221, 28, 4)');
-                MediaContainerContent.style.opacity = '0';
-                MediaContainerContent.addEventListener('transitionend', () =>
-                {
-                    MediaContainerContent.remove();
-                    // 这里判断如果有一个以上，就是进入分集了
-                    if (MediaContainerContentCollection.length === 1)
-                    {
-                        const currentMediaContainerContent = document.getElementById('MediaContainerContent');
-                        if (currentMediaContainerContent) return;
-                    } else
-                    {
-                        const currentMediaContainerContent = Array.from(document.querySelectorAll('.MediaContainerContent')) as HTMLDivElement[];
-                        console.log(currentMediaContainerContent.length);
-                        if (currentMediaContainerContent.length > 1) return;
-                    }
-
-                    if (parent)
-                    {
-                        newMediaContainerContent.style.opacity = '0';
-                        parent.appendChild(newMediaContainerContent);
-                        setTimeout(() =>
-                        {
-                            newMediaContainerContent.style.opacity = '1';
-                        }, 1);
-                    }
-                }, { once: true });
-            };
-        } else
-        {
-            pagination.innerText = `-/-`;
-            prevButton.onclick = () => { return; };
-            nextButton.onclick = () => { return; };
-        }
+            item.remove();
+        }, { once: true });
     }
+
+    private HideItem(item: HTMLElement)
+    {
+        item.style.opacity = '0';
+        item.addEventListener('transitionend', () =>
+        {
+            this.ShowItem(item);
+        }, { once: true })
+
+    }
+
+    private ShowItem(item: HTMLElement)
+    {
+        item.style.opacity = '1';
+    }
+
 
 }

@@ -1,6 +1,6 @@
 import { BilibiliACC } from "../Account/BilibiliAccountInterface";
 import { GetBiliBiliAccount } from "../Account/GetBiliBili";
-import { ShowMessage } from "../IIROSE/ShowMessage";
+import { ShowMessage } from "../iirose_func/ShowMessage";
 
 export class SendFetch
 {
@@ -114,9 +114,10 @@ export class SendFetch
 
     }
 
-    public async sendHead(url: string, params:URLSearchParams, headers: Headers, followredirect:boolean = false, warn: boolean = true, signal?: AbortSignal)
+    public async sendHead(url: string, params: URLSearchParams, headers: Headers, followredirect: boolean = false, warn: boolean = true, signal?: AbortSignal)
     {
-        try{
+        try
+        {
 
             if (window.iirosemedia && window.iirosemedia.cors !== undefined)
             {
@@ -142,17 +143,17 @@ export class SendFetch
             }
 
             return response;
-            
 
-        }catch(error)
+
+        } catch (error)
         {
-            if(warn)
+            if (warn)
             {
                 const showmessage = new ShowMessage();
                 showmessage.show(`HEAD请求失败，url: ${url} 信息：${error}`);
             }
             return null;
-        
+
         }
 
     }

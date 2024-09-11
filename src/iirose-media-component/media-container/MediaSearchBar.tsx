@@ -1,6 +1,5 @@
-import React, { Component } from 'react';
+import { Component } from 'preact';
 import { IIROSEUtils } from '../../iirose_func/IIROSEUtils';
-import { OldItems } from './MediaContainer';
 
 interface MediaSearchBarProps
 {

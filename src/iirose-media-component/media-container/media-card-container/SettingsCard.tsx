@@ -1,4 +1,4 @@
-import React from 'react';
+import { Component } from 'preact';
 import { SettingData } from '../../../settings/interfaces';
 
 
@@ -7,7 +7,7 @@ interface SettingsCardProps
     settingsData: SettingData
 }
 
-export class SettingsCard extends React.Component<SettingsCardProps>
+export class SettingsCard extends Component<SettingsCardProps>
 {
 
     state = {
@@ -28,7 +28,7 @@ export class SettingsCard extends React.Component<SettingsCardProps>
         }
     }
 
-    render(): React.ReactNode
+    render()
     {
         const { settingsData } = this.props;
 

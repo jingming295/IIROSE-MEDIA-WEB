@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'preact';
 import { MediaSearchBar } from './MediaSearchBar';
 import { PlatformSelector } from './PlatformSelector';
 import { MediaContainerSubNavBar } from './MediaContainerSubNavBar';
@@ -119,6 +119,8 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         {
             this.setState({ totalPage: 0, currentPage: 1, allMediaData: [], mediaData: null });
         }
+
+        // 当前页面改变
         if (!mediaData && allMediaData.length > 0 && totalPage > 0)
         {
             this.setState({ totalPage: 0, currentPage: 1, allMediaData: [], mediaData: null });
@@ -479,8 +481,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
                 const currentPageData = allMediaData.slice(startIndex, endIndex);
                 const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-                this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: vod });
+                this.setState({
+                    mediaData: mediaData,
+                    currentOnDemandPlay: vod,
+                    requestToken: +1
+                });
             }
         }
     }
@@ -489,14 +494,13 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         netEaseRecommendPlayList: () =>
         {
             const { allMediaData, totalPage, currentPage } = this.state;
-
+            const currentRequestToken = this.state.requestToken + 1;
             const netease = new NetEasePlatform();
             if (allMediaData.length > 0)
             {
                 const mlod = netease.MLOD.bind(netease);
 
                 // 计算起始和结束索引
-
                 const startIndex = (currentPage - 1) * this.itemsPerPage;
                 const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
 
@@ -512,11 +516,18 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const data = netease.searchForRecommendPlayListBasicsData();
                 const mlod = netease.MLOD.bind(netease);
 
-                this.setState({ mediaData: data });
-                this.setState({ currentOnDemandPlay: mlod });
+                this.setState({
+                    mediaData: data,
+                    currentOnDemandPlay: mlod,
+                    requestToken: currentRequestToken
+                });
 
                 data.then((res) =>
                 {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
                     this.setState({ totalPage: res.totalPage });
                     if (res.allPlatformData)
                     {
@@ -530,6 +541,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         {
             const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
             const netease = new NetEasePlatform();
+            const currentRequestToken = this.state.requestToken + 1;
 
             if (allMediaData.length > 0)
             {
@@ -560,11 +572,19 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const data = netease.searchForMusicsBasicsData(searchKeyword, page);
                 const MOD = netease.MOD.bind(netease);
 
-                this.setState({ mediaData: data });
-                this.setState({ currentOnDemandPlay: MOD });
+                this.setState({
+                    mediaData: data,
+                    currentOnDemandPlay: MOD,
+                    requestToken: currentRequestToken
+                });
 
                 data.then((res) =>
                 {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
+
                     this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
                 });
             }
@@ -752,6 +772,5 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             ]
         }
     ];
-
 }
 

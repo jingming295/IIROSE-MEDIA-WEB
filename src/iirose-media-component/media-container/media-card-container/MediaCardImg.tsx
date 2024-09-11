@@ -1,4 +1,4 @@
-import React from "react";
+import { Component } from 'preact';
 import { PlatformData } from "../../../platforms/interfaces";
 
 interface MediaCardImgProps
@@ -7,7 +7,7 @@ interface MediaCardImgProps
     platformData: PlatformData;
 }
 
-export class MediaCardImg extends React.Component<MediaCardImgProps>
+export class MediaCardImg extends Component<MediaCardImgProps>
 {
     render(): JSX.Element
     {

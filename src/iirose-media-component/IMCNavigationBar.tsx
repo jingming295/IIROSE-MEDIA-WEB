@@ -1,5 +1,4 @@
-import React, { Component } from 'react';
-
+import { Component } from 'preact';
 import { UpdateDom } from "../update_dom/UpdateDom";
 
 interface IMCNavigationBarProps

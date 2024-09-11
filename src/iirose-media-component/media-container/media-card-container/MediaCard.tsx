@@ -1,4 +1,4 @@
-import React from "react";
+import { Component } from 'preact';
 import { MediaCardImg } from "./MediaCardImg";
 import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
@@ -23,7 +23,7 @@ interface MediaCardState
 }
 
 
-export class MediaCard extends React.Component<MediaCardProps, MediaCardState>
+export class MediaCard extends Component<MediaCardProps, MediaCardState>
 {
     private requestId: number = 0; // 初始化请求 ID
 

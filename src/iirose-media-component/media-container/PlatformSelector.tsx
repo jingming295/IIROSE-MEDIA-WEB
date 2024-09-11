@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import { Component } from 'preact';
+
 import { Platform } from "./MediaContainer";
 interface PlatformSelectorProps
 {

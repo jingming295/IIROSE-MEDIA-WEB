@@ -1,4 +1,4 @@
-import React from "react";
+import { Component } from 'preact';
 import { Platform, Categories } from "./MediaContainer";
 interface MediaContainerSubNavBarProps
 {
@@ -22,7 +22,7 @@ interface MediaContainerSubNavBarState
     subNavBarClass?: string; // 当前的 class
 }
 
-export class MediaContainerSubNavBar extends React.Component<MediaContainerSubNavBarProps, MediaContainerSubNavBarState>
+export class MediaContainerSubNavBar extends Component<MediaContainerSubNavBarProps, MediaContainerSubNavBarState>
 {
     constructor(props: MediaContainerSubNavBarProps)
     {
@@ -137,7 +137,7 @@ export class MediaContainerSubNavBar extends React.Component<MediaContainerSubNa
     };
 
 
-    render(): React.ReactNode
+    render()
     {
         const { platform, isCurrentInMultiPage } = this.props;
         const { activeIndex } = this.state;

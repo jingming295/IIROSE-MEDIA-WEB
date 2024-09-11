@@ -1,4 +1,4 @@
-import React from "react";
+import { Component } from 'preact';
 import { PlatformData } from "../../../platforms/interfaces";
 
 interface MediaCardInfoProps
@@ -7,18 +7,20 @@ interface MediaCardInfoProps
     collectable: boolean;
 }
 
-export class MediaCardInfo extends React.Component<MediaCardInfoProps>
+export class MediaCardInfo extends Component<MediaCardInfoProps>
 {
-    render(): JSX.Element
+    render()
     {
         const { platformData, collectable } = this.props;
+
+        const { collected } = this.state;
 
         return (
             <div className="MediaCardInfoContainer">
                 {collectable && (
-                    <div className="collectIcomWrapper">
-                        <div className="addFavoriteIcon"></div>
-                        <div className="collectText">收藏</div>
+                    <div className="collectIcomWrapper" onClick={this.switchCollect}>
+                        <div className={`addFavoriteIcon ${collected ? 'addedFavoriteIcon' : ''}`}></div>
+                        <div className={`collectText ${collected ? 'collectedText' : ''}`}>收藏</div>
                     </div>
                 )}
 
@@ -34,5 +36,16 @@ export class MediaCardInfo extends React.Component<MediaCardInfoProps>
                 <div className="MediaCardInfoAuthor">{platformData.author || ""}</div>
             </div>
         );
+    }
+
+    switchCollect = () =>
+    {
+        console.log(1)
+        const { collected } = this.state;
+        this.setState({ collected: !collected });
+    }
+
+    state = {
+        collected: false,
     }
 }

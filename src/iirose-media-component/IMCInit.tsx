@@ -1,6 +1,5 @@
-import { createRoot } from 'react-dom/client';
 import { IMC } from './IMC';
-import React from 'react';
+import { h, render } from 'preact';
 
 export class IMCInit
 {
@@ -14,8 +13,7 @@ export class IMCInit
         IIROSE_WEB_CONTAINER.id = 'IIROSE_MEDIA_CONTAINER';
         IIROSE_WEB_CONTAINER.classList.add('IIROSE_MEDIA_CONTAINER');
         mc.appendChild(IIROSE_WEB_CONTAINER);
-        const root = createRoot(IIROSE_WEB_CONTAINER);
-        root.render(<IMC />);
+        render(<IMC />, IIROSE_WEB_CONTAINER);
     }
 
 }

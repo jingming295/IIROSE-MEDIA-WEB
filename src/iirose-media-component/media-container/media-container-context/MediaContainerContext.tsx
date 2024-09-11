@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import { createContext } from 'preact';
 import { PlatformData } from '../../../platforms/interfaces';
 
-export const MediaContainerContext = React.createContext({
+export const MediaContainerContext = createContext({
     color: '',
     switchToMultiPage: (platformData: PlatformData, isCurrentInMultiPage?: boolean) => { },
     currentOnDemandPlay: (platformData: PlatformData) => { },

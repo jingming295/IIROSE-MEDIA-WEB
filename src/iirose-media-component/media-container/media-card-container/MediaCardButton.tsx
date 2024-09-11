@@ -1,4 +1,4 @@
-import React from "react";
+import { Component, ContextType } from 'preact';
 import { UpdateDom } from "../../../update_dom/UpdateDom";
 import { PlatformData } from "../../../platforms/interfaces";
 import { MediaContainerContext } from "../media-container-context/MediaContainerContext";
@@ -13,10 +13,10 @@ interface State
     isMultipage: boolean | undefined;
 }
 
-export class MediaCardButton extends React.Component<MediaContainerProps>
+export class MediaCardButton extends Component<MediaContainerProps>
 {
     static contextType = MediaContainerContext
-    context!: React.ContextType<typeof MediaContainerContext>;
+    context!: ContextType<typeof MediaContainerContext>;
     state: State = {
         isMultipage: undefined,
     };

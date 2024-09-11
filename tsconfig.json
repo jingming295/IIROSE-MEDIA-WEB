@@ -4,7 +4,8 @@
         "moduleResolution": "node", // 使用 Node 的标准模块解析方式
         "module": "esnext", // 使用 ESNext 模块系统
         "target": "es5", // 编译后的代码目标
-        "jsx": "react", // 启用 JSX 支持，使用 React 17+ 的新 JSX 转换
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
         "downlevelIteration": true, // 支持更旧版本的迭代器
         "sourceMap": true, // 生成源映射文件
         "esModuleInterop": true, // 允许与 CommonJS 互操作

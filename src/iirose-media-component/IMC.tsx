@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'preact';
 import { IMCNavigationBar } from './IMCNavigationBar';
 import { MediaContainer } from './media-container/MediaContainer';
 

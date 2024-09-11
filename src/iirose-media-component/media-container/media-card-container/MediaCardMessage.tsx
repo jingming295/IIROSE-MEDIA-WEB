@@ -1,4 +1,4 @@
-import React from "react";
+import { Component, ContextType } from 'preact';
 import { MediaContainerContext } from "../media-container-context/MediaContainerContext";
 
 interface MediaCardMessageProps
@@ -6,12 +6,12 @@ interface MediaCardMessageProps
     message: number;
 }
 
-export class MediaCardMessage extends React.Component<MediaCardMessageProps>
+export class MediaCardMessage extends Component<MediaCardMessageProps>
 {
     static contextType = MediaContainerContext
-    context!: React.ContextType<typeof MediaContainerContext>;
+    context!: ContextType<typeof MediaContainerContext>;
 
-    render(): React.ReactNode
+    render()
     {
         const { message } = this.props;
 

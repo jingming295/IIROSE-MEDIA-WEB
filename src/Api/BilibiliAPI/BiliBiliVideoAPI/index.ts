@@ -1,7 +1,7 @@
 import { BVideoStream } from "./StreamInterface";
 import { SendFetch } from "../..";
 import { videoStatus } from "./VideoStatusInterface";
-import { BVideoDetail } from "./VideoDetailInterface";
+import { BilibiliPagesAndCids, BVideoDetail } from "./VideoDetailInterface";
 import { AddCoin, AddFavorite, LikeVideo, ShareVideo, hasLiked, isAddFavorited, isAddedCoin, likeTriple } from "./ActionInterface";
 import { Snapshot } from "./VideoSnapshotInterface";
 import { LikeTagResult, VideoTags } from "./VideoTagsInterface";
@@ -65,7 +65,6 @@ export class BiliBiliVideoApi extends SendFetch
             qn: number,
             fnval: number = 16,
             platform: string = 'html5',
-            
         )
     {
         const url = `${this.cors}https://api.bilibili.com/x/player/wbi/playurl`;
@@ -1024,5 +1023,30 @@ export class BiliBiliVideoApi extends SendFetch
             return null;
         }
     }
+
+    public async getBilibiliPagesAndCids(aid: number | null = null, bvid: string | null = null)
+    {
+        const url = `${this.cors}https://api.bilibili.com/x/player/pagelist`
+        const params = new URLSearchParams();
+
+        aid && params.set('aid', aid.toString());
+        bvid && params.set('bvid', bvid);
+
+        const headers = this.returnBilibiliHeaders();
+
+        const response = await this.sendGet(url, params, headers);
+
+        if (response && response.ok)
+        {
+            const data: BilibiliPagesAndCids = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+
+    }
+
+
 
 }

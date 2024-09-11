@@ -39,7 +39,8 @@ interface durl
     order: number; // 视频分段序号
 }
 
-interface dash{
+export interface dash
+{
     duration: number; // 视频长度，单位为秒
     minBufferTime: number; // 1.5?
     min_buffer_time: number; // 1.5?
@@ -52,7 +53,8 @@ interface dash{
     } // 无损音轨伴音信息
 }
 
-interface dashVideoAndAudio{
+interface dashVideoAndAudio
+{
     id: number; // 音视频清晰度代码
     baseUrl: string; // 视频流地址
     base_url: string; // 视频流地址
@@ -79,9 +81,10 @@ interface dashVideoAndAudio{
     codecid: number; // 视频编码格式代码
 }
 
-interface dashDolby{
+interface dashDolby
+{
     type: number; // 类型
-    audio:dashVideoAndAudio[]; // 音频流信息
+    audio: dashVideoAndAudio[]; // 音频流信息
 }
 interface SupportFormat
 {

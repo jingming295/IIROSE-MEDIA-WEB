@@ -94,7 +94,7 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongDetailFromXC(id: number)
+    public async getNeteaseSongDetailFromXC(id: number[])
     {
         const url = new URL(`https://xc.null.red:8043/api/netease/song/detail`);
         const params = new URLSearchParams({
@@ -179,10 +179,8 @@ export class NeteaseMusicAPI extends SendFetch
         // 创建 AbortController 实例
         const controller = new AbortController();
         const signal = controller.signal;
-
-        // 设置超时时间为 2 秒
-        const timeout = 3000;
-        setTimeout(() => controller.abort(), timeout);
+        // const timeout = 10000;
+        // setTimeout(() => controller.abort(), timeout);
 
         const response = await this.sendGet(url.toString(), params, headers, false, signal);
 
@@ -197,7 +195,8 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getSonggResourceFromIARC(url:string){
+    public async getSonggResourceFromIARC(url: string)
+    {
         const response = await this.sendHead(url, new URLSearchParams(), new Headers(), false, false)
         if (response && response.ok)
         {

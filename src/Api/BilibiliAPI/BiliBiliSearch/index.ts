@@ -1,5 +1,4 @@
 import { SendFetch } from "../..";
-import { BiliBiliAccount } from "../../../Account/SetBiliBili";
 import { WBI } from "../Crypto/WBI";
 import { SearchRequest, SearchRequestByType, SearchRequestByTypeArticle, SearchRequestByTypeLive, SearchRequestByTypeLiveRoom, SearchRequestByTypeLiveUser, SearchRequestByTypeMediaBangumiAndMediaFT, SearchRequestByTypePhoto, SearchRequestByTypeVideo } from "./SearchRequestInterface";
 
@@ -196,7 +195,7 @@ export class BiliBiliSearchApi extends SendFetch
         order: string | null = null
     )
     {
-        const data: SearchRequestByTypeLiveRoom = await this.getSearchRequestByType('live_room', keyword, page,page_size, order, null, null, null, null, null);
+        const data: SearchRequestByTypeLiveRoom = await this.getSearchRequestByType('live_room', keyword, page, page_size, order, null, null, null, null, null);
         return data;
     }
 
@@ -233,7 +232,7 @@ export class BiliBiliSearchApi extends SendFetch
         category_id: number | null = null,
     )
     {
-        const data: SearchRequestByTypeArticle = await this.getSearchRequestByType('photo', keyword, page,page_size, order, null, null, null, null, category_id);
+        const data: SearchRequestByTypeArticle = await this.getSearchRequestByType('photo', keyword, page, page_size, order, null, null, null, null, category_id);
         return data;
     }
 
@@ -254,7 +253,7 @@ export class BiliBiliSearchApi extends SendFetch
         category_id: number | null = null,
     )
     {
-        const data: SearchRequestByTypePhoto = await this.getSearchRequestByType('photo', keyword, page,page_size, order, null, null, null, null, category_id);
+        const data: SearchRequestByTypePhoto = await this.getSearchRequestByType('photo', keyword, page, page_size, order, null, null, null, null, category_id);
         return data;
     }
 

@@ -1,36 +1,41 @@
 {
-  "name": "iirose-media-ts",
+  "name": "iirose-media-web",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx webpack --watch",
-    "start": "node dist/bundle.js"
+    "dev": "webpack --watch",
+    "start": "node dist/bundle.js",
+    "build": "webpack --mode production"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "@types/jquery": "^3.5.29",
+    "@types/jquery": "^3.5.30",
     "@types/md5": "^2.3.5",
     "@types/qrcode": "^1.5.5",
-    "css-loader": "^6.10.0",
-    "node-sass": "^9.0.0",
-    "process": "^0.11.10",
-    "sass-loader": "^14.1.1",
-    "style-loader": "^3.3.4",
+    "@types/react-transition-group": "^4.4.11",
+    "css-loader": "^7.1.2",
+    "sass": "^1.78.0",
+    "sass-loader": "^16.0.1",
+    "style-loader": "^4.0.0",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.4.2",
-    "webpack": "^5.90.3",
+    "typescript": "^5.5.4",
+    "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4",
-    "worker-loader": "^3.0.8"
+    "webpack-dev-server": "^5.1.0"
   },
   "dependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
     "crypto-js": "^4.2.0",
-    "html-entities": "^2.5.2",
     "jquery": "^3.7.1",
     "md5": "^2.3.0",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-transition-group": "^4.4.5"
   }
 }

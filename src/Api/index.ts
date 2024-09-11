@@ -1,5 +1,5 @@
-import { BilibiliACC } from "../Account/BilibiliAccountInterface";
-import { GetBiliBiliAccount } from "../Account/GetBiliBili";
+import { BilibiliACC } from "../Account/BiliBili/BilibiliAccountInterface";
+import { GetBiliBiliAccount } from "../Account/BiliBili/GetBiliBili";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 
 export class SendFetch
@@ -158,7 +158,7 @@ export class SendFetch
 
     }
 
-    public async tryget(url: string)
+    public async tryGetWitchFetch(url: string)
     {
         const response = await fetch(url, {
             method: 'HEAD',
@@ -170,6 +170,30 @@ export class SendFetch
         {
             return false;
         }
+    }
+
+    public async tryGetWhithXhr(url: string): Promise<boolean>
+    {
+        return new Promise((resolve) =>
+        {
+            const xhr = new XMLHttpRequest();
+            xhr.open('HEAD', url, true); // 使用 HEAD 请求方法
+            xhr.onload = () =>
+            {
+                if (xhr.status >= 200 && xhr.status < 300)
+                {
+                    resolve(true); // 请求成功，返回 true
+                } else
+                {
+                    resolve(false); // 请求失败，返回 false
+                }
+            };
+            xhr.onerror = () =>
+            {
+                resolve(false); // 请求出错，返回 false
+            };
+            xhr.send(); // 发送请求
+        });
     }
 
 

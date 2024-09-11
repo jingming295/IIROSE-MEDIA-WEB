@@ -105,7 +105,7 @@ export interface VideoData
   like_icon: string;
   need_jump_bv: boolean;
   disable_show_up_info: boolean;
-  ai_rcmd:{
+  ai_rcmd: {
     id: number;
     goto: string;
     trackid: string;
@@ -279,8 +279,26 @@ interface SubtitleList
   };
 }
 
+export interface BilibiliPagesAndCids
+{
 
+  code: number;
+  message: string;
+  ttl: number;
+  data?: {
+    cid: number;
+    page: number;
+    from: string;
+    part: string;
+    duration: number;
+    vid: string;
+    weblink: string;
+    dimension: {
+      width: number;
+      height: number;
+      rotate: number;
+    };
+    first_frame: string;
+  }[]
 
-
-
-
+}

@@ -1,25 +1,23 @@
 .IIROSE_MEDIA_CONTAINER {
-  * {
-    transition: all 0.5s ease-in-out;
-  }
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 90000;
-  // display: none;
   transition: transform 0.25s ease-in-out;
-  /* 只设置 transform 过渡 */
   transform-origin: right;
   transform: translateX(100%);
+
+  * {
+    transition: all 0.5s ease-in-out;
+  }
 
   #IIROSE_MEDIA {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    // background-color: rgba(0, 0, 0, 0.786);
 
     .IIroseMainNavigationBar {
       display: flex;
@@ -123,185 +121,221 @@
         flex-direction: column;
         position: absolute;
 
-        .PlatformSelector {
+        .MediaContainerController {
           display: flex;
-          padding: 0 20px;
-          background-color: rgb(221, 28, 4);
-
-          .PlatformButton {
+          flex-direction: column;
+          .PlatformSelector {
             display: flex;
-            align-items: center;
-            color: #fff;
-            height: 40px;
-            padding: 0 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-            transition: all 0.5s ease-in-out;
-
-            &:hover {
-              opacity: 0.7;
-            }
-
-            .PlatformIcon {
-              width: 32px;
-              height: 32px;
-            }
-
-            .PlatformTitle {
-              margin: 0 10px;
-            }
-          }
-        }
-
-        .MediaContainerSubNavBar {
-          display: flex;
-          flex-wrap: wrap;
-          color: #fff;
-
-          .SubNavBarItem,
-          .subNavBarItemPlaceHolder {
-            display: flex;
-            align-items: center;
-            height: 30px;
             padding: 0 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            transition: all 0.5s ease-in-out;
+            animation:
+              fadeIn 0.25s ease-out,
+              expandHeight 0.25s ease-in-out;
+
+            .PlatformButtonWrapper {
+              display: flex;
+              align-items: center;
+              background-color: rgba(255, 255, 255, 0.2);
+              height: 40px;
+              animation: fadeIn 0.25s ease-out;
+              .PlatformButton {
+                display: flex;
+                align-items: center;
+                color: #fff;
+                cursor: pointer;
+
+                height: 100%;
+                padding: 0 10px;
+
+                &:hover {
+                  opacity: 0.7;
+                }
+                .PlatformIcon {
+                  width: 32px;
+                  height: 32px;
+                }
+
+                .PlatformTitle {
+                  margin: 0 10px;
+                }
+              }
+
+              .goFavoriteIcon {
+                display: flex;
+                align-items: center;
+
+                font-size: 24px;
+                color: white;
+                transition: all 0.5s ease-in-out;
+                font-family: "md";
+
+                padding: 0 10px;
+                height: 100%;
+
+                cursor: pointer;
+                &:hover {
+                  opacity: 0.7;
+                }
+              }
+              .goFavoriteIcon::before {
+                content: "\F1287";
+              }
+            }
+
+            .PlatformButtonWrapperActive {
+              background-color: rgba(0, 0, 0, 0.5);
+            }
           }
 
-          .subNavBarItemPlaceHolder {
-            background-color: transparent;
-            cursor: auto;
+          .MediaContainerSubNavBar {
+            display: flex;
+            flex-wrap: wrap;
+            color: #fff;
+            animation:
+              fadeIn 0.25s ease-out,
+              expandHeight 0.25s ease-in-out;
+
+            .SubNavBarItem {
+              display: flex;
+              align-items: center;
+              height: 30px;
+              padding: 0 20px;
+              background-color: rgba(0, 0, 0, 0.3);
+              animation: fadeIn 0.25s ease-out;
+              cursor: pointer;
+              transition: all 0.5s ease-in-out;
+            }
+
+            .SubNavBarItem:hover {
+              opacity: 0.7;
+            }
+
+            .subNavBarItemActive {
+              background-color: rgba(0, 0, 0, 0.7);
+            }
           }
 
-          .SubNavBarItem:hover {
-            opacity: 0.7;
-          }
-
-          .subNavBarItemActive {
-            background-color: rgba(0, 0, 0, 0.7);
-          }
-        }
-
-        .MediaSearchBar {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          flex-wrap: wrap;
-
-          .inputWrapper,
-          .paginationWrapper,
-          .controllerWrapper {
+          .MediaSearchBar {
             display: flex;
             align-items: center;
-            color: #fff;
-            cursor: pointer;
-            height: 100%;
-            transition: all 0.25s ease-in-out;
-          }
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            animation: fadeIn 0.25s ease-out;
 
-          .inputWrapper {
-            max-width: 460px;
-
-            .inputIcon::before {
-              content: "\F0349";
-              font-family: "md";
-            }
-
-            .inputIcon {
-              font-size: 24px;
-              margin-right: 22px;
-            }
-
-            .mediaSearchBarInput {
-              font-weight: bold;
-              font-size: 14px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: pre;
-            }
-
-            &:hover {
-              opacity: 0.7;
-            }
-          }
-
-          .paginationWrapper {
-            margin: 0 24px;
-
-            .paginationIcon::before {
-              content: "\F14F7";
-              font-family: "md";
-            }
-
-            .paginationIcon {
-              font-size: 24px;
-            }
-
-            .pagination {
-              margin-left: 22px;
-              font-size: 14px;
-            }
-
-            &:hover {
-              opacity: 0.7;
-            }
-          }
-
-          .controllerWrapper {
-            .returnButtonWrapper,
-            .prevButtonWrapper,
-            .nextButtonWrapper {
-              background-color: rgba(0, 0, 0, 0.5);
+            .inputWrapper,
+            .paginationWrapper,
+            .controllerWrapper {
               display: flex;
               align-items: center;
-
-              .returnIcon,
-              .prevIcon,
-              .nextIcon {
-                font-family: "md";
-                font-size: 24px;
-              }
-
-              .returnIcon::before {
-                content: "\F17A7";
-              }
-
-              .prevIcon::before {
-                content: "\F0141";
-              }
-
-              .nextIcon::before {
-                content: "\F0142";
-              }
-            }
-
-            .prevButtonWrapper {
-              background-color: rgba(255, 255, 255, 0.2);
-            }
-
-            .PaginationControllerButtonWrapper {
-              display: flex;
-              align-items: center;
+              color: #fff;
+              cursor: pointer;
               height: 100%;
-              padding: 0 20px;
-              transition: all 0.5s ease-in-out;
+              transition: all 0.25s ease-in-out;
+            }
 
-              .PaginationControllerButton {
+            .inputWrapper {
+              max-width: 460px;
+
+              .inputIcon::before {
+                content: "\F0349";
+                font-family: "md";
+              }
+
+              .inputIcon {
+                font-size: 24px;
+                margin-right: 22px;
+              }
+
+              .mediaSearchBarInput {
                 font-weight: bold;
-                margin-left: 22px;
+                font-size: 14px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: pre;
               }
 
               &:hover {
                 opacity: 0.7;
               }
             }
+
+            .paginationWrapper {
+              margin: 0 24px;
+
+              .paginationIcon::before {
+                content: "\F14F7";
+                font-family: "md";
+              }
+
+              .paginationIcon {
+                font-size: 24px;
+              }
+
+              .pagination {
+                margin-left: 22px;
+                font-size: 14px;
+              }
+
+              &:hover {
+                opacity: 0.7;
+              }
+            }
+
+            .controllerWrapper {
+              .returnButtonWrapper,
+              .prevButtonWrapper,
+              .nextButtonWrapper {
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+
+                .returnIcon,
+                .prevIcon,
+                .nextIcon {
+                  font-family: "md";
+                  font-size: 24px;
+                }
+
+                .returnIcon::before {
+                  content: "\F17A7";
+                }
+
+                .prevIcon::before {
+                  content: "\F0141";
+                }
+
+                .nextIcon::before {
+                  content: "\F0142";
+                }
+              }
+
+              .prevButtonWrapper {
+                background-color: rgba(255, 255, 255, 0.2);
+              }
+
+              .PaginationControllerButtonWrapper {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                padding: 0 20px;
+                transition: all 0.5s ease-in-out;
+
+                .PaginationControllerButton {
+                  font-weight: bold;
+                  margin-left: 22px;
+                }
+
+                &:hover {
+                  opacity: 0.7;
+                }
+              }
+            }
           }
         }
 
-        .MediaContainerContent {
+        .MediaCardContainer {
           position: relative;
           display: grid;
+          align-content: space-between;
           grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
           grid-gap: 12px;
           overflow-y: auto;
@@ -310,25 +344,7 @@
           padding: 12px;
           transition: all 0.25s ease-in-out;
 
-          .containerSpin {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            font-size: 100px;
-          }
-
-          .containerSpin::before {
-            content: "\F0772";
-            font: normal normal normal 24px / 1 "md";
-            font-size: inherit;
-            color: rgba(0, 0, 0, 0.5);
-            animation: spin 2s linear infinite;
-          }
-
-          .containerMsgWrapper {
+          .MediaCardMessageWrapper {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -336,8 +352,25 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            opacity: 0.4;
             transition: all 0.25s ease-in-out;
+            animation: fadeIn 0.25s ease-out;
+
+            .containerSpin {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              font-size: 100px;
+            }
+
+            .containerSpin::before {
+              content: "\F0772";
+              font: normal normal normal 24px / 1 "md";
+              font-size: inherit;
+              animation: spin 2s linear infinite;
+            }
 
             .searchLogo,
             .noresultLogo {
@@ -355,7 +388,7 @@
               font-family: "md";
             }
 
-            .containerMsg {
+            .message {
               margin-top: 24px;
               line-height: 31px;
               font-size: 24px;
@@ -363,7 +396,7 @@
             }
           }
 
-          .ContentItem {
+          .MediaCard {
             display: flex;
             flex-grow: 1;
             flex-shrink: 1;
@@ -372,25 +405,28 @@
             margin: 12px;
             transition: all 0.5s ease-in-out;
             position: relative;
+            animation: fadeIn 0.25s ease-out;
             // max-height: 520px;
             /* 添加外边距，控制项目之间的间距 */
 
-            .contentImgCover {
+            .MediaCardImgCover {
               display: flex;
               position: relative;
               height: 100%;
               width: 100%;
               transition: none;
+              aspect-ratio: 1 / 1; /* 高度和宽度的比例为 1:1 */
 
-              .contentImg {
+              .MediaCardImg {
                 object-fit: contain;
                 object-position: center;
                 width: 100%;
                 height: 100%;
                 overflow: hidden;
+                aspect-ratio: 1 / 1;
               }
 
-              .contentDuration {
+              .MediaCardDuration {
                 position: absolute;
                 color: #fff;
                 text-shadow:
@@ -425,14 +461,14 @@
                 margin: 0 10px;
               }
 
-              .collectIcon {
+              .addFavoriteIcon {
                 margin-left: 10px;
                 font-size: 25px;
                 color: #757575;
                 transition: all 0.5s ease-in-out;
               }
 
-              .collectedIcon {
+              .addedFavoriteIcon {
                 font-size: 25px;
                 margin-left: 10px;
                 color: #ff5600;
@@ -440,12 +476,12 @@
                 transition: all 0.5s ease-in-out;
               }
 
-              .collectedIcon::before {
+              .addedFavoriteIcon::before {
                 content: "\F02D1";
                 font-family: "md";
               }
 
-              .collectIcon::before {
+              .addFavoriteIcon::before {
                 content: "\F02D1";
                 font-family: "md";
               }
@@ -464,16 +500,16 @@
               background-color: rgba(0, 0, 0, 0.1);
             }
 
-            .infoArea {
+            .MediaCardInfoContainer {
               padding: 24px;
               color: rgba(0, 0, 0, 0.75);
               position: relative;
 
-              .contentTitleWrapper {
+              .MediaCardInfoTitleWrapper {
                 position: relative;
                 font-weight: bold;
                 line-height: 25px;
-                .contentTitle {
+                .MediaCardInfoTitle {
                   overflow: hidden;
                   text-overflow: ellipsis;
                   white-space: pre;
@@ -481,7 +517,7 @@
                   margin-bottom: 24px;
                 }
 
-                .contentSubTitle {
+                .MediaCardInfoSubTitle {
                   position: absolute;
                   top: 100%;
                   left: 0;
@@ -494,7 +530,7 @@
                 }
               }
 
-              .contentAuthor {
+              .MediaCardInfoAuthor {
                 overflow: hidden;
                 font-weight: bold;
                 text-overflow: ellipsis;
@@ -502,7 +538,7 @@
               }
             }
 
-            .contentPlayButton {
+            .MediaCardButtonContainer {
               border-top: 1px solid rgba(0, 0, 0, 0.1);
               color: black;
               display: flex;
@@ -511,61 +547,50 @@
               font-size: 20px;
               cursor: pointer;
 
-              .playButtonIcon,
-              .pickButtonIcon {
+              .MediaCardPlayButtonIcon,
+              .MediaCardPickButtonIcon {
                 font-size: 28px;
               }
 
-              .playButtonTitle {
+              .MediaCardPlayButtonText {
                 font-weight: bold;
                 margin-left: 22px;
               }
 
-              .playButtonTitle,
-              .playButtonIcon,
-              .pickButtonIcon {
+              .MediaCardPlayButtonText,
+              .MediaCardPlayButtonIcon,
+              .MediaCardPickButtonIcon {
                 transition: all 0.5s ease-in-out;
               }
 
-              .playButtonIcon::before {
+              .MediaCardPlayButtonIcon::before {
                 content: "\F02CB";
                 font-family: "md";
               }
 
-              .pickButtonIcon::before {
+              .MediaCardPickButtonIcon::before {
                 content: "\F0412";
                 font-family: "md";
               }
             }
 
-            .contentPlayButton:hover {
-              .playButtonTitle,
-              .playButtonIcon {
+            .MediaCardButtonContainer:hover {
+              .MediaCardPlayButtonText,
+              .MediaCardPlayButtonIcon,
+              .MediaCardPickButtonIcon {
                 opacity: 0.7;
               }
             }
           }
-        }
 
-        .MediaContainerContent {
-          position: relative;
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
-          grid-gap: 12px;
-          overflow-y: auto;
-          overflow-x: auto;
-          box-sizing: border-box;
-          padding: 12px;
-          // height: 100%;
-          transition: all 0.25s ease-in-out;
-
-          .ContainerContent {
-            // min-width: 200px;
-            // max-width: 350px;
+          .SettingsCard {
             min-height: 200px;
             margin: 12px;
             display: flex;
             flex-direction: column;
+
+            animation: fadeIn 0.25s ease-out;
+
             box-shadow:
               0 0 1px rgba(0, 0, 0, 0.12),
               0 1px 1px rgba(0, 0, 0, 0.24);
@@ -850,7 +875,7 @@
     display: none !important;
   }
 
-  .MediaContainerContent {
+  .MediaCardContainer {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
   }
 
@@ -860,7 +885,7 @@
 }
 
 @media (max-width: 980px) {
-  .ContentItem {
+  .MediaCard {
     max-height: 100% !important;
   }
 }
@@ -872,5 +897,23 @@
 
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes expandHeight {
+  from {
+    height: 0%;
+  }
+  to {
+    height: 100%;
   }
 }

@@ -169,7 +169,7 @@ export class BiliBiliLiveApi extends SendFetch
 
         if (response && response.ok)
         {
-            const data:LiveStream = await response.json();
+            const data: LiveStream = await response.json();
             return data;
         } else
         {

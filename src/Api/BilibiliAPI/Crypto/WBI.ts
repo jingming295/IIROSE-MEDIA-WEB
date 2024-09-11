@@ -23,7 +23,7 @@ export class WBI
     public async main(Params: URLSearchParams)
     {
         const web_keys = await this.getWbiKeys();
-        if(!web_keys) return this.extractParams(null)
+        if (!web_keys) return this.extractParams(null)
         const params = Object.fromEntries(Params.entries()),
             img_key = web_keys.img_key,
             sub_key = web_keys.sub_key;
@@ -31,20 +31,24 @@ export class WBI
         return this.extractParams(query);
     }
 
-    private extractParams(wbikey: string | null): { w_rid: string | null, wts: number | null } {
+    private extractParams(wbikey: string | null): { w_rid: string | null, wts: number | null }
+    {
         let w_rid: string | null = null;
         let wts: number | null = null;
         if (!wbikey) return { w_rid, wts };
         const paramsArray = wbikey.split("&");
-        paramsArray.forEach(param => {
+        paramsArray.forEach(param =>
+        {
             const [name, value] = param.split("=");
-            if (name === "w_rid") {
+            if (name === "w_rid")
+            {
                 w_rid = value;
-            } else if (name === "wts") {
+            } else if (name === "wts")
+            {
                 wts = parseInt(value);
             }
         });
-    
+
         return { w_rid, wts };
     }
 
@@ -71,7 +75,8 @@ export class WBI
         };
     }
 
-    private encWbi(params: Record<string, unknown>, img_key: string, sub_key: string) {
+    private encWbi(params: Record<string, unknown>, img_key: string, sub_key: string)
+    {
         const mixin_key = this.getMixinKey(img_key + sub_key),
             curr_time = Math.round(Date.now() / 1000),
             chr_filter = /[!'()*]/g;
@@ -80,16 +85,17 @@ export class WBI
         const query = Object
             .keys(params)
             .sort()
-            .map(key => {
+            .map(key =>
+            {
                 // 过滤 value 中的 "!'()*" 字符
                 const value = (params[key] || '').toString().replace(chr_filter, '');
                 return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
             })
             .join('&');
-    
+
         const wbi_sign = md5(query + mixin_key); // 计算 w_rid
-    
+
         return query + '&w_rid=' + wbi_sign;
     }
-    
+
 }

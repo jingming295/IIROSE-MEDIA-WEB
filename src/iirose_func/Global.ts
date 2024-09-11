@@ -47,12 +47,12 @@ declare global
             repertory: {
                 albumShowHolder: JQuery<HTMLElement>;
                 albumShow: AlbumShow;
-                albumShowHolderAnimate:JQuery<HTMLElement>;
+                albumShowHolderAnimate: JQuery<HTMLElement>;
             };
         };
 
-        Constant?:{
-            Others:{
+        Constant?: {
+            Others: {
                 transform: string;
             }
         }
@@ -60,7 +60,8 @@ declare global
     }
 }
 
-interface AlbumShow extends HTMLImageElement {
+interface AlbumShow extends HTMLImageElement
+{
     resetScroll(): void;
 }
 

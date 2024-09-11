@@ -1,4 +1,3 @@
-import { MediaContainerItem } from "../../../IIROSE-MEDIA/interfaces/MediaContainerInterface";
 import { SendFetch } from "../../index";
 import { NeteaseMusicAPI } from "../NeteaseMusic/index";
 import { d } from "../Crypto";
@@ -12,7 +11,7 @@ export class NeteaseSearchAPI extends SendFetch
      * 获取网易云主页推荐歌单
      * @returns 
      */
-    public async NeteaseRecommandPlayList(): Promise<MediaContainerItem[] | null>
+    public async NeteaseRecommandPlayList(): Promise<[] | null>
     {
         const url = `${this.cors}https://music.163.com/discover`;
         const headers = this.returnNeteaseHeaders()
@@ -23,7 +22,7 @@ export class NeteaseSearchAPI extends SendFetch
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(data, 'text/html');
             const uCovers = htmlDoc.querySelectorAll('.u-cover');
-            const extractedData: MediaContainerItem[] = [];
+            const extractedData: [] = [];
             const neteaseMusic = new NeteaseMusicAPI();
             const uCoversArray = Array.from(uCovers);
             for (const uCover of uCoversArray)
@@ -42,7 +41,7 @@ export class NeteaseSearchAPI extends SendFetch
                         const id = urlParams.get('id');
                         const songDetail = neteaseMusic.getSongListDetail(Number(id));
                         if (!songDetail) return null;
-                        const item: MediaContainerItem = {
+                        const item = {
                             id: parseInt(id || '') || 0,
                             title: title,
                             img: imageUrl.toString(),
@@ -68,7 +67,7 @@ export class NeteaseSearchAPI extends SendFetch
                             duration: '歌单'
                         };
 
-                        extractedData.push(item);
+                        // extractedData.push(item);
                     }
 
                 }

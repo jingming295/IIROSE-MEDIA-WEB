@@ -1,7 +1,7 @@
 ---
 name: Bug 报告
 about: 创建bug报告以帮助我改善插件
-title: ''
+title: "[Bug]"
 labels: bug
 assignees: jingming295
 

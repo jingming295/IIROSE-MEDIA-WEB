@@ -6,6 +6,7 @@ export const MediaContainerContext = createContext({
     switchToMultiPage: (platformData: PlatformData, isCurrentInMultiPage?: boolean) => { },
     currentOnDemandPlay: (platformData: PlatformData) => { },
     updateCurrentInMultiPageStatus: (isCurrentInMultiPage: boolean) => { },
+    ShowOrHideIMC: () => { },
 });
 
 const { Provider, Consumer } = MediaContainerContext;

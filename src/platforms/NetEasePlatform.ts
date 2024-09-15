@@ -69,8 +69,14 @@ export class NetEasePlatform
 
         try
         {
-            const res = await this.neteaseSearch.getNeteaseRecommandPlayListXC(limit, false);
-            if (!res || !res.result) return { platformData: [], totalPage: 0 };
+            // const res = await this.neteaseSearch.getNeteaseRecommandPlayListXC(limit, false);
+            const res = await this.neteaseSearch.getNeteaseRecommandPlayList(limit)
+            if (!res || !res.result)
+            {
+                // const res = await this.neteaseSearch.NeteaseRecommandPlayList()
+                return { platformData: [], totalPage: 0 }
+            }
+
             const playList = res.result;
             const totalResult = playList.length;
             totalPage = Math.ceil(totalResult / this.pageSize);
@@ -122,11 +128,15 @@ export class NetEasePlatform
 
             const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword);
 
-            if (!res || !res.result || !res.result.songs) return { platformData: [], totalPage: 0, allPlatformData: [] };
+            if (!res || !res.result || !res.result.songs)
+            {
+
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
 
             const ids = res.result.songs.map((item) => item.id);
 
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromXC(ids);
+            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(ids);
 
             if (!songDetail || !songDetail.songs) return { platformData: [], totalPage: 0, allPlatformData: [] };
 
@@ -136,31 +146,31 @@ export class NetEasePlatform
 
             let count = 0;
 
-            for (const item of songDetail.songs)
-            {
+            // for (const item of songDetail.songs)
+            // {
 
-                const data: PlatformData = {
-                    title: item.name,
-                    subtitle: item?.tns?.[0] || item.alia[0],
-                    coverImg: item.al.picUrl,
-                    author: item.ar[0].name,
-                    websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
-                    duration: Math.ceil((item.dt + 2000) / 1000),
-                    neteaseMusic: {
-                        id: item.id
-                    }
-                }
+            //     const data: PlatformData = {
+            //         title: item.name,
+            //         subtitle: item?.tns?.[0] || item.alia[0],
+            //         coverImg: item.al.picUrl,
+            //         author: item.ar[0].name,
+            //         websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
+            //         duration: Math.ceil((item.dt + 2000) / 1000),
+            //         neteaseMusic: {
+            //             id: item.id
+            //         }
+            //     }
 
-                if (count >= this.pageSize)
-                {
-                    allPlatformData.push(data);
-                } else
-                {
-                    allPlatformData.push(data);
-                    platformData.push(data);
-                }
-                count++;
-            }
+            //     if (count >= this.pageSize)
+            //     {
+            //         allPlatformData.push(data);
+            //     } else
+            //     {
+            //         allPlatformData.push(data);
+            //         platformData.push(data);
+            //     }
+            //     count++;
+            // }
 
             return { platformData, totalPage, allPlatformData };
 
@@ -176,6 +186,10 @@ export class NetEasePlatform
 
     }
 
+    /**
+     * @description 点播歌单
+     * @param platformData 
+     */
     public async MLOD(platformData: PlatformData)
     {
 
@@ -244,6 +258,10 @@ export class NetEasePlatform
 
     }
 
+    /**
+     * @description 点播歌曲
+     * @param platformData 
+     */
     public async MOD(platformData: PlatformData)
     {
 

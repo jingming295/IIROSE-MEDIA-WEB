@@ -157,24 +157,27 @@ export class Media
         const medianame = encode(media.name);
         const mediasinger = encode(media.singer);
         const mediacolor = encode(media.color);
-        if(media.type === 'video'){
+        if (media.type === 'video')
+        {
             const data = {
                 m: `m__4${typeMap[t]}>${medianame}>${mediasinger}>${media.cover}>${mediacolor}>>${parseBitrate(media.bitRate)}>>${durationToText(media.duration)}`,
                 mc: media.color,
                 i: timestamp
             }
+            console.log(JSON.stringify(data))
             return JSON.stringify(data);
-        } else {
+        } else
+        {
             const data = {
                 m: `m__4${typeMap[t]}>${medianame}>${mediasinger}>${media.cover}>${mediacolor}>${parseBitrate(media.bitRate)}`,
                 mc: media.color,
                 i: timestamp
             }
-            console.log(data)
+            console.log(JSON.stringify(data))
             return JSON.stringify(data);
         }
 
-        
+
 
     }
 
@@ -213,31 +216,33 @@ export class Media
         {
             t = media.type;
         }
-        try {
+        try
+        {
             const data = JSON.stringify({
                 s: media.url.substring(4),
                 d: media.duration,
-                c: media.cover.substring(4),
+                c: media.cover,
                 n: media.name,
                 r: media.singer,
                 b: `${typeMap[t]}`,
                 o: media.link.substring(4),
                 l: media.lyrics
             });
-            console.log(data)
+            console.log(`&1${data}`)
             return `&1${data}`;
-        } catch (error) {
+        } catch (error)
+        {
             console.log(error)
             return ``
         }
-        
+
 
         // if(media.type === 'video'){
         //     return `&1${data}`;
         // } else {
         //     return `&0${data}`;
         // }
-        
-        
+
+
     }
 }

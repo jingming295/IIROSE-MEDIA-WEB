@@ -9,7 +9,7 @@ import { Socket } from "../iirose_func/Socket";
 import { Media } from "../iirose_func/Socket/Media";
 import { MediaData } from "../iirose_func/Socket/Media/MediaCardInterface";
 import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
-import { ImageTools } from "../tools/ImageTools";
+// import { ImageTools } from "../tools/ImageTools";
 import { PlatformData } from "./interfaces";
 
 
@@ -22,6 +22,7 @@ export class BilibiliPlatform
     bilibiliCourseApi = new BiliBiliCourseApi();
     showmessage = new ShowMessage();
     itemPerPage = 10;
+    baseHex = '000000';
     private timeToSeconds(timeString: string)
     {
         // 使用 ':' 分隔时间字符串
@@ -302,11 +303,11 @@ export class BilibiliPlatform
 
                         if (!res.data.timelength || !res.data.quality) throw new Error('No video duration');
 
-                        const imageTools = new ImageTools();
+                        // const imageTools = new ImageTools();
 
                         const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
 
-                        const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
+                        // const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
                         const mediaData: MediaData = {
                             type: 'video',
                             name: platformData.title,
@@ -316,11 +317,10 @@ export class BilibiliPlatform
                             url: playurl,
                             duration: res.data.timelength / 1000,
                             bitRate: qn,
-                            color: hex,
+                            color: this.baseHex,
                             origin: 'bilibili'
                         };
                         const media = new Media();
-
                         const mediacard = media.mediaCard(mediaData);
                         const mediaEvent = media.mediaEvent(mediaData);
 
@@ -365,9 +365,11 @@ export class BilibiliPlatform
 
                 if (!res.data.timelength) throw new Error('No video duration');
 
-                const imageTools = new ImageTools();
+                // const imageTools = new ImageTools();
 
-                const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
+                // 会需要一点时间
+                // const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
+
                 const mediaData: MediaData = {
                     type: 'video',
                     name: platformData.title,
@@ -377,14 +379,13 @@ export class BilibiliPlatform
                     url: videoUrl,
                     duration: res.data.timelength / 1000,
                     bitRate: actuallyQn,
-                    color: hex,
+                    color: this.baseHex,
                     origin: 'bilibili'
                 };
                 const media = new Media();
-
                 const mediacard = media.mediaCard(mediaData);
                 const mediaEvent = media.mediaEvent(mediaData);
-
+                console.log(`send`)
                 const socket = new Socket();
                 socket.send(mediacard);
                 socket.send(mediaEvent);
@@ -429,9 +430,9 @@ export class BilibiliPlatform
 
                 if (!testResult) throw new Error('获取直播流失败');
 
-                const imageTools = new ImageTools();
+                // const imageTools = new ImageTools();
 
-                const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
+                // const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
 
                 const br = res.data.current_qn;
 
@@ -444,7 +445,7 @@ export class BilibiliPlatform
                     url: videoUrl,
                     duration: bvSetting.streamSeconds,
                     bitRate: br,
-                    color: hex,
+                    color: this.baseHex,
                     origin: 'bilibililive'
                 };
                 const media = new Media();
@@ -472,6 +473,7 @@ export class BilibiliPlatform
         let playurl: string | null = null;
         let audiourl: string | null = null;
         let qn: number | null = null;
+        console.log(`try get video`)
 
         for (const video of data.video)
         {
@@ -489,7 +491,7 @@ export class BilibiliPlatform
 
         if (!playurl)
         {
-
+            console.log(`try another method to get video`)
             for (const video of data.video)
             {
                 if (video.codecid === 13 || video.codecid === 7)
@@ -510,7 +512,7 @@ export class BilibiliPlatform
         if (!qn) qn = bvSetting.qn;
 
         const audioArray = data.audio;
-
+        console.log(`try get audio`)
         for (const audio of audioArray)
         {
             const res = await sendfetch.tryGetWhithXhr(audio.baseUrl || audio.base_url);
@@ -520,7 +522,7 @@ export class BilibiliPlatform
                 break;
             }
         }
-
+        console.log(`finish`)
         if (!audiourl) throw new Error('获取Dash视频流失败, 找不到合适的音频流, 可能是因为视频是付费的');
 
         playurl = `${playurl}#audio=${audiourl}`;

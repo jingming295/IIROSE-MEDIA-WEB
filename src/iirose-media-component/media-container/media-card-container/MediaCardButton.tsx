@@ -1,7 +1,7 @@
 import { Component, ContextType } from 'preact';
-import { UpdateDom } from "../../../update_dom/UpdateDom";
 import { PlatformData } from "../../../platforms/interfaces";
 import { MediaContainerContext } from "../media-container-context/MediaContainerContext";
+
 
 interface MediaContainerProps
 {
@@ -26,10 +26,9 @@ export class MediaCardButton extends Component<MediaContainerProps>
     {
         const { platformData } = this.props;
 
-        const { switchToMultiPage, currentOnDemandPlay, updateCurrentInMultiPageStatus } = this.context;
+        const { switchToMultiPage, currentOnDemandPlay, updateCurrentInMultiPageStatus, ShowOrHideIMC } = this.context;
 
         const multipagePromise = platformData.multiPage;
-        const updateDom = new UpdateDom();
         if (multipagePromise)
         {
             const multipage = await multipagePromise;
@@ -39,12 +38,12 @@ export class MediaCardButton extends Component<MediaContainerProps>
                 switchToMultiPage(platformData, this.state.isMultipage);
             } else
             {
-                updateDom.changeStatusIIROSE_MEDIA()
+                ShowOrHideIMC()
                 currentOnDemandPlay(platformData);
             }
         } else
         {
-            updateDom.changeStatusIIROSE_MEDIA()
+            ShowOrHideIMC()
             currentOnDemandPlay(platformData);
         }
 

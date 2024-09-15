@@ -10,13 +10,6 @@ declare global
             cors?: string;
             // 其他属性...
         };
-        bilibili: {
-            rcmdVideo: {
-                fresh_idx_1h: number
-                fresh_idx: number
-                brush: number
-            }
-        };
         netease?: {
             xc?: boolean;
             iarc?: boolean;
@@ -45,7 +38,6 @@ export class Environment
         window.netease = {};
         window.netease.xc = false
         window.netease.iarc = false
-        this.setBilibiliRcmdVideo()
         this.setCors();
         this.setNetease();
     }
@@ -124,17 +116,6 @@ export class Environment
         // 最快的 CORS 代理
         const fastestCors = requestTimes[0].cors;
         window.iirosemedia.cors = fastestCors;
-    }
-
-    private setBilibiliRcmdVideo()
-    {
-        window.bilibili = {
-            rcmdVideo: {
-                fresh_idx_1h: 1,
-                fresh_idx: 1,
-                brush: 0
-            }
-        }
     }
 
     private async setNetease()

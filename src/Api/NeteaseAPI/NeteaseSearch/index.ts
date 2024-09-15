@@ -81,6 +81,41 @@ export class NeteaseSearchAPI extends SendFetch
         }
     }
 
+    public async getNeteaseRecommandPlayList(limit: number)
+    {
+        const url = `${this.cors}https://music.163.com/weapi/personalized/playlist`
+
+        const params = {
+            limit: limit,
+            total: true,
+            n: 1000,
+            csrf_token: ''
+        }
+
+        const headers = new Headers();
+        const we = d(params);
+        const enc = {
+            params: we.encText,
+            encSecKey: we.encSecKey
+        }
+
+        const encparams = new URLSearchParams(enc);
+
+        headers.append('content-type', 'application/x-www-form-urlencoded')
+
+        const response = await this.sendPost(url, encparams, headers);
+
+        if (response && response.ok)
+        {
+            const data: RecommendSongList = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+
+    }
+
     /**
      * 获取网易云搜索数据
      * @param keyWord 

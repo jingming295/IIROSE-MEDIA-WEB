@@ -39,7 +39,7 @@ export class NeteaseMusicAPI extends SendFetch
      * @param corsnum 
      * @returns 
      */
-    public async getNeteaseSongDetail(id: number, corsnum: number = 0): Promise<SongDetail | null>
+    public async getNeteaseSongDetail(ids: number[], corsnum: number = 0): Promise<SongDetail | null>
     {
         const cors = [this.beijingcors, this.malaysiacors];
 
@@ -47,8 +47,7 @@ export class NeteaseMusicAPI extends SendFetch
         {
             const url = new URL(`${cors[corsnum]}http://music.163.com/api/song/detail`);
             const params = new URLSearchParams({
-                id: id.toString(),
-                ids: `[${id}]`
+                ids: `${ids.toString()}`
             });
             url.search = params.toString();
 
@@ -74,7 +73,7 @@ export class NeteaseMusicAPI extends SendFetch
                 // 如果请求失败并且还有其他的 CORS 地址可用，则尝试使用下一个 CORS 地址发送请求
                 if (corsnum < cors.length - 1)
                 {
-                    return this.getNeteaseSongDetail(id, corsnum + 1);
+                    return this.getNeteaseSongDetail(ids, corsnum + 1);
                 }
                 return null;
             }
@@ -82,7 +81,7 @@ export class NeteaseMusicAPI extends SendFetch
         {
             if (corsnum < cors.length - 1)
             {
-                return this.getNeteaseSongDetail(id, corsnum + 1);
+                return this.getNeteaseSongDetail(ids, corsnum + 1);
             }
             console.error(`发生错误, 目前是第 ${corsnum} 个 CORS 地址`);
             return null;

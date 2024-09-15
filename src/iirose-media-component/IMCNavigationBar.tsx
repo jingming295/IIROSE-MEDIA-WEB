@@ -1,9 +1,9 @@
 import { Component } from 'preact';
-import { UpdateDom } from "../update_dom/UpdateDom";
 
 interface IMCNavigationBarProps
 {
     switchPlatforms: (index: number) => void;
+    ShowOrHideIMC: () => void;
 }
 
 interface IMCNavigationBarState
@@ -23,8 +23,8 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
 
     back = () =>
     {
-        const updatedom = new UpdateDom();
-        updatedom.changeStatusIIROSE_MEDIA();
+        const { ShowOrHideIMC } = this.props
+        ShowOrHideIMC()
     }
 
     handlePlatformChange = (index: number) =>

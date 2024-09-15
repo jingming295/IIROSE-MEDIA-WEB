@@ -17,6 +17,7 @@ interface MediaContainerProps
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
     needOutFromSettings: boolean;
+    ShowOrHideIMC: () => void;
 }
 
 export interface MediaContainerState
@@ -68,6 +69,7 @@ export interface Categories
 export class MediaContainer extends Component<MediaContainerProps, MediaContainerState>
 {
     static contextType = MediaContainerContext;
+
     bilibiliPlatform = new BilibiliPlatform();
     private itemsPerPage = 10
 
@@ -129,7 +131,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
     render()
     {
-        const { CategoriesIndex } = this.props;
+        const { CategoriesIndex, ShowOrHideIMC } = this.props;
         const { PlatformIndex, mediaData, settingsData, searchKeyword, currentPage, totalPage, isCurrentInMultiPage, currentSubNavBarAction, currentOnDemandPlay } = this.state;
         const {
             changeSearchKeyword,
@@ -150,6 +152,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             switchToMultiPage,
             currentOnDemandPlay,
             updateCurrentInMultiPageStatus,
+            ShowOrHideIMC
         };
 
         return (
@@ -354,7 +357,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
     }
 
     private bilibiliAction = {
-        bilibiliRefreshCount: 0,
+        bilibiliRefreshCount: 1,
         /**
          * @description 哔哩哔哩首页推荐
          */

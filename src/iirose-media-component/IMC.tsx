@@ -9,7 +9,12 @@ interface IMCState
     needOutFromSettings: boolean;
 }
 
-export class IMC extends Component<{}, IMCState>
+interface IMCProps
+{
+    ShowOrHideIMC: () => void;
+}
+
+export class IMC extends Component<IMCProps, IMCState>
 {
     state = {
         CategoriesIndex: 0,
@@ -39,11 +44,15 @@ export class IMC extends Component<{}, IMCState>
 
         return (
             <div className='IIROSE_MEDIA' id='IIROSE_MEDIA'>
-                <IMCNavigationBar switchPlatforms={this.switchPlatforms} />
+                <IMCNavigationBar
+                    switchPlatforms={this.switchPlatforms}
+                    ShowOrHideIMC={this.props.ShowOrHideIMC}
+                />
                 <MediaContainer
                     CategoriesIndex={CategoriesIndex}
                     needOutFromMultiPage={needOutFromMultiPage}
                     needOutFromSettings={needOutFromSettings}
+                    ShowOrHideIMC={this.props.ShowOrHideIMC}
                 />
             </div>
         );

@@ -1,8 +1,8 @@
 import { Environment } from "./environment/Environment";
-import { HotKey } from "./hotkey/HotKey";
 import { IMCInit } from "./iirose-media-component/IMCInit";
 import './SCSS/IIROSE_MEDIA.scss';
 import './SCSS/MaterialDesignIcon.scss';
+import { LocalStorageUtils } from "./settings/localStorageUtils/LocalStorageUtils";
 
 class APP
 {
@@ -10,6 +10,7 @@ class APP
     {
         const environment = new Environment();
         environment.setEnv();
+        LocalStorageUtils.Init();
     }
 
     async init()
@@ -26,7 +27,6 @@ class APP
 
         // 初始化主要功能
         new IMCInit(mainContainer);
-        new HotKey();
 
         // 检查 mainFrame 是否存在并注入脚本
         if (mainFrame && mainFrame.contentWindow && mainFrame.contentDocument)

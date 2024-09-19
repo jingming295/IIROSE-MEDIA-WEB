@@ -41,6 +41,10 @@ declare global
             imgReady: {
                 set: (e: HTMLImageElement, t?: string) => void;
             };
+
+            service: {
+                getUserCard: (uid: string, type: number) => void;
+            }
         };
 
         Objs?: {
@@ -49,6 +53,12 @@ declare global
                 albumShow: AlbumShow;
                 albumShowHolderAnimate: JQuery<HTMLElement>;
             };
+
+            mapHolder: {
+                Assets: {
+                    userJson: any
+                }
+            }
         };
 
         Constant?: {

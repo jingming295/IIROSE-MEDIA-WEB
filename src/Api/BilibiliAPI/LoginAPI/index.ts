@@ -480,10 +480,17 @@ export class BiliBiliLoginApi extends SendFetch
     //     }
     // }
 
-    public async getNavUserData()
+    public async getNavUserData(sessdata?: string)
     {
         const url = `${this.cors}https://api.bilibili.com/x/web-interface/nav`;
-        const headers = this.returnBilibiliHeaders();
+        let headers: Headers = new Headers();
+        if (!sessdata)
+        {
+            headers = this.returnBilibiliHeaders();
+        } else
+        {
+            headers.append('cookie-trans', `SESSDATA=${sessdata};`);
+        }
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
         if (response && response.ok)
         {
@@ -494,5 +501,7 @@ export class BiliBiliLoginApi extends SendFetch
             return null;
         }
     }
+
+
 
 }

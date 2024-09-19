@@ -5,14 +5,16 @@ export interface SongDetail
   code: number;
 }
 
-export interface SongDetailFromXC{
+export interface SongDetailFromXC
+{
   code: number;
   privileges: [];
   songs?: SongDetailFromXCSong[];
 }
 
-export interface SongDetailFromXCSong{
-  a:null
+export interface SongDetailFromXCSong
+{
+  a: null
   al: {
     id: number; // 专辑id
     name: string; // 专辑名
@@ -27,7 +29,7 @@ export interface SongDetailFromXCSong{
     alias: [];
     tns: [];
   }[]; // 歌手信息
-  awardTags:null; // 未知
+  awardTags: null; // 未知
   cd: string; // 未知
   cf: string; // 未知
   crbt: null; // 未知
@@ -37,27 +39,27 @@ export interface SongDetailFromXCSong{
   fee: number; // 未知
   ftype: number; // 未知
   tns?: string[]; // 副标题
-  sq:{
+  sq: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
   }; // 歌曲分辨率信息？最高
-  h:{
+  h: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
   }; // 歌曲分辨率信息？中等偏上
-  hr:null; // 未知
+  hr: null; // 未知
   id: number; // 歌曲id
-  l:{
+  l: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
   }; // 歌曲分辨率信息？最低
-  m:{
+  m: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
@@ -91,7 +93,7 @@ export interface SongDetailFromXCSong{
 
 }
 
-interface SongDetailSong
+export interface SongDetailSong
 {
   name: string;
   id: number;
@@ -184,7 +186,8 @@ interface MusicDetailAlbum
   picId_str: string;
 }
 
-interface Artist{
+interface Artist
+{
 
 }
 

@@ -11,7 +11,7 @@ interface IMCState
 
 interface IMCProps
 {
-    ShowOrHideIMC: () => void;
+    ShowOrHideIMC: () => Promise<void>;
 }
 
 export class IMC extends Component<IMCProps, IMCState>
@@ -63,7 +63,7 @@ export class IMC extends Component<IMCProps, IMCState>
     {
         await this.setState({ CategoriesIndex: index });
 
-        if (index !== 2)
+        if (index !== 2 && index !== 3)
         {
             this.setState({ needOutFromSettings: true });
         } else if (this.state.needOutFromSettings)

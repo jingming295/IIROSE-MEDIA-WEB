@@ -55,11 +55,13 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
         );
     }
 
-    private ShowOrHideIMC()
+    private async ShowOrHideIMC()
     {
         const { active, init } = this.state
         if (!init) this.setState({ init: true })
         this.setState({ active: !active })
+
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     private handleTouchStart(event: TouchEvent)
@@ -77,7 +79,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
             if (this.startY === 0) return;
             const deltaY = event.touches[0].clientY - this.startY;
             const screenHeight = window.innerHeight;
-            const threshold = screenHeight / 3;
+            const threshold = screenHeight / 4;
             if (deltaY > threshold)
             {
                 this.startY = 0
@@ -85,11 +87,9 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
                 event.stopPropagation();
                 event.stopImmediatePropagation();
                 this.ShowOrHideIMC()
-
             }
         }
     }
-
 
     private KeyBoardCallApp(event: KeyboardEvent)
     {
@@ -105,6 +105,10 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
                 focusedElement.blur();
             }
             this.ShowOrHideIMC()
+        } else if (event.key === 'Escape')
+        {
+            this.setState({ active: false })
+
         }
     }
 

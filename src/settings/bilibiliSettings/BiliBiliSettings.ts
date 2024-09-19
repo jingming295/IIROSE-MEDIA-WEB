@@ -1,5 +1,6 @@
 import { BilibiliACC } from "../../Account/BiliBili/BilibiliAccountInterface";
 import { BiliBiliAccount } from "../../Account/BiliBili/SetBiliBili";
+import { BiliBiliLoginApi } from "../../Api/BilibiliAPI/LoginAPI";
 import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 
 export interface BilibiliVideoSettings
@@ -13,38 +14,96 @@ export interface BilibiliVideoSettings
 export class BiliBiliSettings
 {
     iiroseUtils = new IIROSEUtils();
-
+    bilibiliLoginAPI = new BiliBiliLoginApi()
     public setAccount(changeActionTitleAction?: (actionTitle?: string) => void)
     {
-        function login(t: HTMLElement, s: string)
+        const login = (t: HTMLElement, s: string) =>
         {
-            const bilibiliaccount = new BiliBiliAccount();
-            const uname = bilibiliaccount.setBiliBiliAccount();
-
-            uname.then((username) =>
+            const handleUserInputCookie = async (input: string | null) =>
             {
-                if (username)
-                {
-                    if (changeActionTitleAction)
-                    {
-                        changeActionTitleAction(username);
-                    }
-                }
-            })
+                if (!input) return;
+                const cookie = input;
 
+                const cookies = this.parseCookie(cookie);
+                const navData = await this.bilibiliLoginAPI.getNavUserData(cookies['SESSDATA']);
+
+                // 从 localStorage 获取已有的 bilibiliAccount
+                const storedAccount = localStorage.getItem('bilibiliAccount');
+                let bilibiliaccount: BilibiliACC = storedAccount ? JSON.parse(storedAccount) : {};
+
+                // 更新 bilibiliAccount 对象中的字段
+                bilibiliaccount = {
+                    ...bilibiliaccount,
+                    DedeUserID: cookies['DedeUserID'] || bilibiliaccount.DedeUserID || '',
+                    DedeUserID__ckMd5: cookies['DedeUserID__ckMd5'] || bilibiliaccount.DedeUserID__ckMd5 || '',
+                    Expires: cookies['bili_ticket_expires'] || bilibiliaccount.Expires || '',
+                    SESSDATA: cookies['SESSDATA'] || bilibiliaccount.SESSDATA || '',
+                    bili_jct: cookies['bili_jct'] || bilibiliaccount.bili_jct || '',
+                    gourl: cookies['gourl'] || bilibiliaccount.gourl || '',
+                    refresh_token: cookies['refresh_token'] || bilibiliaccount.refresh_token || '',
+                    uname: navData?.data.uname || bilibiliaccount.uname || '',
+                    face: navData?.data.face || bilibiliaccount.face || ''
+                };
+
+                // 更新 localStorage 中的值
+                localStorage.setItem('bilibiliAccount', JSON.stringify(bilibiliaccount));
+                if (changeActionTitleAction)
+                {
+                    changeActionTitleAction(bilibiliaccount.uname);
+                }
+            }
+
+            if (s === '0')
+            {
+                const bilibiliaccount = new BiliBiliAccount();
+                const uname = bilibiliaccount.setBiliBiliAccount();
+
+                uname.then((username) =>
+                {
+                    if (username)
+                    {
+                        if (changeActionTitleAction)
+                        {
+                            changeActionTitleAction(username);
+                        }
+                    }
+                })
+            }
+
+            if (s === '1')
+            {
+                this.iiroseUtils.sync(2, ['请输入B站Cookie', 'text', 100000], handleUserInputCookie)
+            }
         }
+
+        function logOut(t: HTMLElement, s: string)
+        {
+            if (s === '1')
+            {
+                localStorage.removeItem('bilibiliAccount');
+                if (changeActionTitleAction)
+                {
+                    changeActionTitleAction('未登录');
+                }
+            }
+        }
+
+
+
         const bilibiliAccount = this.getBiliBiliAccount();
 
         if (bilibiliAccount && bilibiliAccount.uname && bilibiliAccount.face)
         {
             const selectOption = [
-                [0, bilibiliAccount.uname, `<div style="height:100px;width:100px;position:absolute;top:0;left:0;"><div class="bgImgBox"><img class="bgImg" loading="lazy" decoding="async" src="${bilibiliAccount.face}" onerror="this.style.display='none';"><div class="fullBox"></div></div></div>`]
+                [0, bilibiliAccount.uname, `<div style="height:100px;width:100px;position:absolute;top:0;left:0;"><div class="bgImgBox"><img class="bgImg" loading="lazy" decoding="async" src="${bilibiliAccount.face}" onerror="this.style.display='none';"><div class="fullBox"></div></div></div>`],
+                [1, '登出账号', `<div class="mdi-logout" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`]
             ]
-            this.iiroseUtils.buildSelect2(null, selectOption, () => { }, false, true, null, false, null, () => { })
+            this.iiroseUtils.buildSelect2(null, selectOption, logOut, false, true, null, false, null, () => { })
         } else
         {
             const selectOption = [
-                [0, '扫码登录账号', `<div class="mdi-qrcode" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`]
+                [0, '扫码登录账号', `<div class="mdi-qrcode" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`],
+                [1, '输入B站Cookie', `<div class="mdi-cookie" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`]
             ]
             this.iiroseUtils.buildSelect2(null, selectOption, login, false, true, null, false, null, () => { })
         }
@@ -205,8 +264,8 @@ export class BiliBiliSettings
         }
 
         const selectOption = [
-            [0, 'durl (最稳定)'],
-            [1, 'dash (实验性，能获取720p60帧以上的画质)'],
+            [0, 'durl - 音频视频不分离，最高720p画质'],
+            [1, 'dash - 视频音频分离，可以获取高画质'],
             [2, '混合 (高于720p自动使用dash)']
         ];
 
@@ -299,9 +358,9 @@ export class BiliBiliSettings
     public parseGetVideoFormat(format: number)
     {
         const selectOption = [
-            [0, 'durl (最稳定)'],
-            [1, 'dash (实验性，能获取720p60帧以上的画质)'],
-            [2, '混合 (高于720p自动使用dash)']
+            [0, 'durl - 音频视频不分离，最高720p画质'],
+            [1, 'dash - 视频音频分离，可以获取高画质'],
+            [2, '混合']
         ];
 
         const selectedOption = selectOption.find((option) => option[0] === format);
@@ -315,4 +374,18 @@ export class BiliBiliSettings
         }
     }
 
+    public parseCookie(cookie: string)
+    {
+        return cookie.split('; ').reduce((acc: Record<string, string>, part) =>
+        {
+            const [key, value] = part.split('=');
+            acc[key] = decodeURIComponent(value);
+            return acc;
+        }, {});
+    }
+
 }
+
+
+
+

@@ -71,7 +71,7 @@ export class BiliBiliSearchApi extends SendFetch
             category_id: number | null = null
         )
     {
-        const url = `${this.cors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
+        const url = `${this.beijingcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
         const params = new URLSearchParams({
             search_type: search_type,
             keyword: keyword

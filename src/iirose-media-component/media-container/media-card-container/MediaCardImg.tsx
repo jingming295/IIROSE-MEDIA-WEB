@@ -9,7 +9,7 @@ interface MediaCardImgProps
 
 export class MediaCardImg extends Component<MediaCardImgProps>
 {
-    render(): JSX.Element
+    render()
     {
         const { src, platformData } = this.props;
         let duration: string | null = null

@@ -1,4 +1,4 @@
-import { Component } from 'preact';
+import { Component, JSX } from 'preact';
 import { MediaCardImg } from "./MediaCardImg";
 import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
@@ -95,7 +95,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
         }
     }
 
-    render(): JSX.Element
+    render()
     {
         const { data, loading, error } = this.state;
         const { collectable, settingsData } = this.props;

@@ -56,7 +56,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
                 <div className='RightComponent'>
                     <div
                         className={`NavBarButton ${activeButtonIndex === 1 ? 'NavBarButtonActive' : ''}`}
-                        id='MusicButton'
+                        id=''
                         onClick={() => this.handlePlatformChange(1)}
                     >
                         <div className='NavBarButtonIcon' id='MusicIcon'>
@@ -66,7 +66,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
 
                     <div
                         className={`NavBarButton ${activeButtonIndex === 0 ? 'NavBarButtonActive' : ''}`}
-                        id='VideoButton'
+                        id=''
                         onClick={() => this.handlePlatformChange(0)}
                     >
                         <div className='NavBarButtonIcon' id='VideoIcon'>
@@ -76,13 +76,24 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
 
                     <div
                         className={`NavBarButton ${activeButtonIndex === 2 ? 'NavBarButtonActive' : ''}`}
-                        id='SettingButton'
+                        id=''
                         onClick={() => this.handlePlatformChange(2)}
                     >
                         <div className='NavBarButtonIcon' id='SettingIcon'>
                         </div>
                         <div className='NavBarButtonText'> 设置 </div>
                     </div>
+
+                    <div
+                        className={`NavBarButton ${activeButtonIndex === 3 ? 'NavBarButtonActive' : ''}`}
+                        id=''
+                        onClick={() => this.handlePlatformChange(3)}
+                    >
+                        <div className='NavBarButtonIcon mdi-information-outline' id=''>
+                        </div>
+                        <div className='NavBarButtonText'> 关于 </div>
+                    </div>
+
                 </div>
 
             </div>

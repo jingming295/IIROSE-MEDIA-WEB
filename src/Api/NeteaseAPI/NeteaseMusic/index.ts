@@ -1,5 +1,5 @@
 import { SendFetch } from "../../index";
-import { SongDetail, SongDetailFromXC, SongDetailFromXCSong } from "./SongDetailInterface";
+import { SongDetail, SongDetailFromXC, SongDetailFromXCSong, SongDetailSong } from "./SongDetailInterface";
 import { Lyric, SongList, xcSongResource } from "./SongList";
 
 export class NeteaseMusicAPI extends SendFetch
@@ -39,53 +39,66 @@ export class NeteaseMusicAPI extends SendFetch
      * @param corsnum 
      * @returns 
      */
-    public async getNeteaseSongDetail(ids: number[], corsnum: number = 0): Promise<SongDetail | null>
+    public async getNeteaseSongDetail(ids: number[]): Promise<SongDetailSong[] | null>
     {
-        const cors = [this.beijingcors, this.malaysiacors];
+        const CHUNK_SIZE = 100; // 每次最多 150 个 ids
+        const allSongs: SongDetailSong[] = []; // 用于存储所有的 songs
+
+        // 将 ids 数组拆分为多个子数组
+        const chunks = this.chunkArray(ids, CHUNK_SIZE);
 
         try
         {
-            const url = new URL(`${cors[corsnum]}http://music.163.com/api/song/detail`);
-            const params = new URLSearchParams({
-                ids: `${ids.toString()}`
-            });
-            url.search = params.toString();
-
-            const headers = this.returnNeteaseHeaders();
-
-            // 创建 AbortController 实例
-            const controller = new AbortController();
-            const signal = controller.signal;
-
-            // 设置超时时间为 2 秒
-            const timeout = 2000;
-            setTimeout(() => controller.abort(), timeout);
-
-            const response = await this.sendGet(url.toString(), params, headers, true, signal);
-
-            if (response && response.ok)
+            // 逐个请求每个子数组
+            for (const chunk of chunks)
             {
-                const data: SongDetail = await response.json();
-                if (!data.songs) throw new Error('获取歌曲详情失败');
-                return data;
-            } else
-            {
-                // 如果请求失败并且还有其他的 CORS 地址可用，则尝试使用下一个 CORS 地址发送请求
-                if (corsnum < cors.length - 1)
+                const url = new URL(`${this.cors}http://music.163.com/api/song/detail`);
+
+                const params = new URLSearchParams({
+                    ids: `[${chunk.toString()}]`
+                });
+                url.search = params.toString();
+
+                const headers = this.returnNeteaseHeaders();
+
+                const response = await this.sendGet(url.toString(), params, headers, true);
+
+                if (response && response.ok)
                 {
-                    return this.getNeteaseSongDetail(ids, corsnum + 1);
+                    const data: SongDetail = await response.json();
+                    if (data.songs)
+                    {
+                        // 将当前请求的 songs 合并到最终结果中
+                        allSongs.push(...data.songs);
+                    } else
+                    {
+                        console.error('获取歌曲详情失败');
+                        return null;
+                    }
+                } else
+                {
+                    console.error('Request failed', response);
+                    return null;
                 }
-                return null;
             }
+
+            return allSongs;
         } catch (error)
         {
-            if (corsnum < cors.length - 1)
-            {
-                return this.getNeteaseSongDetail(ids, corsnum + 1);
-            }
-            console.error(`发生错误, 目前是第 ${corsnum} 个 CORS 地址`);
+            console.error('Error fetching song details', error);
             return null;
         }
+    }
+
+    // 拆分数组的辅助函数
+    private chunkArray(array: number[], size: number): number[][]
+    {
+        const result: number[][] = [];
+        for (let i = 0; i < array.length; i += size)
+        {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
     }
 
     /**
@@ -194,7 +207,7 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getSonggResourceFromIARC(url: string)
+    public async getSongResourceFromIARC(url: string)
     {
         const response = await this.sendHead(url, new URLSearchParams(), new Headers(), false, false)
         if (response && response.ok)
@@ -202,52 +215,6 @@ export class NeteaseMusicAPI extends SendFetch
             const redirect = response.headers.get('x-final-url')
             return redirect;
         } else
-        {
-            return null;
-        }
-    }
-
-    public async testGetSongResource()
-    {
-        const url = `https://xc.null.red:8043/meting-api/`;
-        const params = new URLSearchParams({
-            id: `1988233212`,
-            level: 'exhigh',
-            type: '302'
-        });
-
-        const headers = new Headers();
-        headers.append('Referer', 'https://music.163.com/');
-
-        // 创建 AbortController 和 AbortSignal 对象
-        const controller = new AbortController();
-        const signal = controller.signal;
-
-        // 设置超时时间（毫秒）
-        const timeout = 5000; // 2秒超时
-
-        // 设置超时任务
-        const timeoutId = setTimeout(() =>
-        {
-            controller.abort(); // 超时时中止请求
-        }, timeout);
-
-        try
-        {
-            // 发送 GET 请求
-            const response = await this.sendGet(url, params, headers, false, signal);
-
-            clearTimeout(timeoutId); // 清除超时任务
-
-            if (response && response.ok)
-            {
-                const data = await response.json();
-                return data;
-            } else
-            {
-                return null;
-            }
-        } catch (error)
         {
             return null;
         }

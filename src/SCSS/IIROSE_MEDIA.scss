@@ -21,7 +21,6 @@
 
     .IIroseMainNavigationBar {
       display: flex;
-      flex-wrap: wrap;
       min-height: 40px;
       background-color: transparent;
       justify-content: space-between;
@@ -218,7 +217,6 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            flex-wrap: wrap;
             animation: fadeIn 0.25s ease-out;
 
             .inputWrapper,
@@ -315,9 +313,9 @@
               .PaginationControllerButtonWrapper {
                 display: flex;
                 align-items: center;
-                height: 100%;
                 padding: 0 20px;
                 transition: all 0.5s ease-in-out;
+                height: 100%;
 
                 .PaginationControllerButton {
                   font-weight: bold;
@@ -874,7 +872,7 @@
   }
 }
 
-@media (max-width: 660px) {
+@media (max-width: 780px) {
   .NavBarTitle {
     display: none !important;
   }
@@ -884,7 +882,41 @@
   }
 
   .inputWrapper {
-    max-width: 250px !important;
+    max-width: 200px !important;
+  }
+
+  .mediaSearchBarInput {
+    max-width: 50px !important;
+  }
+
+  .PaginationControllerButtonWrapper {
+    padding: 10px 10px !important;
+    height: auto !important;
+  }
+
+  .NavBarButton {
+    padding: 10px 10px !important;
+  }
+}
+
+@media (max-width: 490px) {
+  .NavBarButtonText {
+    display: none !important;
+  }
+
+  .NavBarButtonIcon {
+    padding: 5px 20px !important;
+    margin: 0 !important;
+    font-size: larger;
+  }
+
+  .MediaCardContainer {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    grid-gap: 10px !important;
+  }
+
+  .MediaCard {
+    margin: 0 !important;
   }
 }
 

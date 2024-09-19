@@ -143,7 +143,6 @@ export class NeteaseSearchAPI extends SendFetch
         if (response && response.ok)
         {
             const data: SearchData = await response.json();
-            console.log(data)
             return data;
         } else
         {

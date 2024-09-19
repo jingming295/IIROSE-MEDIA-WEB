@@ -49,7 +49,7 @@ export class MediaCardButton extends Component<MediaContainerProps>
 
     }
 
-    render(): JSX.Element
+    render()
     {
         const { isMultipage } = this.state;
         const contextState = this.context;

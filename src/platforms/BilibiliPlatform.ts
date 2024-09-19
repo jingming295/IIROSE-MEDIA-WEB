@@ -333,7 +333,7 @@ export class BilibiliPlatform
                 } else throw new Error('获取课程播放流失败');
             }
 
-            // 如果是视频, 但是没有 cid
+            // 如果是视频, 但是没有 cid，这种情况发生在搜索
             if (!cid)
             {
                 const res = await this.bilibiliVideoApi.getBilibiliVideoData(null, bvid);
@@ -347,6 +347,8 @@ export class BilibiliPlatform
             let streamFormat = bvSetting.videoStreamFormat
 
             streamFormat = this.getStreamPlatform(streamFormat, bvSetting.qn);
+
+            console.log(streamFormat)
 
             const res = await this.bilibiliVideoApi.getBilibiliVideoStream(aid, bvid, cid, bvSetting.qn, streamFormat);
             if (res && res.code === 0 && res.data)

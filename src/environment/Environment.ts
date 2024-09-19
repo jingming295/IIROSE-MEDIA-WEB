@@ -1,5 +1,4 @@
 import { SendFetch } from "../Api";
-import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
 // 全局声明，告诉 TypeScript window 具有 iirosemedia 属性
 declare global
 {
@@ -11,7 +10,7 @@ declare global
             // 其他属性...
         };
         netease?: {
-            xc?: boolean;
+            xcAPI?: boolean;
             iarc?: boolean;
         }
     }
@@ -36,13 +35,13 @@ export class Environment
     {
         window.iirosemedia = {};
         window.netease = {};
-        window.netease.xc = false
+        window.netease.xcAPI = false
         window.netease.iarc = false
         this.setCors();
         this.setNetease();
     }
 
-    private setCors()
+    private async setCors()
     {
         // const ua = navigator.userAgent;
         // const device = window.device;
@@ -61,7 +60,6 @@ export class Environment
         //     this.selectCorsBySpeed();
         // }
         const sendFetch = new SendFetch();
-
         const res = sendFetch.sendGet(`https://ipinfo.io/json`, new URLSearchParams(), new Headers());
 
         res.then(async (res) =>
@@ -120,12 +118,18 @@ export class Environment
 
     private async setNetease()
     {
-        const neteaseMusicAPI = new NeteaseMusicAPI();
-        const xc = await neteaseMusicAPI.testGetSongResource()
-        if (xc)
+        try
         {
-            if (window.netease)
-                window.netease.xc = true;
+            const sendFetch = new SendFetch
+            const res = await sendFetch.tryGetWhithXhr("https://xc.null.red:8043/meting-api/")
+            if (res)
+            {
+                if (window.netease)
+                    window.netease.xcAPI = true;
+            }
+        } catch (error)
+        {
+
         }
     }
 

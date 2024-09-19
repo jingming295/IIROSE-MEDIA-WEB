@@ -221,7 +221,7 @@ export class Media
             const data = JSON.stringify({
                 s: media.url.substring(4),
                 d: media.duration,
-                c: media.cover,
+                c: media.cover.substring(4),
                 n: media.name,
                 r: media.singer,
                 b: `${typeMap[t]}`,

@@ -11,13 +11,14 @@ import { NetEasePlatform } from '../../platforms/NetEasePlatform';
 import { GetBiliBiliAccount } from '../../Account/BiliBili/GetBiliBili';
 import { BiliBiliSettings } from '../../settings/bilibiliSettings/BiliBiliSettings';
 import { NetEaseSettings } from '../../settings/neteaseSettings/NetEaseSettings';
+import { About } from '../../platforms/About';
 
 interface MediaContainerProps
 {
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
     needOutFromSettings: boolean;
-    ShowOrHideIMC: () => void;
+    ShowOrHideIMC: () => Promise<void>;
 }
 
 export interface MediaContainerState
@@ -352,8 +353,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             this.setState({ currentSubNavBarAction: oldItems.SubNavBarAction });
             this.setState({ currentOnDemandPlay: oldItems.OnDemandPlay });
         }
-
-
     }
 
     private bilibiliAction = {
@@ -671,6 +670,52 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         },
     }
 
+    private AboutAction = {
+        about: () =>
+        {
+            const aboutData: SettingData[] = [{
+                title: '作者',
+                actionTitle: '铭',
+                icon: 'mdi-account-tie',
+                action: async () =>
+                {
+                    await this.props.ShowOrHideIMC();
+                    const about = new About()
+                    about.aboutCreator()
+
+                }
+            }, {
+                title: '项目源代码地址',
+                actionTitle: 'GitHub 🔗',
+                icon: 'mdi-github',
+                action: () =>
+                {
+                    window.open('https://github.com/jingming295/IIROSE-MEDIA-WEB')
+                }
+            }, {
+                title: '投喂我',
+                actionTitle: '投喂',
+                icon: 'mdi-coffee-outline',
+                action: () =>
+                {
+                    const about = new About()
+                    about.aboutDonate()
+
+                }
+            }, {
+                title: '赞助列表',
+                actionTitle: '感谢名单',
+                icon: 'mdi-account-group',
+                action: () =>
+                {
+                    const about = new About()
+                    about.aboutSponsorList(this.props.ShowOrHideIMC)
+                }
+            }]
+            this.setState({ settingsData: aboutData });
+        }
+    }
+
     private categories: Categories[] = [
         {
             platform: [
@@ -768,6 +813,24 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                             searchAction: () =>
                             {
                                 this.settingsAction.netEase.neteaseMusicSetting();
+                            }
+                        }
+                    ]
+                }
+            ]
+        }, {
+            platform: [
+                {
+                    title: '关于这个插件',
+                    iconsrc: 'https://static.codemao.cn/i/24/9/19/21/1053-JU.png',
+                    color: 'rgb(100, 149, 237)',
+                    collectable: false,
+                    subNavBarItems: [
+                        {
+                            title: '关于',
+                            searchAction: () =>
+                            {
+                                this.AboutAction.about();
                             }
                         }
                     ]

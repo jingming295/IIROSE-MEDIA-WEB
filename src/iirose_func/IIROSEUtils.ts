@@ -53,4 +53,13 @@ export class IIROSEUtils
         if (!window.Utils) return;
         window.Utils.buildSelect2(i, a, s, e, t, o, r, l, n);
     }
+
+    public getUserCard(uid: string)
+    {
+        if (!window.Utils) return;
+        const a = document.createElement('span')
+        a.innerHTML = uid
+        a.className = `followName2`
+        window.Utils.service.getUserCard.call(a, uid, 1);
+    }
 }

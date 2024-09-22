@@ -12,17 +12,27 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
     alias: {
-      react: "preact/compat",
-      "react-dom/test-utils": "preact/test-utils",
-      "react-dom": "preact/compat",
-      "react/jsx-runtime": "preact/jsx-runtime",
-    }
+      react: 'preact/compat',
+      'react-dom/test-utils': 'preact/test-utils',
+      'react-dom': 'preact/compat',
+      'react/jsx-runtime': 'preact/jsx-runtime',
+    },
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: [
+          {
+            loader: 'babel-loader', // 使用 Babel 处理 TypeScript 和 JavaScript 文件
+          },
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true, // 让 ts-loader 只进行类型检查，具体代码优化由 Babel 和 Webpack 完成
+            },
+          },
+        ],
         exclude: /node_modules/,
       },
       {
@@ -41,27 +51,22 @@ module.exports = {
       },
     ],
   },
-  // optimization: {
-  //   minimize: true, // 启用最小化
-  //   minimizer: [
-  //     new TerserPlugin({
-  //       parallel: true, // 启用多进程并行运行以提高构建速度
-  //       terserOptions: {
-  //         compress: {
-  //           drop_console: true, // 移除 console 语句
-  //           drop_debugger: true, // 移除 debugger 语句
-  //           pure_funcs: ['console.log'], // 移除指定的函数调用
-  //           passes: 2, // 多次优化传递
-  //         },
-  //         mangle: {
-  //           toplevel: true, // 混淆顶级作用域中的变量和函数名
-  //         },
-  //         format: {
-  //           comments: false, // 移除所有注释
-  //         },
-  //       },
-  //       extractComments: false, // 不将注释提取到单独的文件中
-  //     }),
-  //   ],
-  // },
+  optimization: {
+    minimize: true,
+    usedExports: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            dead_code: true, // 移除无用的代码
+            unused: true,    // 移除未被使用的函数和变量
+          },
+          output: {
+            comments: false, // 去掉注释
+          },
+        },
+        extractComments: false,
+      }),
+    ],
+  },
 };

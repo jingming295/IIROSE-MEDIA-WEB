@@ -10,5 +10,5 @@ export interface MediaData
     bitRate: number;
     color: string;
     lyrics?: string;
-    origin?: 'netease' | 'bilibili' | 'bilibililive' | 'null' | 'undefined' | null;
+    origin?: 'netease' | 'bilibili' | 'bilibililive' | 'video' | 'null' | 'undefined' | null;
 }

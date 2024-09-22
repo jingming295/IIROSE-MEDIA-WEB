@@ -7,6 +7,7 @@ export class LocalStorageUtils
     public static Init()
     {
         this.setBilibili()
+        this.setNetease()
     }
 
     private static setBilibili()
@@ -31,7 +32,7 @@ export class LocalStorageUtils
         if (!lsNeteaseSetting)
         {
             const neteaseSetting: NeteaseSetting = {
-                quality: 'standard'
+                quality: 'lossless'
             };
             localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));
         }

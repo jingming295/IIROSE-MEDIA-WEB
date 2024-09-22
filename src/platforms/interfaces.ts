@@ -21,5 +21,7 @@ export interface PlatformData
         id: number;
         isSongList?: boolean;
         isAlbum?: boolean;
+        isMV?: boolean;
+        isDjRadios?: boolean;
     }
 }

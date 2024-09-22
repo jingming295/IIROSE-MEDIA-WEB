@@ -9,7 +9,6 @@ import { Socket } from "../iirose_func/Socket";
 import { Media } from "../iirose_func/Socket/Media";
 import { MediaData } from "../iirose_func/Socket/Media/MediaCardInterface";
 import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
-// import { ImageTools } from "../tools/ImageTools";
 import { PlatformData } from "./interfaces";
 
 
@@ -92,6 +91,7 @@ export class BilibiliPlatform
             const platformData: PlatformData[] = [];
             const allPlatformData: PlatformData[] = [];
 
+            if (res.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
 
             if (res && res.code === 0 && res.data && res.data.result)
             {
@@ -164,6 +164,8 @@ export class BilibiliPlatform
 
             let totalPage = 0;
 
+            if (res.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
+
             if (res && res.code === 0 && res.data && res.data.result)
             {
                 for (const item of res.data.result)
@@ -204,7 +206,7 @@ export class BilibiliPlatform
             if (pd.bilibili.course_id)
             {
                 const res = await this.bilibiliCourseApi.getBilibiliCoursePagesData(pd.bilibili.course_id, 1000);
-
+                if (res?.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
                 if (res && res.code === 0 && res.data)
                 {
                     for (const item of res.data.items)
@@ -241,6 +243,7 @@ export class BilibiliPlatform
             }
 
             const bilibiliVideoDetail = await this.bilibiliVideoApi.getBilibiliVideoData(null, pd.bilibili.bvid);
+            if (bilibiliVideoDetail?.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
 
             if (bilibiliVideoDetail && bilibiliVideoDetail.data && bilibiliVideoDetail.data.pages)
             {

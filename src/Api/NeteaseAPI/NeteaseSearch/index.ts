@@ -119,17 +119,18 @@ export class NeteaseSearchAPI extends SendFetch
     /**
      * 获取网易云搜索数据
      * @param keyWord 
+     * @param type
      * @param limit 
      * @returns 
      */
-    public async getNeteaseMusicSearchData(keyWord: string, limit: number = 100)
+    public async getNeteaseMusicSearchData(keyWord: string, type: number, offset: number, limit: number = 100)
     {
         const url = `${this.cors}https://music.163.com/weapi/search/get`;
         const params = {
             s: keyWord, // 关键词
-            type: `1`, // 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
+            type: type, // 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
             limit: limit, // 返回歌曲数量
-            offset: `0`, // 偏移量
+            offset: offset.toString(), // 偏移量
         };
         const headers = new Headers();
         const we = d(params);

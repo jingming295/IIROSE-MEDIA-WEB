@@ -34,6 +34,8 @@ export interface CoursePagesData
             size: number,
             total: number
         }
+
+        v_voucher: string
     }
 
 

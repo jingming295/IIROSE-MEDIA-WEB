@@ -65,6 +65,10 @@ declare global
             Others: {
                 transform: string;
             }
+        },
+
+        Probe: {
+            gestureMouseEvent: boolean // 是否在处理手势事件
         }
 
     }

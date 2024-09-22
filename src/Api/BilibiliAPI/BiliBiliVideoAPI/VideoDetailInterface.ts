@@ -111,6 +111,7 @@ export interface VideoData
     trackid: string;
     uniq_id: string;
   }
+  v_voucher: string
 }
 
 /**

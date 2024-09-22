@@ -1,6 +1,10 @@
 {
   "name": "iirose-media-web",
   "version": "1.0.0",
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ],
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,10 +16,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.25.2",
     "@types/crypto-js": "^4.2.2",
     "@types/jquery": "^3.5.30",
     "@types/md5": "^2.3.5",
     "@types/qrcode": "^1.5.5",
+    "babel-loader": "^9.2.1",
+    "babel-plugin-minify-dead-code-elimination": "^0.5.2",
     "css-loader": "^7.1.2",
     "sass": "^1.78.0",
     "sass-loader": "^16.0.1",

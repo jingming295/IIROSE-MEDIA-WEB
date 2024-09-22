@@ -145,12 +145,13 @@ export class NetEasePlatform
         const xcAPI = window.netease?.xcAPI
         try
         {
+            let offset = (page - 1) * 100;
             const platformData: PlatformData[] = [];
             const allPlatformData: PlatformData[] = [];
 
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword);
+            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1, offset);
 
-            if (!res || !res.result || !res.result.songs)
+            if (!res || !res.result || !res.result.songs || !res.result.songCount)
             {
 
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
@@ -170,7 +171,7 @@ export class NetEasePlatform
                 songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(ids);
             }
 
-            const totalResult = res.result.songs.length;
+            const totalResult = res.result.songCount;
 
             const totalPage = Math.ceil(totalResult / this.pageSize);
 
@@ -244,6 +245,279 @@ export class NetEasePlatform
 
 
 
+
+    }
+
+    /**
+     * @description 搜索歌单
+     * @param keyword 
+     * @param page 
+     * @returns 
+     */
+    public async searchForMusicListBasicsData(keyword: string, page: number)
+    {
+
+        try
+        {
+            let offset = (page - 1) * 100;
+            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1000, offset);
+
+            if (!res || !res.result || !res.result.playlists || !res.result.playlistCount)
+            {
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
+
+            const platformData: PlatformData[] = [];
+
+            const allPlatformData: PlatformData[] = [];
+
+            const totalResult = res.result.playlistCount;
+
+
+            const totalPage = Math.ceil(totalResult / this.pageSize);
+
+            let count = 0;
+
+            for (const item of res.result.playlists)
+            {
+                const data: PlatformData = {
+                    title: item.name,
+                    coverImg: item.coverImgUrl,
+                    author: item.creator.nickname,
+                    websiteUrl: `https://music.163.com/#/playlist?id=${item.id}`,
+                    trackCount: `${item.trackCount}`,
+                    neteaseMusic: {
+                        id: item.id,
+                        isSongList: true
+                    }
+                }
+
+                if (count >= this.pageSize)
+                {
+                    allPlatformData.push(data);
+                } else
+                {
+                    allPlatformData.push(data);
+                    platformData.push(data);
+                }
+
+                count++;
+
+            }
+
+            return { platformData, totalPage, allPlatformData };
+
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+            return { platformData: [], totalPage: 0, allPlatformData: [] };
+        }
+
+    }
+
+    /**
+     * @description 搜索专辑
+     * @param keyword 
+     * @param page 
+     * @returns 
+     */
+    public async searchForAlbumBasicsData(keyword: string, page: number)
+    {
+        try
+        {
+            let offset = (page - 1) * 100;
+            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 10, offset);
+
+            if (!res || !res.result || !res.result.albums)
+            {
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
+
+            const platformData: PlatformData[] = [];
+
+            const allPlatformData: PlatformData[] = [];
+
+            const totalResult = res.result.albums.length;
+
+            const totalPage = Math.ceil(totalResult / this.pageSize);
+
+            let count = 0;
+
+            for (const item of res.result.albums)
+            {
+                const data: PlatformData = {
+                    title: item.name,
+                    coverImg: item.picUrl,
+                    author: item.artist.name,
+                    websiteUrl: `https://music.163.com/#/album?id=${item.id}`,
+                    trackCount: `${item.size}`,
+                    neteaseMusic: {
+                        id: item.id,
+                        isAlbum: true
+                    }
+                }
+
+                if (count >= this.pageSize)
+                {
+                    allPlatformData.push(data);
+                } else
+                {
+                    allPlatformData.push(data);
+                    platformData.push(data);
+                }
+
+                count++;
+
+            }
+
+            return { platformData, totalPage, allPlatformData };
+
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+            return { platformData: [], totalPage: 0, allPlatformData: [] };
+        }
+    }
+
+    /**
+     * @description 搜索MV
+     * @param keyword 
+     * @param page 
+     * @returns 
+     */
+    public async searchForMVBasicsData(keyword: string, page: number)
+    {
+        try
+        {
+
+            let offset = (page - 1) * 100;
+            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1004, offset);
+
+            if (!res || !res.result || !res.result.mvs)
+            {
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
+
+            const platformData: PlatformData[] = [];
+
+            const allPlatformData: PlatformData[] = [];
+
+            const totalResult = res.result.mvs.length;
+
+            const totalPage = Math.ceil(totalResult / this.pageSize);
+
+            let count = 0;
+
+
+            for (const item of res.result.mvs)
+            {
+                const data: PlatformData = {
+                    title: item.name,
+                    coverImg: item.cover,
+                    duration: item.duration / 1000,
+                    author: item.artistName || item.artists[0].name,
+                    websiteUrl: `https://music.163.com/#/mv?id=${item.id}`,
+                    neteaseMusic: {
+                        id: item.id,
+                        isMV: true
+                    }
+                }
+
+                if (count >= this.pageSize)
+                {
+                    allPlatformData.push(data);
+                } else
+                {
+                    allPlatformData.push(data);
+                    platformData.push(data);
+                }
+
+                count++;
+            }
+            return { platformData, totalPage, allPlatformData };
+
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+            return { platformData: [], totalPage: 0, allPlatformData: [] };
+        }
+
+    }
+
+    /**
+     * @description 搜索电台
+     * @param keyword 
+     * @param page 
+     */
+    public async searchForRadioBasicsData(keyword: string, page: number)
+    {
+
+        try
+        {
+            let offset = (page - 1) * 100;
+            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
+
+            if (!res || !res.result || !res.result.djRadios)
+            {
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
+
+            const platformData: PlatformData[] = [];
+
+            const allPlatformData: PlatformData[] = [];
+
+            const totalResult = res.result.djRadios.length;
+
+            const totalPage = Math.ceil(totalResult / this.pageSize);
+
+            let count = 0;
+
+            for (const item of res.result.djRadios)
+            {
+                const data: PlatformData = {
+                    title: item.name,
+                    coverImg: item.picUrl,
+                    author: item.dj.nickname,
+                    websiteUrl: `https://music.163.com/#/djradio?id=${item.id}`,
+                    multiPage: Promise.resolve(true),
+                    neteaseMusic: {
+                        id: item.id,
+                        isDjRadios: true
+                    },
+                    trackCount: `${item.programCount}`
+                }
+
+                if (count >= this.pageSize)
+                {
+                    allPlatformData.push(data);
+                } else
+                {
+                    allPlatformData.push(data);
+                    platformData.push(data);
+                }
+                count++;
+            }
+            return { platformData, totalPage, allPlatformData };
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+            return { platformData: [], totalPage: 0, allPlatformData: [] };
+        }
+    }
+
+    public async getRadioMultiPageData(platformData: PlatformData)
+    {
+
+        try
+        {
+            if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
+
+
+
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message)
+        }
 
     }
 
@@ -424,8 +698,120 @@ export class NetEasePlatform
         {
             this.showmessage.show((error as Error).message);
         }
+    }
+
+    /**
+     * @description 点播专辑
+     * @param platformData 
+     */
+    public async AOD(platformData: PlatformData)
+    {
+
+        const AODACTION = async (select: number) =>
+        {
+            if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
+            const xcAPI = window.netease?.xcAPI;
+            const socket = new Socket();
+            const media = new Media();
+
+            const id = platformData.neteaseMusic.id;
+            const albumDetails = await this.neteaseMusicApi.getAlbumDetail(id)
+
+            if (!albumDetails) throw new Error('获取歌单详情失败');
+
+            const Songs = albumDetails.songs;
+            let songsID = Songs.map((item) => item.id);
+
+            if (select === 1)
+            {
+                songsID = songsID.sort(() => Math.random() - 0.5);
+            }
+
+            if (xcAPI)
+            {
+                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromXC(songsID);
+                if (!songDetail || !songDetail.songs) throw new Error('获取歌曲详情失败');
+                let count = 0;
+                for (const item of songDetail.songs)
+                {
+                    const songResource = await this.neteaseMusicApi.getSongResource(songsID[count], this.neteaseSetting.quality);
+
+                    if (!songResource) throw new Error('获取歌曲资源失败');
+                    const mediaData: MediaData = {
+                        type: 'music',
+                        name: item.name,
+                        singer: item.ar[0].name,
+                        cover: item.al.picUrl,
+                        link: `https://music.163.com/#/song?id=${item.id}`,
+                        url: songResource.url,
+                        duration: item.dt / 1000,
+                        bitRate: Math.floor(songResource.br / 1000),
+                        color: this.baseHex,
+                        lyrics: songResource.lrc_control,
+                        origin: 'netease'
+                    }
+
+                    const mediacard = media.mediaCard(mediaData);
+                    const mediaEvent = media.mediaEvent(mediaData);
+
+                    socket.send(mediacard);
+                    socket.send(mediaEvent);
+                    count++
+                }
+            } else
+            {
+                const songDetailSongs = await this.neteaseMusicApi.getNeteaseSongDetail(songsID);
+                if (!songDetailSongs) throw new Error('获取歌单详情失败');
+                for (const item of songDetailSongs)
+                {
+                    const playUrl = `https://v.iarc.top//?server=netease&type=url&id=${item.id}#.mp3`
+
+                    const lyrdata = await this.neteaseMusicApi.getLyric(item.id);
+
+                    let lyric = ``;
+
+                    if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
+                    {
+                        lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
+                    } else if (lyrdata && lyrdata.lrc)
+                    {
+                        lyric = lyrdata.lrc.lyric;
+                    }
 
 
+                    const mediaData: MediaData = {
+                        type: 'music',
+                        name: item.name,
+                        singer: item.artists[0].name,
+                        cover: item.album.picUrl,
+                        link: `https://music.163.com/#/song?id=${item.id}`,
+                        url: playUrl,
+                        duration: item.duration / 1000,
+                        bitRate: 320,
+                        color: this.baseHex,
+                        lyrics: lyric,
+                        origin: 'netease'
+                    }
+
+                    const mediacard = media.mediaCard(mediaData);
+                    const mediaEvent = media.mediaEvent(mediaData);
+
+                    socket.send(mediacard);
+                    socket.send(mediaEvent);
+                }
+
+            }
+
+        }
+
+        try
+        {
+            if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
+            this.buildSelect(AODACTION);
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+        }
     }
 
     /**
@@ -519,6 +905,59 @@ export class NetEasePlatform
             this.showmessage.show((error as Error).message);
         }
 
+
+    }
+
+    public async MVOD(platformData: PlatformData)
+    {
+
+        try
+        {
+            if (!platformData.neteaseMusic || !platformData.duration) throw new Error('没有网易云音乐数据');
+
+            const xcAPI = window.netease?.xcAPI
+            let xcRes: xcSongResource | null = null
+            const id = platformData.neteaseMusic.id
+            if (xcAPI)
+            { } else
+            { }
+
+            const res = await this.neteaseMusicApi.getMVPlayURL(id);
+
+            if (!res || !res.data) throw new Error('获取MV资源失败');
+
+            if (res.data.msg) throw new Error(res.data.msg);
+
+            const playUrl = res.data.url;
+
+            const media = new Media();
+
+            const mediaData: MediaData = {
+                type: 'video',
+                name: platformData.title,
+                singer: platformData.author,
+                cover: platformData.coverImg,
+                link: platformData.websiteUrl,
+                url: playUrl,
+                duration: platformData.duration,
+                bitRate: 1080,
+                color: this.baseHex,
+                origin: 'netease'
+            }
+
+            const mediacard = media.mediaCard(mediaData);
+
+            const mediaEvent = media.mediaEvent(mediaData);
+
+            const socket = new Socket();
+
+            socket.send(mediacard);
+            socket.send(mediaEvent);
+
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+        }
 
     }
 

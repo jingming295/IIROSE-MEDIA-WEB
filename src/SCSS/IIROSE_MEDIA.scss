@@ -187,8 +187,10 @@
 
           .MediaContainerSubNavBar {
             display: flex;
-            flex-wrap: wrap;
             color: #fff;
+            overflow-y: hidden;
+            white-space: nowrap;
+            scroll-behavior: smooth;
             animation:
               fadeIn 0.25s ease-out,
               expandHeight 0.25s ease-in-out;
@@ -256,25 +258,31 @@
               }
             }
 
-            .paginationWrapper {
-              margin: 0 24px;
+            .mediaSearchBarRightWrapper {
+              display: flex;
+              align-items: center;
+              height: 100%;
 
-              .paginationIcon::before {
-                content: "\F14F7";
-                font-family: "md";
-              }
+              .paginationWrapper {
+                margin: 0 24px;
 
-              .paginationIcon {
-                font-size: 24px;
-              }
+                .paginationIcon::before {
+                  content: "\F14F7";
+                  font-family: "md";
+                }
 
-              .pagination {
-                margin-left: 22px;
-                font-size: 14px;
-              }
+                .paginationIcon {
+                  font-size: 24px;
+                }
 
-              &:hover {
-                opacity: 0.7;
+                .pagination {
+                  margin-left: 22px;
+                  font-size: 14px;
+                }
+
+                &:hover {
+                  opacity: 0.7;
+                }
               }
             }
 
@@ -665,6 +673,10 @@
   /* 显示时变为 1 */
 }
 
+#mainContainer {
+  transition: transform 0.25s;
+}
+
 .fullBoxFixed.hidemainHolder {
   transform: translateX(-100%);
   transform-origin: left;
@@ -900,8 +912,13 @@
 }
 
 @media (max-width: 490px) {
-  .NavBarButtonText {
+  .NavBarButtonText,
+  .PaginationControllerButton {
     display: none !important;
+  }
+
+  .PaginationControllerButtonWrapper {
+    padding: 10px 25px !important;
   }
 
   .NavBarButtonIcon {
@@ -917,6 +934,26 @@
 
   .MediaCard {
     margin: 0 !important;
+  }
+
+  .MediaSearchBar {
+    justify-content: space-between !important;
+
+    .inputIcon {
+      margin-left: 20px;
+    }
+  }
+
+  .SettingsCard {
+    margin: 0 !important;
+    min-height: 150px !important;
+    .titleWrapper {
+      padding: 0 10px !important;
+    }
+  }
+
+  .SubNavBarItem {
+    padding: 2px 10px !important;
   }
 }
 

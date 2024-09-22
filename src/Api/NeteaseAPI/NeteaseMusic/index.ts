@@ -1,6 +1,9 @@
 import { SendFetch } from "../../index";
 import { SongDetail, SongDetailFromXC, SongDetailFromXCSong, SongDetailSong } from "./SongDetailInterface";
 import { Lyric, SongList, xcSongResource } from "./SongList";
+import { d } from "../Crypto";
+import { AlbumData } from "./AlbumInterface";
+import { MVPlayURLData } from "./MVInterfaces";
 
 export class NeteaseMusicAPI extends SendFetch
 {
@@ -31,6 +34,35 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
 
+    }
+
+    public async getAlbumDetail(id: number)
+    {
+        const url = `${this.cors}https://music.163.com/weapi/v1/album/${id}`
+        const params = {
+            csrf_token: ''
+        };
+
+        const headers = new Headers();
+        const we = d(params);
+        const enc = {
+            params: we.encText,
+            encSecKey: we.encSecKey
+        }
+        const encparams = new URLSearchParams(enc);
+        headers.append('content-type', 'application/x-www-form-urlencoded')
+
+        const response = await this.sendPost(url, encparams, headers);
+
+        if (response && response.ok)
+        {
+            const data: AlbumData = await response.json();
+            console.log(data)
+            return data;
+        } else
+        {
+            return null;
+        }
     }
 
     /**
@@ -275,5 +307,38 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
     };
+
+    public async getMVPlayURL(id: number)
+    {
+        const url = `${this.beijingcors}https://music.163.com/weapi/song/enhance/play/mv/url`;
+        const params = {
+            id: id,
+            r: 1080,
+            csrf_token: ''
+        };
+
+        const headers = new Headers();
+        const we = d(params);
+        const enc = {
+            params: we.encText,
+            encSecKey: we.encSecKey
+        }
+
+        const encparams = new URLSearchParams(enc);
+
+        headers.append('content-type', 'application/x-www-form-urlencoded')
+
+        const response = await this.sendPost(url, encparams, headers);
+
+        if (response && response.ok)
+        {
+            const data: MVPlayURLData = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+
+    }
 
 }

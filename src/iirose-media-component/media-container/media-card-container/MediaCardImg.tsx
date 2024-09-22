@@ -28,25 +28,32 @@ export class MediaCardImg extends Component<MediaCardImgProps>
         } else if (platformData.bilibili?.bvid)
         {
             type = '视频'
+        } else if (platformData.bilibiliLive)
+        {
+            type = '直播'
         } else if (platformData.neteaseMusic?.isSongList)
         {
             type = '歌单'
         } else if (platformData.neteaseMusic?.isAlbum)
         {
             type = '专辑'
-        } else if (platformData.neteaseMusic)
+        } else if (platformData.neteaseMusic?.isMV)
+        {
+            type = 'MV'
+        } else if (platformData.neteaseMusic?.isDjRadios)
+        {
+            type = '电台'
+        }
+        else if (platformData.neteaseMusic)
         {
             type = '音乐'
-        } else if (platformData.bilibiliLive)
-        {
-            type = '直播'
         }
 
         if (type)
         {
             if (trackCount)
             {
-                infoArea = `${type} / ${trackCount}首歌`
+                infoArea = `${type} / ${trackCount}首`
             }
             else if (duration)
             {
@@ -70,10 +77,13 @@ export class MediaCardImg extends Component<MediaCardImgProps>
 
     private formatSecondsToMinutes(seconds: number)
     {
+        // 先将秒数四舍五入为整数
+        const roundedSeconds = Math.round(seconds);
+
         // 计算分钟数
-        const minutes = Math.floor(seconds / 60);
+        const minutes = Math.floor(roundedSeconds / 60);
         // 计算剩余的秒数
-        const remainingSeconds = seconds % 60;
+        const remainingSeconds = roundedSeconds % 60;
 
         // 格式化分钟和秒数为两位数字
         const formattedMinutes = String(minutes).padStart(2, '0');
@@ -82,4 +92,5 @@ export class MediaCardImg extends Component<MediaCardImgProps>
         // 返回 "xx:xx" 格式的字符串
         return `${formattedMinutes}:${formattedSeconds}`;
     }
+
 }

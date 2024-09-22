@@ -12,6 +12,7 @@ interface IMCState
 interface IMCProps
 {
     ShowOrHideIMC: () => Promise<void>;
+
 }
 
 export class IMC extends Component<IMCProps, IMCState>

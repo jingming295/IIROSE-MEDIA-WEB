@@ -70,9 +70,9 @@ export interface Categories
 export class MediaContainer extends Component<MediaContainerProps, MediaContainerState>
 {
     static contextType = MediaContainerContext;
-
     bilibiliPlatform = new BilibiliPlatform();
     private itemsPerPage = 10
+    mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
 
     constructor(props: MediaContainerProps)
     {
@@ -158,7 +158,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
         return (
             <Provider value={providerValue}>
-                <div className='MediaContainerWrapper'>
+                <div
+                    className='MediaContainerWrapper'
+                    onTouchStart={(e) => this.mediaContainerGesture.handleStart(e, currentPage, totalPage, changecurrentPage)}
+                    onMouseDown={(e) => this.mediaContainerGesture.handleStart(e, currentPage, totalPage, changecurrentPage)}
+                >
 
                     <div className='MediaContainer'>
 
@@ -174,7 +178,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                                         {
                                             changeSearchKeyword,
                                             changecurrentPage,
-                                            currentSubNavBarAction,
                                             switchToOutFromMultiPage
                                         }
                                     }
@@ -260,11 +263,12 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          * @param page 
          * @returns 
          */
-        changecurrentPage: (page: number) =>
+        changecurrentPage: async (page: number) =>
         {
-            const updating = this.state.updating;
+            const { updating, currentSubNavBarAction } = this.state;
             if (updating) return;
-            this.setState({ currentPage: page });
+            await this.setState({ currentPage: page });
+            currentSubNavBarAction();
         },
 
         /**
@@ -332,6 +336,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     }
                 })
 
+            } else if (platformData.neteaseMusic)
+            {
+                const netease = new NetEasePlatform();
+                const data = netease.getRadioMultiPageData(platformData);
+
             }
 
         },
@@ -396,8 +405,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 return;
             }
 
+            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
+
+
             // 如果有全部MediaData
-            if ((allMediaData.length > 0 && allMediaData.length) && allMediaData.length >= currentPage * this.itemsPerPage) 
+            if (currentPage <= maxPage) 
             {
                 const vod = new BilibiliPlatform().VOD.bind(new BilibiliPlatform());
                 // 计算起始和结束索引
@@ -413,7 +425,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             {
                 const currentRequestToken = this.state.requestToken + 1; // 新的请求标识符
                 this.setState({ updating: true, requestToken: currentRequestToken });
-                let page = currentPage !== 1 ? Math.floor(allMediaData.length / 50) + 1 : 1;
+                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 50) + 1 : 1;
                 const bilibili = new BilibiliPlatform();
                 const data = bilibili.searchForVideosBasicsData(searchKeyword, page);
                 const vod = bilibili.VOD.bind(bilibili);
@@ -493,6 +505,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
     }
 
     private netEaseAction = {
+
         netEaseRecommendPlayList: () =>
         {
             const { allMediaData, totalPage, currentPage } = this.state;
@@ -521,7 +534,9 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 this.setState({
                     mediaData: data,
                     currentOnDemandPlay: mlod,
-                    requestToken: currentRequestToken
+                    requestToken: currentRequestToken,
+                    currentPage: 1,
+                    totalPage: 0
                 });
 
                 data.then((res) =>
@@ -541,11 +556,12 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         },
         netEaseSearchMusicByKeyword: () =>
         {
-            const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
+            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
             const netease = new NetEasePlatform();
             const currentRequestToken = this.state.requestToken + 1;
-
-            if (allMediaData.length > 0)
+            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
+            if (!allMediaData.length) this.setState({ totalPage: 0 });
+            if (currentPage <= maxPage)
             {
                 const MOD = netease.MOD.bind(netease);
 
@@ -561,7 +577,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 this.setState({ mediaData: mediaData });
                 this.setState({ currentOnDemandPlay: MOD });
 
-            } else
+            } else if (!updating) 
             {
                 if (searchKeyword === '')
                 {
@@ -569,8 +585,8 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     return;
                 }
 
-                const page = currentPage;
-
+                this.setState({ updating: true });
+                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
                 const data = netease.searchForMusicsBasicsData(searchKeyword, page);
                 const MOD = netease.MOD.bind(netease);
 
@@ -587,9 +603,225 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                         return;
                     };
 
-                    this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
+                    if (res.allPlatformData)
+                    {
+                        allMediaData.push(...res.allPlatformData);
+                        this.setState({ allMediaData: allMediaData, updating: false });
+                        this.setState({ totalPage: res.totalPage });
+                    }
                 });
             }
+        },
+        netEaseSearchSongListByKeyword: () =>
+        {
+            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
+            const netease = new NetEasePlatform();
+            const currentRequestToken = this.state.requestToken + 1;
+            const MLOD = netease.MLOD.bind(netease);
+
+            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
+            if (currentPage <= maxPage)
+            {
+
+                const startIndex = (currentPage - 1) * this.itemsPerPage;
+                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
+
+                const currentPageData = allMediaData.slice(startIndex, endIndex);
+
+                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
+
+                this.setState({ mediaData: mediaData });
+                this.setState({ currentOnDemandPlay: MLOD });
+
+            } else if (!updating)
+            {
+                if (searchKeyword === '')
+                {
+                    this.setState({ mediaData: null, totalPage: 0 });
+                    return;
+                }
+                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
+
+                const data = netease.searchForMusicListBasicsData(searchKeyword, page);
+
+                this.setState({
+                    mediaData: data,
+                    currentOnDemandPlay: MLOD,
+                    requestToken: currentRequestToken,
+                    updating: true
+                });
+
+
+
+                data.then((res) =>
+                {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
+
+                    if (res.allPlatformData)
+                    {
+                        allMediaData.push(...res.allPlatformData);
+                        this.setState({ allMediaData: allMediaData, updating: false });
+                        this.setState({ totalPage: res.totalPage });
+                    }
+                })
+            }
+
+
+
+
+        },
+        netEaseSearchAlbumByKeyword: () =>
+        {
+
+            const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
+            const netease = new NetEasePlatform();
+            const currentRequestToken = this.state.requestToken + 1;
+
+
+            if (allMediaData.length > 0)
+            {
+                const AOD = netease.AOD.bind(netease);
+
+                const startIndex = (currentPage - 1) * this.itemsPerPage;
+                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
+
+                const currentPageData = allMediaData.slice(startIndex, endIndex);
+
+                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
+
+                this.setState({ mediaData: mediaData });
+                this.setState({ currentOnDemandPlay: AOD });
+
+            } else
+            {
+                if (searchKeyword === '')
+                {
+                    this.setState({ mediaData: null, totalPage: 0 });
+                    return;
+                }
+
+                const data = netease.searchForAlbumBasicsData(searchKeyword, currentPage);
+
+                const AOD = netease.AOD.bind(netease);
+                this.setState({
+                    mediaData: data,
+                    currentOnDemandPlay: AOD,
+                    requestToken: currentRequestToken
+                });
+
+                data.then((res) =>
+                {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
+
+                    this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
+                })
+            }
+
+        },
+        netEaseSearchMVByKeyword: () =>
+        {
+            const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
+            const netease = new NetEasePlatform();
+            const currentRequestToken = this.state.requestToken + 1;
+            const MVOD = netease.MVOD.bind(netease);
+            this.setState({ currentOnDemandPlay: MVOD });
+
+            if (allMediaData.length > 0)
+            {
+
+                const startIndex = (currentPage - 1) * this.itemsPerPage;
+                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
+
+                const currentPageData = allMediaData.slice(startIndex, endIndex);
+
+                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
+
+                this.setState({ mediaData: mediaData });
+
+            } else
+            {
+                if (searchKeyword === '')
+                {
+                    this.setState({ mediaData: null, totalPage: 0 });
+                    return;
+                }
+
+                const data = netease.searchForMVBasicsData(searchKeyword, currentPage);
+
+                this.setState({
+                    mediaData: data,
+                    requestToken: currentRequestToken
+                });
+
+                data.then((res) =>
+                {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
+
+                    this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
+                })
+            }
+
+        },
+        netEaseSearchRadioByKeyword: () =>
+        {
+            const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
+            const netease = new NetEasePlatform();
+            const currentRequestToken = this.state.requestToken + 1;
+
+
+            if (allMediaData.length > 0)
+            {
+
+                const startIndex = (currentPage - 1) * this.itemsPerPage;
+                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
+
+                const currentPageData = allMediaData.slice(startIndex, endIndex);
+
+                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
+
+                this.setState({ mediaData: mediaData });
+
+            } else
+            {
+                if (searchKeyword === '')
+                {
+                    this.setState({ mediaData: null, totalPage: 0 });
+                    return;
+                }
+
+                const data = netease.searchForRadioBasicsData(searchKeyword, currentPage);
+
+                this.setState({
+                    mediaData: data,
+                    requestToken: currentRequestToken
+                });
+
+                data.then((res) =>
+                {
+                    if (this.state.requestToken !== currentRequestToken)
+                    {
+                        return;
+                    };
+
+                    this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
+                })
+            }
+        },
+        neteaseRadioMultiPage: () =>
+        {
+            const { mediaData, allMediaData, currentPage, totalPage } = this.state;
+
+            console.log(mediaData)
+
         }
     }
 
@@ -758,7 +990,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '网易云音乐',
                     iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
                     color: 'rgb(221, 28, 4)',
-                    collectable: true,
+                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '推荐歌单',
@@ -773,6 +1005,35 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                             searchAction: () =>
                             {
                                 this.netEaseAction.netEaseSearchMusicByKeyword();
+                            }
+                        }, {
+                            title: '搜索专辑',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                this.netEaseAction.netEaseSearchAlbumByKeyword();
+                            }
+                        }, {
+                            title: '搜索MV',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                this.netEaseAction.netEaseSearchMVByKeyword();
+                            }
+                        },
+                        {
+                            title: '搜索歌单',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                this.netEaseAction.netEaseSearchSongListByKeyword();
+                            }
+                        }, {
+                            title: '搜索电台',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                this.netEaseAction.netEaseSearchRadioByKeyword();
                             }
                         }
                     ]
@@ -839,4 +1100,106 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         }
     ];
 }
+
+class MediaContainerGesture
+{
+    constructor(private ShowOrHideIMC: () => Promise<void>) { }
+
+    startX = 0;
+    startY = 0;
+    currentPage = 1;
+    totalPage = 1;
+    changecurrentPage = (page: number) => { };
+
+    handleStart(e: TouchEvent | MouseEvent, currentPage: number, totalPage: number, changecurrentPage: (page: number) => void)
+    {
+        this.currentPage = currentPage;
+        this.totalPage = totalPage;
+        this.changecurrentPage = changecurrentPage;
+
+        if (e instanceof TouchEvent)
+        {
+            this.startX = e.touches[0].clientX;
+            this.startY = e.touches[0].clientY;
+            window.addEventListener("touchmove", this.handleMove);
+            window.addEventListener("touchend", this.handleEnd);
+        }
+        else if (e instanceof MouseEvent)
+        {
+            this.startX = e.clientX;
+            this.startY = e.clientY;
+            window.addEventListener("mousemove", this.handleMove);
+            window.addEventListener("mouseup", this.handleEnd);
+        }
+    }
+
+    handleMove = (e: TouchEvent | MouseEvent) =>
+    {
+        let currentX = 0;
+        let currentY = 0;
+
+        if (e instanceof TouchEvent)
+        {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        }
+        else if (e instanceof MouseEvent)
+        {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        }
+
+        const diffX = currentX - this.startX;
+        const diffY = currentY - this.startY;
+
+        // 检查垂直位移是否超过水平位移的 1/3
+        if (Math.abs(diffY) > Math.abs(diffX) / 3)
+        {
+            this.handleEnd(); // 取消事件监听，避免触发翻页
+            return;
+        }
+
+        // 判断滑动是否超过 100 像素
+        if (Math.abs(diffX) > 50)
+        {
+            if (diffX > 0)
+            {
+                // 右滑动（从左向右）
+                if (this.currentPage > 1)
+                {
+                    this.changecurrentPage(this.currentPage - 1);
+                }
+                else
+                {
+                    this.ShowOrHideIMC();
+                }
+            }
+            else
+            {
+                // 左滑动（从右向左）
+                if (this.currentPage < this.totalPage)
+                {
+                    this.changecurrentPage(this.currentPage + 1);
+                }
+            }
+
+            // 触发后立即解绑
+            this.handleEnd();
+        }
+    }
+
+    handleEnd = () =>
+    {
+        // 移除 touchmove 和 touchend 事件监听器
+        window.removeEventListener("touchmove", this.handleMove);
+        window.removeEventListener("touchend", this.handleEnd);
+
+        // 移除 mousemove 和 mouseup 事件监听器
+        window.removeEventListener("mousemove", this.handleMove);
+        window.removeEventListener("mouseup", this.handleEnd);
+    }
+}
+
+
+
 

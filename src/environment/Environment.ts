@@ -5,13 +5,14 @@ declare global
     interface Window
     {
         device: number | 1 | 7; // 1: 电脑的游览器, 7: Windows app
+        ClientLocation?: 'CN' | 'Global';
         iirosemedia?: {
             cors?: string;
             // 其他属性...
         };
         netease?: {
-            xcAPI?: boolean;
-            iarc?: boolean;
+            xcAPI?: string;
+            theresaAPI?: string;
         }
     }
 }
@@ -31,13 +32,11 @@ export interface ipinfo
 
 export class Environment
 {
-    public setEnv()
+    public async setEnv()
     {
         window.iirosemedia = {};
         window.netease = {};
-        window.netease.xcAPI = false
-        window.netease.iarc = false
-        this.setCors();
+        await this.setCors();
         this.setNetease();
     }
 
@@ -60,29 +59,27 @@ export class Environment
         //     this.selectCorsBySpeed();
         // }
         const sendFetch = new SendFetch();
-        const res = sendFetch.sendGet(`https://ipinfo.io/json`, new URLSearchParams(), new Headers());
+        const res = await sendFetch.sendGet(`https://ipinfo.io/json`, new URLSearchParams(), new Headers());
 
-        res.then(async (res) =>
+        if (res)
         {
-            if (res)
+            const data: ipinfo = await res.json();
+            if (!window.iirosemedia) return
+
+            if (data.country === 'CN')
             {
-                const data: ipinfo = await res.json();
-                if (!window.iirosemedia) return
-
-                if (data.country === 'CN')
-                {
-
-                    window.iirosemedia.cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
-                } else
-                {
-                    window.iirosemedia.cors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
-                }
-
+                window.ClientLocation = 'CN';
+                window.iirosemedia.cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
             } else
             {
-                this.selectCorsBySpeed();
+                window.ClientLocation = 'Global';
+                window.iirosemedia.cors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
             }
-        })
+
+        } else
+        {
+            this.selectCorsBySpeed();
+        }
     }
 
     private async selectCorsBySpeed()
@@ -121,12 +118,42 @@ export class Environment
         try
         {
             const sendFetch = new SendFetch
-            const res = await sendFetch.tryGetWhithXhr("https://xc.null.red:8043/meting-api/")
-            if (res)
+            const xc = sendFetch.tryGetWhithXhr("https://xc.null.red:8043/meting-api/")
+            let theresa: Promise<boolean>
+            if (window.ClientLocation)
             {
-                if (window.netease)
-                    window.netease.xcAPI = true;
+                if (window.ClientLocation === 'CN')
+                {
+                    theresa = sendFetch.tryGetWhithXhr("https://ifs.imoe.xyz/163music/song/detail?ids=347230")
+                } else
+                {
+                    theresa = sendFetch.tryGetWhithXhr("https://global-ifs.imoe.xyz/163music/song/detail?ids=347230")
+                }
+            } else
+            {
+                theresa = sendFetch.tryGetWhithXhr("https://ifs.imoe.xyz/163music/song/detail?ids=347230")
             }
+            xc.then((res) =>
+            {
+                if (!res) return
+                if (window.netease)
+                    window.netease.xcAPI = "https://xc.null.red:8043/api/netease/";
+            })
+
+            theresa.then((res) =>
+            {
+                if (!res) return
+                if (window.netease)
+                    if (window.ClientLocation === 'Global')
+                    {
+                        window.netease.theresaAPI = "https://global-ifs.imoe.xyz/163music/";
+                        return
+                    } else
+                    {
+                        window.netease.theresaAPI = "https://ifs.imoe.xyz/163music/";
+                    }
+
+            })
         } catch (error)
         {
 

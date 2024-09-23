@@ -160,17 +160,26 @@ export class SendFetch
 
     public async tryGetWitchFetch(url: string)
     {
-        const response = await fetch(url, {
-            method: 'HEAD',
-        });
-        if (response.ok)
+        try
         {
-            return true;
-        } else
+            const response = await fetch(url, {
+            });
+
+            // 如果请求成功，检查状态码
+            if (response.ok || response.status === 200)
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+        } catch (error)
         {
-            return false;
+            console.log(error);
+            return true; // 处理其他错误
         }
     }
+
 
     public async tryGetWhithXhr(url: string): Promise<boolean>
     {
@@ -190,6 +199,10 @@ export class SendFetch
             };
             xhr.onerror = () =>
             {
+                if (xhr.status >= 200 && xhr.status < 300)
+                {
+                    resolve(true); // 请求成功，返回 true
+                }
                 resolve(false); // 请求出错，返回 false
             };
             xhr.send(); // 发送请求

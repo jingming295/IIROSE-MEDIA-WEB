@@ -134,17 +134,17 @@ export class BiliBiliSettings
 
         }
         const mdiClass = [
-            'iirose-media-web-play',
-            'iirose-media-web-play',
-            'iirose-media-web-play',
-            'iirose-media-web-hdbox',
-            'iirose-media-web-hdbox',
-            'iirose-media-web-hdbox',
-            'iirose-media-web-hdbox',
-            'iirose-media-web-hdbox',
-            'iirose-media-web-4kbox',
-            'iirose-media-web-dolby',
-            'iirose-media-web-grain'
+            'mdi-motion-play',
+            'mdi-motion-play',
+            'mdi-motion-play',
+            'mdi-high-definition-box',
+            'mdi-high-definition-box',
+            'mdi-high-definition-box',
+            'mdi-high-definition-box',
+            'mdi-high-definition-box',
+            'mdi-high-definition-box',
+            'mdi-dolby',
+            'mdi-grain'
         ];
 
         const selectOption = [
@@ -198,8 +198,8 @@ export class BiliBiliSettings
         }
 
         const mdiClass = [
-            'iirose-media-web-play',
-            'iirose-media-web-hdbox',
+            'mdi-motion-play',
+            'mdi-high-definition-box',
         ];
 
         selectOption.forEach((item, index) =>
@@ -270,9 +270,9 @@ export class BiliBiliSettings
         ];
 
         const mdiClass = [
-            'iirose-media-web-play',
-            'iirose-media-web-hdbox',
-            `iirose-media-web-mixed`
+            'mdi-motion-play',
+            'mdi-high-definition-box',
+            `mdi-tune-vertical`
         ];
 
         selectOption.forEach((item, index) =>

@@ -1,7 +1,6 @@
 import { Environment } from "./environment/Environment";
 import { IMCInit } from "./iirose-media-component/IMCInit";
 import './SCSS/IIROSE_MEDIA.scss';
-import './SCSS/MaterialDesignIcon.scss';
 import { LocalStorageUtils } from "./settings/localStorageUtils/LocalStorageUtils";
 
 class APP

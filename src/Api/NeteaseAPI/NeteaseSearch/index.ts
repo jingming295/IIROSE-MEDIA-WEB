@@ -152,16 +152,16 @@ export class NeteaseSearchAPI extends SendFetch
 
     }
 
-    public async getNeteaseRecommandPlayListXC(limit: number = 30, warn = true)
+    public async getNeteaseRecommandPlayListFromBinaryify(limit: number = 30, api: 'xc' | 'theresa', warn = true)
     {
-        const url = `https://xc.null.red:8043/api/netease/personalized`
+        const theresaAPI = window.netease?.theresaAPI;
+        const xcAPI = window.netease?.xcAPI;
+        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+        const url = `${realAPI}/personalized`
         const params = new URLSearchParams();
         params.append('limit', limit.toString());
-
         const headers = new Headers();
-
         const response = await this.sendGet(url, params, headers, warn);
-
         if (response && response.ok)
         {
             const data: RecommendSongList = await response.json();
@@ -170,5 +170,55 @@ export class NeteaseSearchAPI extends SendFetch
         {
             return null;
         }
+    }
+
+    public async getNeteaseSearchDataFromBinaryify(keyWord: string, type: number, offset: number, api: 'xc' | 'theresa', limit: number = 100)
+    {
+        const theresaAPI = window.netease?.theresaAPI;
+        const xcAPI = window.netease?.xcAPI;
+
+        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+
+        const url = new URL(`${realAPI}cloudsearch`);
+        const params = new URLSearchParams({
+            keywords: keyWord,
+            type: type.toString(),
+            limit: limit.toString(),
+            offset: offset.toString()
+        });
+
+        const headers = new Headers();
+
+        const response = await this.sendGet(url.toString(), params, headers);
+
+        if (response && response.ok)
+        {
+            const data: SearchData = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+    }
+
+    private getRealAPI(api: 'xc' | 'theresa', xcAPI?: string, theresaAPI?: string)
+    {
+        let realAPI = null;
+
+        if (api === 'xc' && xcAPI)
+        {
+            realAPI = xcAPI;
+        } else if (api === 'theresa' && theresaAPI)
+        {
+            realAPI = theresaAPI;
+        } else if (theresaAPI)
+        {
+            realAPI = theresaAPI;
+        } else if (xcAPI)
+        {
+            realAPI = xcAPI;
+        }
+
+        return realAPI;
     }
 }

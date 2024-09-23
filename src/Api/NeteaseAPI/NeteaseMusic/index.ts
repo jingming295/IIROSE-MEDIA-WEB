@@ -1,5 +1,5 @@
 import { SendFetch } from "../../index";
-import { SongDetail, SongDetailFromXC, SongDetailFromXCSong, SongDetailSong } from "./SongDetailInterface";
+import { SongDetail, SongDetailFromBinaryify, SongDetailFromXCSong, SongDetailSong } from "./SongDetailInterface";
 import { Lyric, SongList, xcSongResource } from "./SongList";
 import { d } from "../Crypto";
 import { AlbumData } from "./AlbumInterface";
@@ -138,9 +138,14 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongDetailFromXC(id: number[])
+    public async getNeteaseSongDetailFromBinaryify(id: number[], api: 'xc' | 'theresa')
     {
-        const url = new URL(`https://xc.null.red:8043/api/netease/song/detail`);
+        const theresaAPI = window.netease?.theresaAPI;
+        const xcAPI = window.netease?.xcAPI;
+
+        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+
+        const url = new URL(`${realAPI}song/detail`);
         const params = new URLSearchParams({
             ids: id.toString(),
         });
@@ -162,7 +167,7 @@ export class NeteaseMusicAPI extends SendFetch
 
             if (response && response.ok)
             {
-                const data: SongDetailFromXC = await response.json();
+                const data: SongDetailFromBinaryify = await response.json();
                 return data;
             } else
             {
@@ -339,6 +344,27 @@ export class NeteaseMusicAPI extends SendFetch
             return null;
         }
 
+    }
+
+    private getRealAPI(api: 'xc' | 'theresa', xcAPI?: string, theresaAPI?: string)
+    {
+        let realAPI = null;
+
+        if (api === 'xc' && xcAPI)
+        {
+            realAPI = xcAPI;
+        } else if (api === 'theresa' && theresaAPI)
+        {
+            realAPI = theresaAPI;
+        } else if (theresaAPI)
+        {
+            realAPI = theresaAPI;
+        } else if (xcAPI)
+        {
+            realAPI = xcAPI;
+        }
+
+        return realAPI;
     }
 
 }

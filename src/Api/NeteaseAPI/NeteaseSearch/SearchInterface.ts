@@ -10,7 +10,9 @@ export interface SearchData
         playlists?: playlists[];
         playlistCount?: number;
         albums?: albums[];
+        albumCount?: number;
         mvs?: mvs[];
+        mvCount?: number;
         hlWords?: string[];
         djRadiosCount?: number;
         djRadios?: djRadios[];

@@ -5,7 +5,7 @@ export interface SongDetail
   code: number;
 }
 
-export interface SongDetailFromXC
+export interface SongDetailFromBinaryify
 {
   code: number;
   privileges: [];

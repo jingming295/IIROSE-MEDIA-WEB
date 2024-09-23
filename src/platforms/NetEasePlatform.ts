@@ -1,15 +1,15 @@
 import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
-import { SongDetail, SongDetailFromXC, SongDetailSong } from "../Api/NeteaseAPI/NeteaseMusic/SongDetailInterface";
+import { SongDetailFromBinaryify, SongDetailSong } from "../Api/NeteaseAPI/NeteaseMusic/SongDetailInterface";
 import { xcSongResource } from "../Api/NeteaseAPI/NeteaseMusic/SongList";
 import { NeteaseSearchAPI } from "../Api/NeteaseAPI/NeteaseSearch";
 import { RecommendSongList } from "../Api/NeteaseAPI/NeteaseSearch/RecommendInterface";
+import { SearchData } from "../Api/NeteaseAPI/NeteaseSearch/SearchInterface";
 import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
 import { Media } from "../iirose_func/Socket/Media";
 import { MediaData } from "../iirose_func/Socket/Media/MediaCardInterface";
 import { NetEaseSettings } from "../settings/neteaseSettings/NetEaseSettings";
-import { ImageTools } from "../tools/ImageTools";
 import { PlatformData } from "./interfaces";
 
 export class NetEasePlatform
@@ -74,14 +74,16 @@ export class NetEasePlatform
         const allPlatformData: PlatformData[] = [];
         const limit = 100;
         const xcAPI = window?.netease?.xcAPI;
+        const theresaAPI = window?.netease?.theresaAPI;
+        const neteaseAPI = this.neteaseSetting.api;
         let totalPage = Math.ceil(limit / this.pageSize);
 
         try
         {
             let res: RecommendSongList | null = null
-            if (xcAPI)
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
             {
-                res = await this.neteaseSearch.getNeteaseRecommandPlayListXC(limit, false);
+                res = await this.neteaseSearch.getNeteaseRecommandPlayListFromBinaryify(limit, neteaseAPI, false);
             } else
             {
                 res = await this.neteaseSearch.getNeteaseRecommandPlayList(limit)
@@ -128,6 +130,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0 };
         }
 
@@ -143,43 +146,53 @@ export class NetEasePlatform
     public async searchForMusicsBasicsData(keyword: string, page: number)
     {
         const xcAPI = window.netease?.xcAPI
+        const theresaAPI = window.netease?.theresaAPI
         try
         {
             let offset = (page - 1) * 100;
             const platformData: PlatformData[] = [];
             const allPlatformData: PlatformData[] = [];
+            let searchData: SearchData | null = null
 
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1, offset);
+            const neteaseAPI = this.neteaseSetting.api
 
-            if (!res || !res.result || !res.result.songs || !res.result.songCount)
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            {
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1, offset, neteaseAPI);
+            } else
+            {
+                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1, offset);
+            }
+
+            if (!searchData || !searchData.result || !searchData.result.songs || !searchData.result.songCount)
             {
 
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
             }
 
-            const ids = res.result.songs.map((item) => item.id);
+            const ids = searchData.result.songs.map((item) => item.id);
 
-            let songDetailFromXC: SongDetailFromXC | null = null
+            let songDetailFromBinaryify: SongDetailFromBinaryify | null = null
 
             let songDetail: SongDetailSong[] | null = null
 
-            if (xcAPI)
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
             {
-                songDetailFromXC = await this.neteaseMusicApi.getNeteaseSongDetailFromXC(ids)
+                songDetailFromBinaryify = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(ids, neteaseAPI)
             } else
             {
                 songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(ids);
             }
 
-            const totalResult = res.result.songCount;
+            const totalResult = searchData.result.songCount;
 
             const totalPage = Math.ceil(totalResult / this.pageSize);
 
             let count = 0;
 
-            if (songDetailFromXC && songDetailFromXC.songs)
+            if (songDetailFromBinaryify && songDetailFromBinaryify.songs)
             {
-                for (const item of songDetailFromXC.songs)
+                for (const item of songDetailFromBinaryify.songs)
                 {
 
                     const data: PlatformData = {
@@ -238,7 +251,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
-            console.log(error)
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0, allPlatformData: [] };
         }
 
@@ -256,13 +269,25 @@ export class NetEasePlatform
      */
     public async searchForMusicListBasicsData(keyword: string, page: number)
     {
-
         try
         {
-            let offset = (page - 1) * 100;
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1000, offset);
 
-            if (!res || !res.result || !res.result.playlists || !res.result.playlistCount)
+            let offset = (page - 1) * 100;
+            const xcAPI = window.netease?.xcAPI
+            const theresaAPI = window.netease?.theresaAPI
+            const neteaseAPI = this.neteaseSetting.api
+
+            let searchData: SearchData | null = null
+
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            {
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1000, offset, neteaseAPI);
+            } else
+            {
+                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1000, offset);
+            }
+
+            if (!searchData || !searchData.result || !searchData.result.playlists || !searchData.result.playlistCount)
             {
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
             }
@@ -271,14 +296,14 @@ export class NetEasePlatform
 
             const allPlatformData: PlatformData[] = [];
 
-            const totalResult = res.result.playlistCount;
+            const totalResult = searchData.result.playlistCount;
 
 
             const totalPage = Math.ceil(totalResult / this.pageSize);
 
             let count = 0;
 
-            for (const item of res.result.playlists)
+            for (const item of searchData.result.playlists)
             {
                 const data: PlatformData = {
                     title: item.name,
@@ -310,6 +335,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0, allPlatformData: [] };
         }
 
@@ -326,9 +352,22 @@ export class NetEasePlatform
         try
         {
             let offset = (page - 1) * 100;
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 10, offset);
 
-            if (!res || !res.result || !res.result.albums)
+            const xcAPI = window.netease?.xcAPI
+            const theresaAPI = window.netease?.theresaAPI
+            const neteaseAPI = this.neteaseSetting.api
+
+            let searchData: SearchData | null = null
+
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            {
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 10, offset, neteaseAPI);
+            } else
+            {
+                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 10, offset);
+            }
+
+            if (!searchData || !searchData.result || !searchData.result.albums || !searchData.result.albumCount)
             {
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
             }
@@ -337,13 +376,14 @@ export class NetEasePlatform
 
             const allPlatformData: PlatformData[] = [];
 
-            const totalResult = res.result.albums.length;
+            const totalResult = searchData.result.albumCount;
 
-            const totalPage = Math.ceil(totalResult / this.pageSize);
+            // 限制30页是因为超过30页后，数据会错误
+            const totalPage = Math.min(Math.ceil(totalResult / this.pageSize), 30);
 
             let count = 0;
 
-            for (const item of res.result.albums)
+            for (const item of searchData.result.albums)
             {
                 const data: PlatformData = {
                     title: item.name,
@@ -375,6 +415,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0, allPlatformData: [] };
         }
     }
@@ -391,9 +432,21 @@ export class NetEasePlatform
         {
 
             let offset = (page - 1) * 100;
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1004, offset);
+            const xcAPI = window.netease?.xcAPI
+            const theresaAPI = window.netease?.theresaAPI
+            const neteaseAPI = this.neteaseSetting.api
 
-            if (!res || !res.result || !res.result.mvs)
+            let searchData: SearchData | null = null
+
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            {
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1004, offset, neteaseAPI);
+            } else
+            {
+                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1004, offset);
+            }
+
+            if (!searchData || !searchData.result || !searchData.result.mvs || !searchData.result.mvCount)
             {
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
             }
@@ -402,14 +455,14 @@ export class NetEasePlatform
 
             const allPlatformData: PlatformData[] = [];
 
-            const totalResult = res.result.mvs.length;
+            const totalResult = searchData.result.mvCount;
 
             const totalPage = Math.ceil(totalResult / this.pageSize);
 
             let count = 0;
 
 
-            for (const item of res.result.mvs)
+            for (const item of searchData.result.mvs)
             {
                 const data: PlatformData = {
                     title: item.name,
@@ -439,6 +492,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0, allPlatformData: [] };
         }
 
@@ -451,13 +505,31 @@ export class NetEasePlatform
      */
     public async searchForRadioBasicsData(keyword: string, page: number)
     {
-
         try
         {
             let offset = (page - 1) * 100;
-            const res = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
 
-            if (!res || !res.result || !res.result.djRadios)
+            const xcAPI = window.netease?.xcAPI
+            const theresaAPI = window.netease?.theresaAPI
+            const neteaseAPI = this.neteaseSetting.api
+
+            let searchData: SearchData | null = null
+
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            {
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1009, offset, neteaseAPI);
+            } else
+            {
+                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
+            }
+
+            if (!searchData || !searchData.result || !searchData.result.mvs || !searchData.result.mvCount)
+            {
+                return { platformData: [], totalPage: 0, allPlatformData: [] };
+            }
+
+
+            if (!searchData || !searchData.result || !searchData.result.djRadios)
             {
                 return { platformData: [], totalPage: 0, allPlatformData: [] };
             }
@@ -466,13 +538,13 @@ export class NetEasePlatform
 
             const allPlatformData: PlatformData[] = [];
 
-            const totalResult = res.result.djRadios.length;
+            const totalResult = searchData.result.djRadios.length;
 
             const totalPage = Math.ceil(totalResult / this.pageSize);
 
             let count = 0;
 
-            for (const item of res.result.djRadios)
+            for (const item of searchData.result.djRadios)
             {
                 const data: PlatformData = {
                     title: item.name,
@@ -501,6 +573,7 @@ export class NetEasePlatform
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
             return { platformData: [], totalPage: 0, allPlatformData: [] };
         }
     }
@@ -512,11 +585,10 @@ export class NetEasePlatform
         {
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
 
-
-
         } catch (error)
         {
             this.showmessage.show((error as Error).message)
+            this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
         }
 
     }
@@ -599,7 +671,7 @@ export class NetEasePlatform
             const xcAPI = window.netease?.xcAPI;
             const socket = new Socket();
             const media = new Media();
-
+            const neteaseAPI = this.neteaseSetting.api;
             const id = platformData.neteaseMusic.id;
             const songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
             if (!songListDetail) throw new Error('获取歌单详情失败');
@@ -612,9 +684,9 @@ export class NetEasePlatform
                 trackID = trackID.sort(() => Math.random() - 0.5);
             }
 
-            if (xcAPI)
+            if ((xcAPI) && neteaseAPI !== 'default')
             {
-                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromXC(trackID);
+                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(trackID, neteaseAPI);
                 if (!songDetail || !songDetail.songs) throw new Error('获取歌曲详情失败');
                 let count = 0;
                 for (const item of songDetail.songs)
@@ -713,7 +785,8 @@ export class NetEasePlatform
             const xcAPI = window.netease?.xcAPI;
             const socket = new Socket();
             const media = new Media();
-
+            const neteaseAPI = this.neteaseSetting.api;
+            const theresaAPI = window.netease?.theresaAPI;
             const id = platformData.neteaseMusic.id;
             const albumDetails = await this.neteaseMusicApi.getAlbumDetail(id)
 
@@ -727,9 +800,9 @@ export class NetEasePlatform
                 songsID = songsID.sort(() => Math.random() - 0.5);
             }
 
-            if (xcAPI)
+            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
             {
-                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromXC(songsID);
+                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID, neteaseAPI);
                 if (!songDetail || !songDetail.songs) throw new Error('获取歌曲详情失败');
                 let count = 0;
                 for (const item of songDetail.songs)
@@ -942,7 +1015,7 @@ export class NetEasePlatform
                 duration: platformData.duration,
                 bitRate: 1080,
                 color: this.baseHex,
-                origin: 'netease'
+                origin: 'netEaseMV'
             }
 
             const mediacard = media.mediaCard(mediaData);

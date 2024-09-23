@@ -3,6 +3,7 @@ import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 export interface NeteaseSetting
 {
     quality: 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster';
+    api: 'default' | 'xc' | 'theresa';
 }
 export class NetEaseSettings
 {
@@ -29,14 +30,14 @@ export class NetEaseSettings
         }
 
         const mdiClass = [
-            'iirose-media-web-musicNote',
-            'iirose-media-web-musicNote',
-            'iirose-media-web-musicNote',
-            'iirose-media-web-musicNotePlus',
-            'iirose-media-web-musicNotePlus',
-            'iirose-media-web-surroundSound',
-            'iirose-media-web-surroundSound',
-            'iirose-media-web-grain',
+            'mdi-music-note',
+            'mdi-music-note',
+            'mdi-music-note',
+            'mdi-music-note-plus',
+            'mdi-music-note-plus',
+            'mdi-surround-sound-7-1',
+            'mdi-surround-sound-7-1',
+            'mdi-grain',
         ];
 
         const selectOption = [
@@ -59,6 +60,49 @@ export class NetEaseSettings
 
     }
 
+    public setNeteaseDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
+    {
+        const set = (t: HTMLElement, s: string) =>
+        {
+            const neteaseSettings = localStorage.getItem('neteaseSetting');
+
+            if (neteaseSettings)
+            {
+                const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
+                neteaseSetting.api = s as 'default' | 'xc' | 'theresa';
+                localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));
+            }
+
+            if (changeActionTitleAction)
+            {
+                const apiIntext = this.parseNetEaseMusicApi(s);
+                changeActionTitleAction(apiIntext);
+            }
+        }
+
+
+        const mdiClass = [
+            'mdi-rocket-launch-outline',
+            'mdi-grass',
+            'mdi-firefox',
+        ];
+
+        const selectOption = [
+            ['default', '网易云默认API（最快）'],
+            ['xc', '小草的API（稳定）'],
+            ['theresa', '苏苏的API（最稳定）'],
+        ];
+
+        selectOption.forEach((item, index) =>
+        {
+            item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
+        });
+
+        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+
+
+    }
+
     public getNeteaseMusicSetting(): NeteaseSetting
     {
         const neteaseSetting = localStorage.getItem('neteaseSetting');
@@ -68,7 +112,8 @@ export class NetEaseSettings
         } else
         {
             return {
-                quality: 'lossless'
+                quality: 'lossless',
+                api: 'default'
             };
         }
     }
@@ -90,5 +135,18 @@ export class NetEaseSettings
 
         return optionInText ? optionInText[1] : '为止';
 
+    }
+
+    public parseNetEaseMusicApi(api: string)
+    {
+        const selectOption = [
+            ['default', '网易云默认API（最快）'],
+            ['xc', '小草的API（稳定）'],
+            ['theresa', '苏苏的API（最稳定）']
+        ];
+
+        const optionInText = selectOption.find((option) => option[0] === api);
+
+        return optionInText ? optionInText[1] : '网易云默认API（最快）';
     }
 }

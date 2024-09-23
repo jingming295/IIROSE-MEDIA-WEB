@@ -141,7 +141,7 @@ export class Media
             mangotv: "*4",
             tiktok: "*5",
             kuaishou: "*6",
-            onesixthreemv: "*7",
+            netEaseMV: "*7",
             bilibililive: "*8"
         };
 
@@ -176,9 +176,6 @@ export class Media
             console.log(JSON.stringify(data))
             return JSON.stringify(data);
         }
-
-
-
     }
 
     public mediaEvent(media: MediaData)
@@ -204,7 +201,7 @@ export class Media
             mangotv: "!4",
             tiktok: "!5",
             kuaishou: "!6",
-            onesixthreemv: "!7",
+            netEaseMV: "!7",
             bilibililive: "!8"
         };
 

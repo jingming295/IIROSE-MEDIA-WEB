@@ -276,7 +276,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          * @param current 
          * @param prev 
          */
-        updateSubNavBarIndex: async (current: number, prev?: number) =>
+        updateSubNavBarIndex: async (current: number) =>
         {
             await this.setState({ SubNavBarIndex: current, currentPage: 1 });
             this.setState({ allMediaData: [] });

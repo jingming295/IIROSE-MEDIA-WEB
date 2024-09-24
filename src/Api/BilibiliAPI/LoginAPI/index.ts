@@ -45,7 +45,7 @@ export class BiliBiliLoginApi extends SendFetch
         }
     }
 
-    public async accountStatusAPI(csrf: string, biliBiliSessData: string)
+    public async accountStatusAPI(csrf: string)
     {
         const url = 'https://passport.bilibili.com/x/passport-login/web/cookie/info';
         const params = new URLSearchParams({

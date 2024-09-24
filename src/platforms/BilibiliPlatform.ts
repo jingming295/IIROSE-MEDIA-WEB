@@ -291,8 +291,8 @@ export class BilibiliPlatform
         try
         {
             if (!platformData.bilibili) throw new Error('没有 bilibili 数据');
-            let { aid, bvid, cid, course_id } = platformData.bilibili;
-
+            const { aid, bvid, course_id } = platformData.bilibili;
+            let cid = platformData.bilibili.cid;
             // 如果是课程
             if (course_id && cid)
             {

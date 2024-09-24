@@ -90,7 +90,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
         this.mainHolder = document.getElementById('mainHolder');
     }
 
-    componentDidUpdate(previousProps: Readonly<{}>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>, snapshot: any): void
+    componentDidUpdate(previousProps: Readonly<{}>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
     {
         const { active } = this.state;
 
@@ -110,7 +110,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
         }
     }
 
-    render(props?: Readonly<Attributes & { children?: ComponentChildren; ref?: Ref<any> | undefined; }> | undefined, state?: Readonly<IIROSE_MEDIA_CONTAINER_STATE> | undefined, context?: any): ComponentChild
+    render(): ComponentChild
     {
         const { active, init } = this.state;
         const activeClass = active ? 'ShowIIROSE_MEDIA_CONTAINER' : 'IIROSE_MEDIA_CONTAINER';

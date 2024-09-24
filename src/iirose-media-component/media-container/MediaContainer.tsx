@@ -863,6 +863,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     icon: 'mdi-hammer-wrench',
                     action: bilibiliSettings.setGetVideoFormat.bind(bilibiliSettings)
 
+                }, {
+                    title: "默认API",
+                    actionTitle: bilibiliSettings.parseBilibiliApi(bilibiliVIdeoSettings.api),
+                    icon: 'mdi-code-braces',
+                    action: bilibiliSettings.setBilibiliDefaultApi.bind(bilibiliSettings)
                 }]
                 this.setState({ settingsData: settingData });
             },

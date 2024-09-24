@@ -1,10 +1,12 @@
 import { SendFetch } from "../..";
+import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 import { BVideoStream } from "../BiliBiliVideoAPI/StreamInterface";
 import { CoursePagesData } from "./CourseStreamInterface";
 
 export class BiliBiliCourseApi extends SendFetch
 {
-
+    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 
      * @param season_id 课程ssid，与番剧ssid不互通
@@ -43,7 +45,7 @@ export class BiliBiliCourseApi extends SendFetch
         fourk: number = 1,
     )
     {
-        const url = `${this.cors}https://api.bilibili.com/pugv/player/web/playurl`
+        const url = `${this.bcors}https://api.bilibili.com/pugv/player/web/playurl`
         const params = new URLSearchParams()
         aid && params.append("aid", aid.toString())
         ep_id && params.append("ep_id", ep_id.toString())
@@ -64,8 +66,6 @@ export class BiliBiliCourseApi extends SendFetch
         {
             return null;
         }
-
-
     }
 
 }

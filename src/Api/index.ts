@@ -180,7 +180,6 @@ export class SendFetch
         }
     }
 
-
     public async tryGetWhithXhr(url: string): Promise<boolean>
     {
         return new Promise((resolve) =>
@@ -208,7 +207,6 @@ export class SendFetch
             xhr.send(); // 发送请求
         });
     }
-
 
     protected returnNeteaseHeaders()
     {
@@ -268,6 +266,21 @@ export class SendFetch
 
         const headers = new Headers();
         return headers;
+    }
+
+    protected getBilibiliCors(api: 'MY' | 'Beijing')
+    {
+
+        if (api === 'Beijing')
+        {
+            return this.beijingcors;
+        } else if (api === 'MY')
+        {
+            return this.malaysiacors;
+        }
+
+        return this.cors;
+
     }
 
 }

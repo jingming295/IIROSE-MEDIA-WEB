@@ -1,10 +1,12 @@
 import { SendFetch } from "../..";
+import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 import { WBI } from "../Crypto/WBI";
 import { SearchRequest, SearchRequestByType, SearchRequestByTypeArticle, SearchRequestByTypeLive, SearchRequestByTypeLiveRoom, SearchRequestByTypeLiveUser, SearchRequestByTypeMediaBangumiAndMediaFT, SearchRequestByTypePhoto, SearchRequestByTypeVideo } from "./SearchRequestInterface";
 
 export class BiliBiliSearchApi extends SendFetch
 {
-
+    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 综合搜索（web端）
      * @param keyword 
@@ -71,7 +73,7 @@ export class BiliBiliSearchApi extends SendFetch
             category_id: number | null = null
         )
     {
-        const url = `${this.beijingcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
+        const url = `${this.bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
         const params = new URLSearchParams({
             search_type: search_type,
             keyword: keyword
@@ -256,5 +258,4 @@ export class BiliBiliSearchApi extends SendFetch
         const data: SearchRequestByTypePhoto = await this.getSearchRequestByType('photo', keyword, page, page_size, order, null, null, null, null, category_id);
         return data;
     }
-
 }

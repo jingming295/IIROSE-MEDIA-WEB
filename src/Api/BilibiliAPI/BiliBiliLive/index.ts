@@ -1,9 +1,12 @@
 import { SendFetch } from "../..";
+import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 import { LiveRoomDetail, LiveRoomInitDetail, LiveRoomPlayInfoDetail, LiveRoomStatus, LiveUserDetail } from "./LiveDetailInterface";
 import { LiveStream } from "./LiveStreamInterface";
 
 export class BiliBiliLiveApi extends SendFetch
 {
+    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 
      * @param roomId 
@@ -11,7 +14,7 @@ export class BiliBiliLiveApi extends SendFetch
      */
     public async getLiveRoomDetail(roomId: number)
     {
-        const url = `${this.cors}https://api.live.bilibili.com/room/v1/Room/get_info`;
+        const url = `${this.bcors}https://api.live.bilibili.com/room/v1/Room/get_info`;
         const params = new URLSearchParams({
             room_id: roomId.toString()
         });
@@ -155,7 +158,7 @@ export class BiliBiliLiveApi extends SendFetch
             qn: number | null = null,
         )
     {
-        const url = `${this.beijingcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
+        const url = `${this.bcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
         const params = new URLSearchParams({
             cid: cid.toString()
         });

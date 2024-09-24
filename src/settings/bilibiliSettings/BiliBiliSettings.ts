@@ -9,6 +9,7 @@ export interface BilibiliVideoSettings
     streamqn: number,
     streamSeconds: number,
     videoStreamFormat: number,
+    api: 'MY' | 'Beijing'
 }
 
 export class BiliBiliSettings
@@ -283,6 +284,50 @@ export class BiliBiliSettings
         this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
     }
 
+    public setBilibiliDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
+    {
+
+        const set = (t: HTMLElement, s: string) =>
+        {
+            const api = s as 'MY' | 'Beijing';
+
+            const bilibiliSetting = localStorage.getItem('bilibiliSetting');
+            if (bilibiliSetting)
+            {
+                const parseBilibiliSetting: BilibiliVideoSettings = JSON.parse(bilibiliSetting);
+                parseBilibiliSetting.api = api;
+                localStorage.setItem('bilibiliSetting', JSON.stringify(parseBilibiliSetting));
+            }
+
+            const apiText = this.parseBilibiliApi(api);
+
+            if (changeActionTitleAction)
+            {
+                changeActionTitleAction(apiText);
+            }
+
+        }
+
+        const selectOption = [
+            ['MY', '马来西亚'],
+            ['Beijing', '中国 - 北京']
+        ];
+
+        const mdiClass = [
+            'mdi-crosshairs-gps',
+            'mdi-crosshairs-gps'
+        ];
+
+        selectOption.forEach((item, index) =>
+        {
+            item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
+        });
+
+        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
+
+
+    }
+
     public getBiliBiliAccount()
     {
         const bilibiliaccount = localStorage.getItem('bilibiliAccount')
@@ -307,7 +352,8 @@ export class BiliBiliSettings
                 qn: 112,
                 streamqn: 10000,
                 streamSeconds: 43200,
-                videoStreamFormat: 2
+                videoStreamFormat: 2,
+                api: 'Beijing'
             };
         }
     }
@@ -382,6 +428,24 @@ export class BiliBiliSettings
             acc[key] = decodeURIComponent(value);
             return acc;
         }, {});
+    }
+
+    public parseBilibiliApi(api: 'MY' | 'Beijing')
+    {
+        const selectOption = [
+            ['MY', '马来西亚'],
+            ['Beijing', '中国 - 北京']
+        ];
+
+        const selectedOption = selectOption.find((option) => option[0] === api);
+        if (selectedOption)
+        {
+            return selectedOption[1] as string;
+        } else
+        {
+            return '未知';
+        }
+
     }
 
 }

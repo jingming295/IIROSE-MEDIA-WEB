@@ -21,7 +21,8 @@ export class LocalStorageUtils
                 qn: 112,
                 streamqn: 10000,
                 streamSeconds: 43200,
-                videoStreamFormat: 1
+                videoStreamFormat: 1,
+                api: 'Beijing'
             }
             localStorage.setItem('bilibiliSetting', JSON.stringify(bilibiliSetting));
         }

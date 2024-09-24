@@ -14,10 +14,12 @@ import { WBI } from "../Crypto/WBI";
 import { AIConclusion, likeAndDislikeAIConclusion } from "./AIConclusionInterface";
 import { AppealType, MakeAppealResult } from "./AppealInterface";
 import { SeasonArchives } from "./SeasonArchivesInterface";
+import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 
 export class BiliBiliVideoApi extends SendFetch
 {
-
+    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 获取视频的各种信息
      * @param bvid bv号
@@ -26,8 +28,7 @@ export class BiliBiliVideoApi extends SendFetch
      */
     public async getBilibiliVideoData(aid: number | null = null, bvid: string | null = null): Promise<BVideoDetail | null>
     {
-        const url = `${this.cors}https://api.bilibili.com/x/web-interface/view`;
-
+        const url = `${this.bcors}https://api.bilibili.com/x/web-interface/view`;
         const params = new URLSearchParams();
         aid && params.set('aid', aid.toString());
         bvid && params.set('bvid', bvid);
@@ -67,7 +68,7 @@ export class BiliBiliVideoApi extends SendFetch
             platform: string = 'html5',
         )
     {
-        const url = `${this.cors}https://api.bilibili.com/x/player/wbi/playurl`;
+        const url = `${this.bcors}https://api.bilibili.com/x/player/wbi/playurl`;
 
         const params = new URLSearchParams({
             cid: cid.toString(),
@@ -579,7 +580,7 @@ export class BiliBiliVideoApi extends SendFetch
             brush: number = 0
         ): Promise<RecommendVideoFromMainPage | null>
     {
-        const url = `${this.cors}https://api.bilibili.com/x/web-interface/wbi/index/top/feed/rcmd`;
+        const url = `${this.bcors}https://api.bilibili.com/x/web-interface/wbi/index/top/feed/rcmd`;
         const params = new URLSearchParams({
             fresh_type: fresh_type.toString(),
             version: version.toString(),
@@ -1026,7 +1027,7 @@ export class BiliBiliVideoApi extends SendFetch
 
     public async getBilibiliPagesAndCids(aid: number | null = null, bvid: string | null = null)
     {
-        const url = `${this.cors}https://api.bilibili.com/x/player/pagelist`
+        const url = `${this.bcors}https://api.bilibili.com/x/player/pagelist`
         const params = new URLSearchParams();
 
         aid && params.set('aid', aid.toString());

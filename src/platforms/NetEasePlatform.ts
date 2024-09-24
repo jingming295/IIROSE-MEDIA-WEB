@@ -149,7 +149,7 @@ export class NetEasePlatform
         const theresaAPI = window.netease?.theresaAPI
         try
         {
-            let offset = (page - 1) * 100;
+            const offset = (page - 1) * 100;
             const platformData: PlatformData[] = [];
             const allPlatformData: PlatformData[] = [];
             let searchData: SearchData | null = null
@@ -272,7 +272,7 @@ export class NetEasePlatform
         try
         {
 
-            let offset = (page - 1) * 100;
+            const offset = (page - 1) * 100;
             const xcAPI = window.netease?.xcAPI
             const theresaAPI = window.netease?.theresaAPI
             const neteaseAPI = this.neteaseSetting.api
@@ -351,7 +351,7 @@ export class NetEasePlatform
     {
         try
         {
-            let offset = (page - 1) * 100;
+            const offset = (page - 1) * 100;
 
             const xcAPI = window.netease?.xcAPI
             const theresaAPI = window.netease?.theresaAPI
@@ -431,7 +431,7 @@ export class NetEasePlatform
         try
         {
 
-            let offset = (page - 1) * 100;
+            const offset = (page - 1) * 100;
             const xcAPI = window.netease?.xcAPI
             const theresaAPI = window.netease?.theresaAPI
             const neteaseAPI = this.neteaseSetting.api
@@ -507,7 +507,7 @@ export class NetEasePlatform
     {
         try
         {
-            let offset = (page - 1) * 100;
+            const offset = (page - 1) * 100;
 
             const xcAPI = window.netease?.xcAPI
             const theresaAPI = window.netease?.theresaAPI
@@ -988,12 +988,9 @@ export class NetEasePlatform
         {
             if (!platformData.neteaseMusic || !platformData.duration) throw new Error('没有网易云音乐数据');
 
-            const xcAPI = window.netease?.xcAPI
-            let xcRes: xcSongResource | null = null
+            // const xcAPI = window.netease?.xcAPI
+            // let xcRes: xcSongResource | null = null
             const id = platformData.neteaseMusic.id
-            if (xcAPI)
-            { } else
-            { }
 
             const res = await this.neteaseMusicApi.getMVPlayURL(id);
 

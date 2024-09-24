@@ -1110,7 +1110,7 @@ class MediaContainerGesture
     startY = 0;
     currentPage = 1;
     totalPage = 1;
-    changecurrentPage = (page: number) => { }
+    changecurrentPage = (page: number) => { page }
 
     handleStart(e: TouchEvent | MouseEvent, currentPage: number, totalPage: number, changecurrentPage: (page: number) => void)
     {

@@ -5,11 +5,11 @@ export interface CommonSettingsInterface
     TOS: {
         TOSVersion: string;
         TOSAgree: boolean;
-    };
+    }
     Privacy: {
         PrivacyVersion: string;
         PrivacyAgree: boolean;
-    };
+    }
 }
 
 export class CommonSettings

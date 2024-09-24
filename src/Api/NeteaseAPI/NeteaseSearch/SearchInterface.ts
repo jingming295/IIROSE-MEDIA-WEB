@@ -16,7 +16,7 @@ export interface SearchData
         hlWords?: string[];
         djRadiosCount?: number;
         djRadios?: djRadios[];
-    };
+    }
 }
 
 interface djRadios
@@ -139,7 +139,7 @@ interface albums
         picUrl: null;
         topicPerson: number
         trans: string;
-    };
+    }
     artists: {
         albumSize: number;
         alia: [];
@@ -223,7 +223,7 @@ interface playlists
                 picUrl: null;
                 topicPerson: number;
                 trans: string;
-            };
+            }
             artists: {
                 albumSize: number;
                 alias: [];
@@ -374,7 +374,7 @@ interface Song
         publishTime: number;
         size: number; // 专辑歌曲数量
         status: number;
-    }; // 专辑信息
+    } // 专辑信息
     alias: [];
     artists: {
         albumSize: number;

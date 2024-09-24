@@ -19,7 +19,7 @@ export interface MovieStreamFormat
         record_info: {
             record_icon: string;
             record: string;
-        };
+        }
         is_drm: boolean;
         no_rexcode: number;
         format: string;
@@ -40,11 +40,11 @@ export interface MovieStreamFormat
         status: number;
         video_info?: {
             durl: durl[];
-        };
+        }
         durl?: durl[];
         dash?: dash;
         durls?: [];
-    };
+    }
 }
 
 interface durl
@@ -109,5 +109,5 @@ interface dash
     dolby: {
         audio: [];
         type: number;
-    };
+    }
 }

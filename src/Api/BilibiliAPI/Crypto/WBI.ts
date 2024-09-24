@@ -35,7 +35,7 @@ export class WBI
     {
         let w_rid: string | null = null;
         let wts: number | null = null;
-        if (!wbikey) return { w_rid, wts };
+        if (!wbikey) return { w_rid, wts }
         const paramsArray = wbikey.split("&");
         paramsArray.forEach(param =>
         {
@@ -49,7 +49,7 @@ export class WBI
             }
         });
 
-        return { w_rid, wts };
+        return { w_rid, wts }
     }
 
     private async getWbiKeys()
@@ -72,7 +72,7 @@ export class WBI
                 sub_url.lastIndexOf('/') + 1,
                 sub_url.lastIndexOf('.')
             )
-        };
+        }
     }
 
     private encWbi(params: Record<string, unknown>, img_key: string, sub_key: string)

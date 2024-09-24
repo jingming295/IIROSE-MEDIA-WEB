@@ -21,10 +21,10 @@ export class PlatformSelector extends Component<PlatformSelectorProps, PlatformS
         super(props);
         this.state = {
             activeIndex: 0, // 初始状态，激活第一个项
-        };
+        }
     }
 
-    componentDidUpdate(prevProps: Readonly<PlatformSelectorProps>, prevState: Readonly<PlatformSelectorState>, snapshot?: any): void
+    componentDidUpdate(prevProps: Readonly<PlatformSelectorProps>, prevState: Readonly<PlatformSelectorState>): void
     {
 
         if (prevProps.platform !== this.props.platform)

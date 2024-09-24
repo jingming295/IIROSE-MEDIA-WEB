@@ -30,7 +30,7 @@ export class BiliBiliSettings
 
                 // 从 localStorage 获取已有的 bilibiliAccount
                 const storedAccount = localStorage.getItem('bilibiliAccount');
-                let bilibiliaccount: BilibiliACC = storedAccount ? JSON.parse(storedAccount) : {};
+                let bilibiliaccount: BilibiliACC = storedAccount ? JSON.parse(storedAccount) : {}
 
                 // 更新 bilibiliAccount 对象中的字段
                 bilibiliaccount = {
@@ -44,7 +44,7 @@ export class BiliBiliSettings
                     refresh_token: cookies['refresh_token'] || bilibiliaccount.refresh_token || '',
                     uname: navData?.data.uname || bilibiliaccount.uname || '',
                     face: navData?.data.face || bilibiliaccount.face || ''
-                };
+                }
 
                 // 更新 localStorage 中的值
                 localStorage.setItem('bilibiliAccount', JSON.stringify(bilibiliaccount));
@@ -354,7 +354,7 @@ export class BiliBiliSettings
                 streamSeconds: 43200,
                 videoStreamFormat: 2,
                 api: 'Beijing'
-            };
+            }
         }
     }
 

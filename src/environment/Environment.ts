@@ -9,7 +9,7 @@ declare global
         iirosemedia?: {
             cors?: string;
             // 其他属性...
-        };
+        }
         netease?: {
             xcAPI?: string;
             theresaAPI?: string;
@@ -34,8 +34,8 @@ export class Environment
 {
     public async setEnv()
     {
-        window.iirosemedia = {};
-        window.netease = {};
+        window.iirosemedia = {}
+        window.netease = {}
         await this.setCors();
         this.setNetease();
     }

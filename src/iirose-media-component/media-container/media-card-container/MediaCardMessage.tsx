@@ -9,7 +9,7 @@ interface MediaCardMessageProps
 export class MediaCardMessage extends Component<MediaCardMessageProps>
 {
     static contextType = MediaContainerContext
-    context!: ContextType<typeof MediaContainerContext>;
+    declare context: ContextType<typeof MediaContainerContext>;
 
     render()
     {

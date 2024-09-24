@@ -17,7 +17,7 @@ export interface xcSongResource
     pic: string;
     time: number;
     url: string;
-    vip_level?:number;
+    vip_level?: number;
 }
 
 /**
@@ -98,7 +98,7 @@ export interface SongList
             userConsumable: boolean;
             listenType: unknown | null;
             cannotListenReason: unknown | null;
-        };
+        }
         rightSource: number;
         chargeInfoList: {
             rate: number;
@@ -195,7 +195,7 @@ interface PlaylistTrack
         tns: unknown[];
         pic_str: string;
         pic: number;
-    };
+    }
     dt: number;
     h: {
         br: number;
@@ -203,21 +203,21 @@ interface PlaylistTrack
         size: number;
         vd: number;
         sr: number;
-    };
+    }
     m: {
         br: number;
         fid: number;
         size: number;
         vd: number;
         sr: number;
-    };
+    }
     l: {
         br: number;
         fid: number;
         size: number;
         vd: number;
         sr: number;
-    };
+    }
     sq: {
         br: number;
         fid: number;
@@ -255,7 +255,7 @@ interface PlaylistTrack
     videoInfo: {
         moreThanOne: boolean;
         video: unknown | null;
-    };
+    }
     tns: string[];
 }
 

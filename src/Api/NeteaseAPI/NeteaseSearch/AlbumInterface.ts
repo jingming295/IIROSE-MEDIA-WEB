@@ -195,7 +195,7 @@ interface MusicPrivilege
         resConsumable: boolean;  // 是否是消耗型资源
         userConsumable: boolean; // 是否是用户可消耗资源
         listenType: null;         // 听歌类型，具体类型根据实际情况定义
-    };
+    }
     chargeInfoList: ChargeInfo[];     // 收费信息列表，具体类型根据实际情况定义
 }
 

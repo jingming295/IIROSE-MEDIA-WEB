@@ -80,7 +80,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
     state = {
         active: false,
         init: false
-    };
+    }
 
     componentDidMount(): void
     {

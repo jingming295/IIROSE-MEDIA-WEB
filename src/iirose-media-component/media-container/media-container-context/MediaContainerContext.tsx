@@ -11,4 +11,4 @@ export const MediaContainerContext = createContext({
 
 const { Provider, Consumer } = MediaContainerContext;
 
-export { Provider, Consumer };
+export { Provider, Consumer }

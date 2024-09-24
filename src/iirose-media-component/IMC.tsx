@@ -25,7 +25,7 @@ export class IMC extends Component<IMCProps, IMCState>
 
     itemsPerPage = 10;
 
-    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<IMCState>, snapshot?: any): void
+    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<IMCState>): void
     {
         const { needOutFromMultiPage, CategoriesIndex } = this.state;
 
@@ -72,7 +72,7 @@ export class IMC extends Component<IMCProps, IMCState>
             this.setState({ needOutFromSettings: false });
         }
 
-    };
+    }
 }
 
 

@@ -59,12 +59,12 @@ export class ImageTools
 
                 // 返回平均颜色的 HEX 值
                 resolve(averageHexColor);
-            };
+            }
 
             img.onerror = () =>
             {
                 reject('图片加载失败');
-            };
+            }
         });
     }
 

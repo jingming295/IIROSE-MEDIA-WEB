@@ -12,7 +12,7 @@ export class BiliBiliLoginApi extends SendFetch
     {
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/poll`;
         const headers = this.returnBilibiliHeaders();
-        // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value}; bili_ticket=${CookieData['bili_ticket']?.value};bmg_af_switch=${CookieData['bmg_af_switch']?.value};FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value};browser_resolution=${CookieData['browser_resolution']?.value};header_theme_version=${CookieData['header_theme_version']?.value};home_feed_column=${CookieData['home_feed_column']?.value};bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value};enable_web_push=${CookieData['enable_web_push']?.value};_uuid=${CookieData['_uuid']?.value};b_lsid=${CookieData['b_lsid']?.value};buvid3=${CookieData['buvid3']?.value};b_ut=${CookieData['b_ut']?.value};buvid_fp=${CookieData['buvid_fp']?.value};b_nut=${CookieData['b_nut']?.value};buvid4=${CookieData['buvid4']?.value};`);
+        // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value} bili_ticket=${CookieData['bili_ticket']?.value}bmg_af_switch=${CookieData['bmg_af_switch']?.value}FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value}browser_resolution=${CookieData['browser_resolution']?.value}header_theme_version=${CookieData['header_theme_version']?.value}home_feed_column=${CookieData['home_feed_column']?.value}bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value}enable_web_push=${CookieData['enable_web_push']?.value}_uuid=${CookieData['_uuid']?.value}b_lsid=${CookieData['b_lsid']?.value}buvid3=${CookieData['buvid3']?.value}b_ut=${CookieData['b_ut']?.value}buvid_fp=${CookieData['buvid_fp']?.value}b_nut=${CookieData['b_nut']?.value}buvid4=${CookieData['buvid4']?.value}`);
         const data = new URLSearchParams({
             qrcode_key: qrcode_key
         });
@@ -33,7 +33,7 @@ export class BiliBiliLoginApi extends SendFetch
     {
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/generate`;
         const headers = this.returnBilibiliHeaders();
-        // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value}; bili_ticket=${CookieData['bili_ticket']?.value};bmg_af_switch=${CookieData['bmg_af_switch']?.value};FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value};browser_resolution=${CookieData['browser_resolution']?.value};header_theme_version=${CookieData['header_theme_version']?.value};home_feed_column=${CookieData['home_feed_column']?.value};bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value};enable_web_push=${CookieData['enable_web_push']?.value};_uuid=${CookieData['_uuid']?.value};b_lsid=${CookieData['b_lsid']?.value};buvid3=${CookieData['buvid3']?.value};b_ut=${CookieData['b_ut']?.value};buvid_fp=${CookieData['buvid_fp']?.value};b_nut=${CookieData['b_nut']?.value};buvid4=${CookieData['buvid4']?.value};`);
+        // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value} bili_ticket=${CookieData['bili_ticket']?.value}bmg_af_switch=${CookieData['bmg_af_switch']?.value}FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value}browser_resolution=${CookieData['browser_resolution']?.value}header_theme_version=${CookieData['header_theme_version']?.value}home_feed_column=${CookieData['home_feed_column']?.value}bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value}enable_web_push=${CookieData['enable_web_push']?.value}_uuid=${CookieData['_uuid']?.value}b_lsid=${CookieData['b_lsid']?.value}buvid3=${CookieData['buvid3']?.value}b_ut=${CookieData['b_ut']?.value}buvid_fp=${CookieData['buvid_fp']?.value}b_nut=${CookieData['b_nut']?.value}buvid4=${CookieData['buvid4']?.value}`);
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
         if (response && response.ok)
         {
@@ -346,7 +346,7 @@ export class BiliBiliLoginApi extends SendFetch
             "07a4": "zh-CN", // language
             "5f45": null, // laboratory, set from cookie, null if empty, source remains unknown
             "db46": 0 // is_selfdef, default 0
-        };
+        }
         const param = new URLSearchParams({
             payload: JSON.stringify(payload)
 
@@ -368,7 +368,7 @@ export class BiliBiliLoginApi extends SendFetch
     //         kty: "RSA",
     //         n: "y4HdjgJHBlbaBN04VERG4qNBIFHP6a3GozCl75AihQloSWCXC5HDNgyinEnhaQ_4-gaMud_GF50elYXLlCToR9se9Z8z433U3KjM-3Yx7ptKkmQNAMggQwAVKgq3zYAoidNEWuxpkY_mAitTSRLnsJW-NCTa0bqBFF6Wm1MxgfE",
     //         e: "AQAB",
-    //     };
+    //     }
 
     //     const publicKey = await crypto.webcrypto.subtle.importKey(
     //         "jwk",
@@ -433,7 +433,7 @@ export class BiliBiliLoginApi extends SendFetch
     //         const cookieArray = cookies.split(', ');
 
     //         // 创建一个空对象来存储重组后的 cookie
-    //         const parsedCookies: { [key: string]: string; } = {};
+    //         const parsedCookies: { [key: string]: string; } = {}
 
     //         // 遍历数组，解析每个 cookie 并存储到对象中
     //         cookieArray.forEach(cookie =>
@@ -489,7 +489,7 @@ export class BiliBiliLoginApi extends SendFetch
             headers = this.returnBilibiliHeaders();
         } else
         {
-            headers.append('cookie-trans', `SESSDATA=${sessdata};`);
+            headers.append('cookie-trans', `SESSDATA=${sessdata}`);
         }
         const response = await this.sendGet(url, new URLSearchParams(''), headers);
         if (response && response.ok)

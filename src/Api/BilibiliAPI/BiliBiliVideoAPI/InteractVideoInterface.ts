@@ -21,7 +21,7 @@ export interface interactVideoDetail
                 height: number;
                 rotate: number;
                 sar: string;
-            };
+            }
             questions: {
                 id: number;
                 type: number;
@@ -50,18 +50,18 @@ export interface interactVideoDetail
                 title_shadow_radius: number;
                 progressbar_color: string;
                 progressbar_shadow_color: string;
-            };
-        };
+            }
+        }
         preload: {
             video: {
                 aid: number;
                 cid: number;
             }[]
-        };
+        }
         hidden_vars?: {
-            value:number
+            value: number
             id: string
-            id_v2:string
+            id_v2: string
             type: number
             is_show: number
             name: string
@@ -71,5 +71,5 @@ export interface interactVideoDetail
         no_tutorial?: 1; // 禁止记录选择, 非禁止时无此项
         no_backtracking?: 1; // 禁止进度回溯, 非禁止时无此项
         no_evaluation?: 1; // 禁止结尾评分, 非禁止时无此项
-    };
+    }
 }

@@ -74,7 +74,7 @@ export class SendFetch
                         reject(new Error(`Request failed with status: ${xhr.status}`));
                     }
                 }
-            };
+            }
             xhr.send();
         });
     }
@@ -195,7 +195,7 @@ export class SendFetch
                 {
                     resolve(false); // 请求失败，返回 false
                 }
-            };
+            }
             xhr.onerror = () =>
             {
                 if (xhr.status >= 200 && xhr.status < 300)
@@ -203,7 +203,7 @@ export class SendFetch
                     resolve(true); // 请求成功，返回 true
                 }
                 resolve(false); // 请求出错，返回 false
-            };
+            }
             xhr.send(); // 发送请求
         });
     }
@@ -251,7 +251,7 @@ export class SendFetch
         const account = bilibiliAccount.getBiliBiliAccount();
         if (account)
         {
-            headers.append('cookie-trans', `buvid3=${account.buvid3}; buvid4=${account.buvid4};`);
+            headers.append('cookie-trans', `buvid3=${account.buvid3} buvid4=${account.buvid4}`);
         } else
         {
             headers.append('cookie-trans', `buvid3=1; buvid4=2;`);

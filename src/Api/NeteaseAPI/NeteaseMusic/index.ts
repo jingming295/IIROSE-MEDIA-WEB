@@ -41,7 +41,7 @@ export class NeteaseMusicAPI extends SendFetch
         const url = `${this.cors}https://music.163.com/weapi/v1/album/${id}`
         const params = {
             csrf_token: ''
-        };
+        }
 
         const headers = new Headers();
         const we = d(params);
@@ -296,8 +296,8 @@ export class NeteaseMusicAPI extends SendFetch
             return {
                 sign: hex,
                 time: time
-            };
-        };
+            }
+        }
         try
         {
             const { sign, time } = await createSign(id);
@@ -311,7 +311,7 @@ export class NeteaseMusicAPI extends SendFetch
             console.error(error);
             return null;
         }
-    };
+    }
 
     public async getMVPlayURL(id: number)
     {
@@ -320,7 +320,7 @@ export class NeteaseMusicAPI extends SendFetch
             id: id,
             r: 1080,
             csrf_token: ''
-        };
+        }
 
         const headers = new Headers();
         const we = d(params);

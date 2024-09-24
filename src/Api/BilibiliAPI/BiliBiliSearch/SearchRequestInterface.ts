@@ -36,7 +36,7 @@ export interface SearchRequest
             article: pageInfoObject; // 专栏数
             live_room: pageInfoObject; // 直播数
             bili_user: pageInfoObject; // 用户数
-        }; // 分类页数信息	
+        } // 分类页数信息	
         top_tlist: {
             video: number; // 视频数
             bangumi: number; // 番剧数
@@ -58,12 +58,12 @@ export interface SearchRequest
             live_room: number; // 直播数
             live_master: number; // 还不知道是什么
             bili_user: number; // 用户数
-        }; // 分类结果数目信息
+        } // 分类结果数目信息
         show_column: number; // 不知道有什么用途
         show_module_list: string[]; // 返回结果类型列表
         app_display_option: {
             is_search_page_grayed: number; // 不知道有什么用途
-        }; // 不知道有什么用途
+        } // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
         result: {
@@ -71,7 +71,7 @@ export interface SearchRequest
             data: media_ftAndmedia_bangumiResult[] & VideoResult[] & UserResult[] & web_gameResult[] & activityResult[]; // 事情是这样的，他可能是这些的其中一个，反正自求多福
         }[];
         is_search_page_grayed: number; // 不知道有什么用途
-    };
+    }
 }
 
 export interface SearchRequestByType
@@ -95,7 +95,7 @@ export interface SearchRequestByType
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
         v_voucher?: string; // 错误记录
-    };
+    }
 }
 
 export interface SearchRequestByTypeVideo
@@ -119,7 +119,7 @@ export interface SearchRequestByTypeVideo
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
         v_voucher?: string; // 错误记录
-    };
+    }
 }
 
 export interface SearchRequestByTypeMediaBangumiAndMediaFT
@@ -143,7 +143,7 @@ export interface SearchRequestByTypeMediaBangumiAndMediaFT
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
 
-    };
+    }
 }
 
 export interface SearchRequestByTypeLive
@@ -165,13 +165,13 @@ export interface SearchRequestByTypeLive
         pageinfo: {
             live_user: pageInfoObject;
             live_room: pageInfoObject;
-        };
+        }
         result: liveResult;
         show_column: number; // 不知道有什么用途
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
 
-    };
+    }
 }
 
 export interface SearchRequestByTypeLiveRoom
@@ -195,7 +195,7 @@ export interface SearchRequestByTypeLiveRoom
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
         v_voucher?: string; // 错误记录
-    };
+    }
 }
 
 export interface SearchRequestByTypeLiveUser
@@ -219,7 +219,7 @@ export interface SearchRequestByTypeLiveUser
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
 
-    };
+    }
 }
 
 export interface SearchRequestByTypeArticle
@@ -243,7 +243,7 @@ export interface SearchRequestByTypeArticle
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
 
-    };
+    }
 }
 
 export interface SearchRequestByTypePhoto
@@ -267,7 +267,7 @@ export interface SearchRequestByTypePhoto
         in_black_key: number; // 不知道有什么用途
         in_white_key: number; // 不知道有什么用途
 
-    };
+    }
 }
 
 interface pageInfoObject
@@ -328,7 +328,7 @@ interface media_ftAndmedia_bangumiResult
     media_score: {
         score: number; // 评分
         user_count: number; // 总计评分人数
-    }; // 评分
+    } // 评分
 
     display_info: {
         text: string;
@@ -435,13 +435,13 @@ interface UserResult
     official_verify: {
         type: number; // 是否认证 0：个人认证 1：机构认证 127：无
         desc: string; // 认证名称
-    }; // 用户认证信息
+    } // 用户认证信息
     hit_columns: []; // 关键字匹配类型
     is_senior_member: number; // 不知道有什么用途
     expand: {
         is_power_up: boolean; // 不知道有什么用途
         system_notice: null; // 不知道有什么用途
-    }; // 不知道有什么用途
+    } // 不知道有什么用途
 
 }
 

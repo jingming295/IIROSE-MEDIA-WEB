@@ -29,16 +29,16 @@ export interface RecommendVideoFromMainPage
                 mid: number;
                 name: string;
                 face: string;
-            };
+            }
             stat: {
                 view: number;
                 like: number;
                 danmaku: number;
                 vt: number;
-            };
+            }
             av_feature: null;
             is_followed: number;
-            rcmd_reason: { reason_type: number; };
+            rcmd_reason: { reason_type: number; }
             show_info: number;
             track_id: string;
             pos: number;
@@ -72,7 +72,7 @@ export interface RecommendVideoFromMainPage
                 series_view: number;
                 likes: number;
                 favorite: number;
-            };
+            }
             room_info: null;
             new_ep: {
                 id: number;
@@ -83,7 +83,7 @@ export interface RecommendVideoFromMainPage
                 pub_time: string;
                 duration: number;
                 day_of_week: number;
-            };
+            }
             styles: string[];
             comic: null;
             producer: {
@@ -109,7 +109,7 @@ export interface RecommendVideoFromMainPage
         preload_expose_pct: number;
         preload_floor_expose_pct: number;
         mid: number;
-    };
+    }
 
 }
 
@@ -139,7 +139,7 @@ export interface RecommentShortVideo
                     toast: string;
                 }[];
                 watch_later: number;
-            };
+            }
             args: {
                 up_id: number;
                 up_name: string;
@@ -148,13 +148,13 @@ export interface RecommentShortVideo
                 tid: number;
                 tname: string;
                 aid: number;
-            };
+            }
             player_args: {
                 aid: number;
                 cid: number;
                 type: string;
                 duration: number;
-            };
+            }
             idx: number;
             three_point_v2: {
                 title: string;
@@ -164,7 +164,7 @@ export interface RecommentShortVideo
                     id: number;
                     name: string;
                     toast: string;
-                };
+                }
             }[];
             talk_back: string;
             report_flow_data: string;
@@ -181,7 +181,7 @@ export interface RecommentShortVideo
                 uri: string;
                 event: string;
                 type: number;
-            };
+            }
             official_icon: number;
             can_play: number;
             goto_icon: {
@@ -189,7 +189,7 @@ export interface RecommentShortVideo
                 icon_night_url: string;
                 icon_width: number;
                 icon_height: number;
-            };
+            }
         }[];
 
         config: {
@@ -208,9 +208,9 @@ export interface RecommentShortVideo
             visible_area: number;
             card_density_exp: number;
             story_mode_v2_guide_exp: number;
-        };
+        }
         interest_choose: null;
 
-    };
+    }
 
 } 

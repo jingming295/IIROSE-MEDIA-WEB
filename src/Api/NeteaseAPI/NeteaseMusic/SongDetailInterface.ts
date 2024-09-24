@@ -21,7 +21,7 @@ export interface SongDetailFromXCSong
     picUrl: string; // 专辑图片
     pic: number; // 未知
     pic_str: string; // 专辑图片
-  }; // 专辑信息
+  } // 专辑信息
   alia: string[];
   ar: {
     id: number; // 歌手id
@@ -44,13 +44,13 @@ export interface SongDetailFromXCSong
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  }; // 歌曲分辨率信息？最高
+  } // 歌曲分辨率信息？最高
   h: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  }; // 歌曲分辨率信息？中等偏上
+  } // 歌曲分辨率信息？中等偏上
   hr: null; // 未知
   id: number; // 歌曲id
   l: {
@@ -58,13 +58,13 @@ export interface SongDetailFromXCSong
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  }; // 歌曲分辨率信息？最低
+  } // 歌曲分辨率信息？最低
   m: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  }; // 歌曲分辨率信息？中等
+  } // 歌曲分辨率信息？中等
   mark: number; // 未知
   mst: number; // 未知
   mv: number; // 未知

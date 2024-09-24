@@ -143,7 +143,7 @@ export class Media
             kuaishou: "*6",
             netEaseMV: "*7",
             bilibililive: "*8"
-        };
+        }
 
         let t: string;
 
@@ -203,7 +203,7 @@ export class Media
             kuaishou: "!6",
             netEaseMV: "!7",
             bilibililive: "!8"
-        };
+        }
 
         let t: string;
         if (media.origin && media.origin !== 'null' && media.origin !== 'undefined')

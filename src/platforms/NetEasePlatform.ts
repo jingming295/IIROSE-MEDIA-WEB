@@ -125,13 +125,13 @@ export class NetEasePlatform
                 count++;
             }
 
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0 };
+            return { platformData: [], totalPage: 0 }
         }
 
 
@@ -167,7 +167,7 @@ export class NetEasePlatform
             if (!searchData || !searchData.result || !searchData.result.songs || !searchData.result.songCount)
             {
 
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
             const ids = searchData.result.songs.map((item) => item.id);
@@ -246,13 +246,13 @@ export class NetEasePlatform
             {
                 return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0, allPlatformData: [] };
+            return { platformData: [], totalPage: 0, allPlatformData: [] }
         }
 
 
@@ -289,7 +289,7 @@ export class NetEasePlatform
 
             if (!searchData || !searchData.result || !searchData.result.playlists || !searchData.result.playlistCount)
             {
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
             const platformData: PlatformData[] = [];
@@ -330,13 +330,13 @@ export class NetEasePlatform
 
             }
 
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0, allPlatformData: [] };
+            return { platformData: [], totalPage: 0, allPlatformData: [] }
         }
 
     }
@@ -369,7 +369,7 @@ export class NetEasePlatform
 
             if (!searchData || !searchData.result || !searchData.result.albums || !searchData.result.albumCount)
             {
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
             const platformData: PlatformData[] = [];
@@ -410,13 +410,13 @@ export class NetEasePlatform
 
             }
 
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0, allPlatformData: [] };
+            return { platformData: [], totalPage: 0, allPlatformData: [] }
         }
     }
 
@@ -448,7 +448,7 @@ export class NetEasePlatform
 
             if (!searchData || !searchData.result || !searchData.result.mvs || !searchData.result.mvCount)
             {
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
             const platformData: PlatformData[] = [];
@@ -487,13 +487,13 @@ export class NetEasePlatform
 
                 count++;
             }
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0, allPlatformData: [] };
+            return { platformData: [], totalPage: 0, allPlatformData: [] }
         }
 
     }
@@ -525,13 +525,13 @@ export class NetEasePlatform
 
             if (!searchData || !searchData.result || !searchData.result.mvs || !searchData.result.mvCount)
             {
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
 
             if (!searchData || !searchData.result || !searchData.result.djRadios)
             {
-                return { platformData: [], totalPage: 0, allPlatformData: [] };
+                return { platformData: [], totalPage: 0, allPlatformData: [] }
             }
 
             const platformData: PlatformData[] = [];
@@ -569,12 +569,12 @@ export class NetEasePlatform
                 }
                 count++;
             }
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
             this.showmessage.show('遇到了一些问题，你可以在设置中切换API以解决');
-            return { platformData: [], totalPage: 0, allPlatformData: [] };
+            return { platformData: [], totalPage: 0, allPlatformData: [] }
         }
     }
 
@@ -604,8 +604,8 @@ export class NetEasePlatform
         const jpLines = jpLyrics.split('\n');
         const cnLines = cnLyrics.split('\n');
 
-        const jpEntries: { [key: string]: string; } = {};
-        const cnEntries: { [key: string]: string; } = {};
+        const jpEntries: { [key: string]: string; } = {}
+        const cnEntries: { [key: string]: string; } = {}
 
         // Parse Japanese lyrics
         for (const line of jpLines)

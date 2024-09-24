@@ -19,7 +19,7 @@ export class SettingsCard extends Component<SettingsCardProps>
         this.setState({ actionTitle: actionTitle })
     }
 
-    componentDidUpdate(prevProps: Readonly<SettingsCardProps>, prevState: Readonly<{}>, snapshot?: any): void
+    componentDidUpdate(prevProps: Readonly<SettingsCardProps>, prevState: Readonly<{}>): void
     {
 
         if (prevProps.settingsData.actionTitle !== this.props.settingsData.actionTitle)

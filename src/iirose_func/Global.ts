@@ -40,26 +40,26 @@ declare global
             buildSelect2: (i: HTMLElement | undefined | null, a: (string | number)[][], s: (t: HTMLElement, s: string) => void, e: boolean, t: boolean, o: string | undefined | null, r: boolean, l: string | undefined | null, n: () => void) => void;
             imgReady: {
                 set: (e: HTMLImageElement, t?: string) => void;
-            };
+            }
 
             service: {
                 getUserCard: (uid: string, type: number) => void;
             }
-        };
+        }
 
         Objs?: {
             repertory: {
                 albumShowHolder: JQuery<HTMLElement>;
                 albumShow: AlbumShow;
                 albumShowHolderAnimate: JQuery<HTMLElement>;
-            };
+            }
 
             mapHolder: {
                 Assets: {
                     userJson: any
                 }
             }
-        };
+        }
 
         Constant?: {
             Others: {

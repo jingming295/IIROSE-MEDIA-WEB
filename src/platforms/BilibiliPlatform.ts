@@ -61,7 +61,7 @@ export class BilibiliPlatform
                             bvid: item.bvid,
                             cid: item.cid,
                         }
-                    };
+                    }
                     platformData.push(data);
                 }
             } else
@@ -70,12 +70,12 @@ export class BilibiliPlatform
             }
 
             const totalPage = 1;
-            return { platformData, totalPage };
+            return { platformData, totalPage }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
-            return { platformData: [], totalPage: 0 };
+            return { platformData: [], totalPage: 0 }
         }
     }
 
@@ -145,12 +145,12 @@ export class BilibiliPlatform
 
 
 
-            return { platformData, totalPage, allPlatformData };
+            return { platformData, totalPage, allPlatformData }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
-            return { platformData: [], totalPage: 0 };
+            return { platformData: [], totalPage: 0 }
         }
     }
 
@@ -184,12 +184,12 @@ export class BilibiliPlatform
                 totalPage = res.data.numPages;
             }
 
-            return { platformData, totalPage: totalPage };
+            return { platformData, totalPage: totalPage }
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
-            return { platformData: [], totalPage: 0 };
+            return { platformData: [], totalPage: 0 }
         }
     }
 
@@ -235,7 +235,7 @@ export class BilibiliPlatform
                         count++;
                     }
                     const totalPage = Math.ceil(res.data.items.length / this.itemPerPage);
-                    return { platformData: platformDatas, allPlatformData: allPlatformDatas, totalPage: totalPage };
+                    return { platformData: platformDatas, allPlatformData: allPlatformDatas, totalPage: totalPage }
                 } else
                 {
                     throw new Error('获取课程信息失败');
@@ -274,13 +274,13 @@ export class BilibiliPlatform
                 }
 
                 const totalPage = Math.ceil(bilibiliVideoDetail.data.pages.length / this.itemPerPage);
-                return { platformData: platformDatas, allPlatformData: allPlatformDatas, totalPage: totalPage };
+                return { platformData: platformDatas, allPlatformData: allPlatformDatas, totalPage: totalPage }
             } else throw new Error('获取视频信息失败');
 
         } catch (error)
         {
             this.showmessage.show((error as Error).message);
-            return { platformData: [], allPlatformData: [], totalPage: 0 };
+            return { platformData: [], allPlatformData: [], totalPage: 0 }
         }
 
     }
@@ -322,7 +322,7 @@ export class BilibiliPlatform
                             bitRate: qn,
                             color: this.baseHex,
                             origin: 'bilibili'
-                        };
+                        }
                         const media = new Media();
                         const mediacard = media.mediaCard(mediaData);
                         const mediaEvent = media.mediaEvent(mediaData);
@@ -386,7 +386,7 @@ export class BilibiliPlatform
                     bitRate: actuallyQn,
                     color: this.baseHex,
                     origin: 'bilibili'
-                };
+                }
                 const media = new Media();
                 const mediacard = media.mediaCard(mediaData);
                 const mediaEvent = media.mediaEvent(mediaData);
@@ -452,7 +452,7 @@ export class BilibiliPlatform
                     bitRate: br,
                     color: this.baseHex,
                     origin: 'bilibililive'
-                };
+                }
                 const media = new Media();
 
                 const mediacard = media.mediaCard(mediaData);
@@ -531,7 +531,7 @@ export class BilibiliPlatform
         if (!audiourl) throw new Error('获取Dash视频流失败, 找不到合适的音频流, 可能是因为视频是付费的');
 
         playurl = `${playurl}#audio=${audiourl}`;
-        return { playurl, qn };
+        return { playurl, qn }
 
 
     }

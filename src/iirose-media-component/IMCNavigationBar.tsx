@@ -18,7 +18,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
         super(props);
         this.state = {
             activeButtonIndex: 0, // 默认活动按钮索引
-        };
+        }
     }
 
     back = () =>
@@ -31,7 +31,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
     {
         this.props.switchPlatforms(index);
         this.setState({ activeButtonIndex: index }); // 更新活动按钮索引
-    };
+    }
 
     render()
     {

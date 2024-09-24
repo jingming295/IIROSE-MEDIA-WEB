@@ -16,10 +16,10 @@ interface State
 export class MediaCardButton extends Component<MediaContainerProps>
 {
     static contextType = MediaContainerContext
-    context!: ContextType<typeof MediaContainerContext>;
+    declare context: ContextType<typeof MediaContainerContext>;
     state: State = {
         isMultipage: undefined,
-    };
+    }
 
     // 点播播放的处理函数
     private demandPlay = async () =>
@@ -85,7 +85,7 @@ export class MediaCardButton extends Component<MediaContainerProps>
 
     }
 
-    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<{}>, snapshot?: any): void
+    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<{}>): void
     {
         if (this.props.platformData !== prevProps.platformData)
         {

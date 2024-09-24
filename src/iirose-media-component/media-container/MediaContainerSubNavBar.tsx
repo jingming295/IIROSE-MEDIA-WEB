@@ -30,10 +30,10 @@ export class MediaContainerSubNavBar extends Component<MediaContainerSubNavBarPr
         this.state = {
             activeIndex: 0, // 初始状态，激活第一个项
             subNavBarClass: '', // 当前的 class 初始化为空
-        };
+        }
     }
 
-    async componentDidUpdate(prevProps: Readonly<MediaContainerSubNavBarProps>, prevState: Readonly<MediaContainerSubNavBarState>, snapshot?: any): Promise<void>
+    async componentDidUpdate(prevProps: Readonly<MediaContainerSubNavBarProps>, prevState: Readonly<MediaContainerSubNavBarState>): Promise<void>
     {
         const { updateSubNavBarIndex, updateCurrentSubNavBarAction } = this.props.actions;
         const { platform } = this.props;
@@ -134,7 +134,7 @@ export class MediaContainerSubNavBar extends Component<MediaContainerSubNavBarPr
                 updateCurrentSubNavBarAction(onClick);
             }
         });
-    };
+    }
 
 
     render()

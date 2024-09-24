@@ -32,7 +32,7 @@ export class BiliBiliAccount
             const account: BilibiliACC = {
                 buvid3: buvid.data.b_3,
                 buvid4: buvid.data.b_4
-            };
+            }
             localStorage.setItem('bilibiliAccount', JSON.stringify(account));
         }
     }
@@ -74,7 +74,7 @@ export class BiliBiliAccount
             if (!qrLogin)
             {
                 break;
-            };
+            }
             if (qrLogin.data.code === 0)
             {
                 break;
@@ -89,7 +89,7 @@ export class BiliBiliAccount
                     console.log(`重新获取二维码`);
                     qrcode = await this.generateQRCodeBase64(bilibiliQrcode.data.url);
                     showImage.show(qrcode);
-                };
+                }
             }
             else if (qrLogin.data.code === 86090)
             {
@@ -105,7 +105,7 @@ export class BiliBiliAccount
                         qrcode = await this.generateQRCodeBase64(bilibiliQrcode.data.url);
                         noPerformAction = 0;
                         showImage.show(qrcode);
-                    };
+                    }
                 }
             }
             console.log(qrLogin.data.code);
@@ -132,7 +132,7 @@ export class BiliBiliAccount
             bili_jct: bili_jct ? bili_jct : '',
             gourl: gourl ? gourl : '',
             refresh_token: refresh_token ? refresh_token : ''
-        };
+        }
         let lsBilibiliAccount = localStorage.getItem('bilibiliAccount');
         if (lsBilibiliAccount)
         {

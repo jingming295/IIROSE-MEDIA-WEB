@@ -35,7 +35,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
             loading: true,
             error: null,
             requestId: 0, // 初始化请求 ID
-        };
+        }
     }
 
     async componentDidUpdate(prevProps: MediaCardProps)

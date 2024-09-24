@@ -20,7 +20,7 @@ export interface AddCoin
     ttl: number;
     data?: {
         like: boolean; // 是否点赞
-    };
+    }
 }
 
 /**
@@ -42,8 +42,8 @@ interface addCoinUnauthorizedAccessData
             scene: string,
             ua: string,
             v_voucher: string; // 疑似b站内部的用来追踪异常行为的凭证
-        };
-    };
+        }
+    }
 }
 
 export interface isAddedCoin
@@ -53,7 +53,7 @@ export interface isAddedCoin
     ttl: number,
     data: {
         multiply: number;
-    };
+    }
 }
 
 export interface AddFavorite
@@ -62,7 +62,7 @@ export interface AddFavorite
     message: string,
     data: {
         prompt: boolean; // 用来判断是否为为关注用户收藏 true: 为关注用户收藏 false: 为未关注用户收藏
-    };
+    }
 }
 
 export interface isAddFavorited
@@ -73,7 +73,7 @@ export interface isAddFavorited
     data: {
         count: number; // 作用不明确
         favoured: boolean;
-    };
+    }
 }
 
 export interface likeTriple
@@ -89,7 +89,7 @@ export interface likeTriple
         is_risk: boolean;
         gaia_res_type: number;
         gaia_data: null;
-    };
+    }
 }
 
 export interface ShareVideo

@@ -114,7 +114,7 @@ export class NetEaseSettings
             return {
                 quality: 'lossless',
                 api: 'default'
-            };
+            }
         }
     }
 

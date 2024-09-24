@@ -65,7 +65,7 @@ export class NeteaseSearchAPI extends SendFetch
                                 });
                             }),
                             duration: '歌单'
-                        };
+                        }
 
                         // extractedData.push(item);
                     }
@@ -131,7 +131,7 @@ export class NeteaseSearchAPI extends SendFetch
             type: type, // 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
             limit: limit, // 返回歌曲数量
             offset: offset.toString(), // 偏移量
-        };
+        }
         const headers = new Headers();
         const we = d(params);
         const enc = {

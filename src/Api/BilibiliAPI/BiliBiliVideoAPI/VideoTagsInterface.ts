@@ -21,7 +21,7 @@ interface TagList
         view: number;
         use: number;
         atten: number;
-    };
+    }
     is_atten: number;
     likes: number;
     hates: number;

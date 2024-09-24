@@ -79,7 +79,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         super(props);
     }
 
-    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>, snapshot?: any): void
+    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>): void
     {
         const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
@@ -154,7 +154,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             currentOnDemandPlay,
             updateCurrentInMultiPageStatus,
             ShowOrHideIMC
-        };
+        }
 
         return (
             <Provider value={providerValue}>
@@ -232,8 +232,8 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         settingsData: null as SettingData[] | null,
         requestToken: 0,
         currentSubNavBarAction: () => { },
-        currentOnDemandPlay: (platformData: PlatformData) => { },
-    };
+        currentOnDemandPlay: () => { },
+    }
 
     private controller = {
         /**
@@ -369,7 +369,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             if (this.state.requestToken !== currentRequestToken)
             {
                 return;
-            };
+            }
 
             if (allPlatformData)
             {
@@ -484,7 +484,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 if (this.state.requestToken !== currentRequestToken)
                 {
                     return;
-                };
+                }
 
                 this.setState({ totalPage: res.totalPage });
             });
@@ -553,7 +553,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     if (this.state.requestToken !== currentRequestToken)
                     {
                         return;
-                    };
+                    }
                     this.setState({ totalPage: res.totalPage });
                     if (res.allPlatformData)
                     {
@@ -798,7 +798,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     if (this.state.requestToken !== currentRequestToken)
                     {
                         return;
-                    };
+                    }
 
                     this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
                 })
@@ -1110,7 +1110,7 @@ class MediaContainerGesture
     startY = 0;
     currentPage = 1;
     totalPage = 1;
-    changecurrentPage = (page: number) => { };
+    changecurrentPage = (page: number) => { }
 
     handleStart(e: TouchEvent | MouseEvent, currentPage: number, totalPage: number, changecurrentPage: (page: number) => void)
     {

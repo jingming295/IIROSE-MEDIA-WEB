@@ -39,7 +39,7 @@ export interface VideoData
     mid: number;
     name: string;
     face: string;
-  };
+  }
   stat: {
     aid: number;
     view: number;
@@ -55,14 +55,14 @@ export interface VideoData
     evaluation: string;
     argue_msg: string;
     vt: number;
-  };
+  }
   dynamic: string;
   cid: number;
   dimension: {
     width: number;
     height: number;
     rotate: number;
-  };
+  }
   season_id: number;
   premiere: null;
   teenage_mode: number;
@@ -77,7 +77,7 @@ export interface VideoData
   subtitle: {
     allow_submit: boolean;
     list: SubtitleList[];
-  };
+  }
   ugc_season: {
     id: number;
     title: string;
@@ -91,16 +91,16 @@ export interface VideoData
       score: number;
       count: number;
       average: string;
-    };
+    }
     ep_count: number;
     season_type: number;
     is_pay_season: boolean;
     enable_vt: number;
-  };
+  }
   is_season_display: boolean;
   user_garb: {
     url_image_ani_cut: string;
-  };
+  }
   honor_reply: HonorReply | Record<string, never>;
   like_icon: string;
   need_jump_bv: boolean;
@@ -131,7 +131,7 @@ interface BVideoDetailDataPage
     width: number;
     height: number;
     rotate: number;
-  };
+  }
   first_frame: string;
 }
 
@@ -169,7 +169,7 @@ interface Arc
     mid: number;
     name: string;
     face: string;
-  };
+  }
   stat: {
     aid: number;
     view: number;
@@ -186,13 +186,13 @@ interface Arc
     argue_msg: string;
     vt: number;
     vv: number;
-  };
+  }
   dynamic: string;
   dimension: {
     width: number;
     height: number;
     rotate: number;
-  };
+  }
   desc_v2: null; // 输出是null，不确定有没有其他输出
   is_chargeable_season: boolean;
   is_blooper: boolean;
@@ -277,7 +277,7 @@ interface SubtitleList
     is_deleted: number;
     in_reg_audit: number;
     is_senior_member: number;
-  };
+  }
 }
 
 export interface BilibiliPagesAndCids
@@ -298,7 +298,7 @@ export interface BilibiliPagesAndCids
       width: number;
       height: number;
       rotate: number;
-    };
+    }
     first_frame: string;
   }[]
 

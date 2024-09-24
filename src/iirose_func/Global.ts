@@ -56,7 +56,7 @@ declare global
 
             mapHolder: {
                 Assets: {
-                    userJson: any
+                    userJson: string;
                 }
             }
         }

@@ -24,7 +24,7 @@ export class PlatformSelector extends Component<PlatformSelectorProps, PlatformS
         }
     }
 
-    componentDidUpdate(prevProps: Readonly<PlatformSelectorProps>, prevState: Readonly<PlatformSelectorState>): void
+    componentDidUpdate(prevProps: Readonly<PlatformSelectorProps>): void
     {
 
         if (prevProps.platform !== this.props.platform)

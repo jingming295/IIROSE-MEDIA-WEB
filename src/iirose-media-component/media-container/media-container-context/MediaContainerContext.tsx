@@ -3,9 +3,9 @@ import { PlatformData } from '../../../platforms/interfaces';
 
 export const MediaContainerContext = createContext({
     color: '',
-    switchToMultiPage: (platformData: PlatformData, isCurrentInMultiPage?: boolean) => { },
-    currentOnDemandPlay: (platformData: PlatformData) => { },
-    updateCurrentInMultiPageStatus: (isCurrentInMultiPage: boolean) => { },
+    switchToMultiPage: (platformData: PlatformData, isCurrentInMultiPage?: boolean) => { platformData; isCurrentInMultiPage },
+    currentOnDemandPlay: (platformData: PlatformData) => { platformData },
+    updateCurrentInMultiPageStatus: (isCurrentInMultiPage: boolean) => { isCurrentInMultiPage },
     ShowOrHideIMC: () => { },
 });
 

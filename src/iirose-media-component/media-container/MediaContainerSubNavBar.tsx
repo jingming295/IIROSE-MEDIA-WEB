@@ -33,7 +33,7 @@ export class MediaContainerSubNavBar extends Component<MediaContainerSubNavBarPr
         }
     }
 
-    async componentDidUpdate(prevProps: Readonly<MediaContainerSubNavBarProps>, prevState: Readonly<MediaContainerSubNavBarState>): Promise<void>
+    async componentDidUpdate(prevProps: Readonly<MediaContainerSubNavBarProps>): Promise<void>
     {
         const { updateSubNavBarIndex, updateCurrentSubNavBarAction } = this.props.actions;
         const { platform } = this.props;

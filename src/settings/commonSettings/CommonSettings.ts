@@ -19,7 +19,7 @@ export class CommonSettings
     public setAgree(tosVersion: string, privacyVersion: string)
     {
 
-        const setTOS = (userInput: any) =>
+        const setTOS = () =>
         {
             const commonSetting = localStorage.getItem('commonSetting');
             if (commonSetting)
@@ -54,7 +54,7 @@ export class CommonSettings
             this.iiroseUtils.sync(0, title, setPrivacy)
         }
 
-        const setPrivacy = (userInput: any) =>
+        const setPrivacy = () =>
         {
             const commonSetting = localStorage.getItem('commonSetting');
             if (commonSetting)

@@ -85,7 +85,7 @@ export class MediaCardButton extends Component<MediaContainerProps>
 
     }
 
-    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<{}>): void
+    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<State>): void
     {
         if (this.props.platformData !== prevProps.platformData)
         {

@@ -27,7 +27,7 @@ class Gesture
         }
     }
 
-    public touchEnd(event: TouchEvent): void
+    public touchEnd(): void
     {
         this.startY = 0;
         window.removeEventListener("touchmove", this.handleTouchMove.bind(this));
@@ -65,7 +65,7 @@ class Gesture
 
 }
 
-export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER_STATE>
+export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTAINER_STATE>
 {
     private IMCActiveEvent: (event: MouseEvent | TouchEvent) => void;
     private mainHolder: HTMLElement | null = null;
@@ -90,7 +90,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<{}, IIROSE_MEDIA_CONTAINER
         this.mainHolder = document.getElementById('mainHolder');
     }
 
-    componentDidUpdate(previousProps: Readonly<{}>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
+    componentDidUpdate(previousProps: Readonly<object>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
     {
         const { active } = this.state;
 

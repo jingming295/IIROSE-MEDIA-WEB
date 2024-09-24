@@ -59,59 +59,72 @@ export class BiliBiliAccount
 
         if (!albumShowHolder) return null;
         let qrLogin = await bilibiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
-        let noPerformAction = 0;
-        do
+        let noPerformAction = 0; // 记录扫码未登录的次数
+        let shouldContinue = true; // 控制循环继续的变量
+
+        while (shouldContinue)
         {
             if (!bilibiliQrcode || !bilibiliQrcode.data)
             {
+                shouldContinue = false; // 如果二维码数据无效，退出循环
                 break;
             }
+
             qrLogin = await bilibiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
+
             if (albumShowHolder.style.display === 'none')
             {
+                shouldContinue = false; // 如果页面不显示，退出循环
                 break;
             }
+
             if (!qrLogin)
             {
+                shouldContinue = false; // 如果登录请求失败，退出循环
                 break;
             }
+
             if (qrLogin.data.code === 0)
             {
+                shouldContinue = false; // 登录成功，退出循环
                 break;
             } else if (qrLogin.data.code === 86101)
             {
                 // 未扫码，继续等待
             } else if (qrLogin.data.code === 86038)
             {
+                // 二维码失效，重新获取
                 bilibiliQrcode = await bilibiliLoginApi.getQRCode();
                 if (bilibiliQrcode && bilibiliQrcode.data)
                 {
-                    console.log(`重新获取二维码`);
+                    console.log('重新获取二维码');
                     qrcode = await this.generateQRCodeBase64(bilibiliQrcode.data.url);
                     showImage.show(qrcode);
                 }
-            }
-            else if (qrLogin.data.code === 86090)
+            } else if (qrLogin.data.code === 86090)
             {
                 // 扫码未登录
                 noPerformAction++;
                 if (noPerformAction > 10)
                 {
                     bilibiliQrcode = await bilibiliLoginApi.getQRCode();
-                    showMessage.show(`长时间扫码未登录，刷新了二维码`);
+                    showMessage.show('长时间扫码未登录，刷新了二维码');
                     if (bilibiliQrcode && bilibiliQrcode.data)
                     {
-                        console.log(`长时间扫码未登录，刷新了二维码`);
+                        console.log('长时间扫码未登录，刷新了二维码');
                         qrcode = await this.generateQRCodeBase64(bilibiliQrcode.data.url);
                         noPerformAction = 0;
                         showImage.show(qrcode);
                     }
                 }
             }
+
             console.log(qrLogin.data.code);
 
-            await delay(getRandomInt(1800, 2200));
-        } while (true);
+            await delay(getRandomInt(1800, 2200)); // 等待随机时间后继续循环
+        }
+
+
 
         if (!qrLogin) return null;
 

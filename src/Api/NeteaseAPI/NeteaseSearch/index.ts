@@ -14,8 +14,7 @@ export class NeteaseSearchAPI extends SendFetch
     public async NeteaseRecommandPlayList(): Promise<[] | null>
     {
         const url = `${this.cors}https://music.163.com/discover`;
-        const headers = this.returnNeteaseHeaders()
-        const response = await this.sendGet(url, new URLSearchParams(), headers);
+        const response = await this.sendGet(url, new URLSearchParams());
         if (response && response.ok)
         {
             const data = await response.text();
@@ -92,7 +91,6 @@ export class NeteaseSearchAPI extends SendFetch
             csrf_token: ''
         }
 
-        const headers = new Headers();
         const we = d(params);
         const enc = {
             params: we.encText,
@@ -101,9 +99,8 @@ export class NeteaseSearchAPI extends SendFetch
 
         const encparams = new URLSearchParams(enc);
 
-        headers.append('content-type', 'application/x-www-form-urlencoded')
 
-        const response = await this.sendPost(url, encparams, headers);
+        const response = await this.sendPost(url, encparams);
 
         if (response && response.ok)
         {
@@ -132,15 +129,13 @@ export class NeteaseSearchAPI extends SendFetch
             limit: limit, // 返回歌曲数量
             offset: offset.toString(), // 偏移量
         }
-        const headers = new Headers();
         const we = d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
         }
         const encparams = new URLSearchParams(enc);
-        headers.append('content-type', 'application/x-www-form-urlencoded')
-        const response = await this.sendPost(url, encparams, headers);
+        const response = await this.sendPost(url, encparams);
         if (response && response.ok)
         {
             const data: SearchData = await response.json();
@@ -160,8 +155,7 @@ export class NeteaseSearchAPI extends SendFetch
         const url = `${realAPI}/personalized`
         const params = new URLSearchParams();
         params.append('limit', limit.toString());
-        const headers = new Headers();
-        const response = await this.sendGet(url, params, headers, warn);
+        const response = await this.sendGet(url, params, undefined, warn);
         if (response && response.ok)
         {
             const data: RecommendSongList = await response.json();
@@ -187,9 +181,7 @@ export class NeteaseSearchAPI extends SendFetch
             offset: offset.toString()
         });
 
-        const headers = new Headers();
-
-        const response = await this.sendGet(url.toString(), params, headers);
+        const response = await this.sendGet(url.toString(), params);
 
         if (response && response.ok)
         {

@@ -323,7 +323,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const vod = bilibili.VOD.bind(bilibili);
                 this.setState({ currentPage: 1, totalPage: 0 });
                 this.setState({ mediaData: data });
-                this.setState({ currentSubNavBarAction: this.bilibiliAction.BilibiliMultipageAction });
                 this.setState({ currentOnDemandPlay: vod });
                 data.then((res) =>
                 {
@@ -336,10 +335,46 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     }
                 })
 
-            } else if (platformData.neteaseMusic)
+            } else if (platformData.neteaseMusic?.isSongList)
             {
-                const netease = new NetEasePlatform();
-                const data = netease.getRadioMultiPageData(platformData);
+                const netEase = new NetEasePlatform()
+                const data = netEase.getSongListMultiPageData(platformData);
+
+                const MOD = netEase.MOD.bind(netEase);
+                this.setState({ currentPage: 1, totalPage: 0 });
+                this.setState({ mediaData: data });
+                this.setState({ currentOnDemandPlay: MOD });
+
+                data.then((res) =>
+                {
+                    if (!isCurrentInMultiPage) return;
+                    if (!res) return;
+                    this.setState({ totalPage: res.totalPage });
+                    if (res.allPlatformData)
+                    {
+                        this.setState({ allMediaData: res.allPlatformData });
+                    }
+                })
+            } else if (platformData.neteaseMusic?.isAlbum)
+            {
+                const netEase = new NetEasePlatform()
+                const data = netEase.getAlbumMultiPageData(platformData);
+
+                const MOD = netEase.MOD.bind(netEase);
+                this.setState({ currentPage: 1, totalPage: 0 });
+                this.setState({ mediaData: data });
+                this.setState({ currentOnDemandPlay: MOD });
+
+                data.then((res) =>
+                {
+                    if (!isCurrentInMultiPage) return;
+                    if (!res) return;
+                    this.setState({ totalPage: res.totalPage });
+                    if (res.allPlatformData)
+                    {
+                        this.setState({ allMediaData: res.allPlatformData });
+                    }
+                })
 
             }
 
@@ -413,7 +448,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 updating,
                 totalPage
             } = this.state;
-
             const { pushAllData } = this.controller;
             if (!allMediaData.length) this.setState({ totalPage: 0 });
 
@@ -489,27 +523,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 this.setState({ totalPage: res.totalPage });
             });
 
-        },
-        /**
-         * @description 哔哩哔哩多集页面
-         */
-        BilibiliMultipageAction: () =>
-        {
-            const { mediaData, allMediaData, currentPage, totalPage } = this.state;
-            if (mediaData)
-            {
-                const vod = new BilibiliPlatform().VOD.bind(new BilibiliPlatform());
-                // 计算起始和结束索引
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-                this.setState({
-                    mediaData: mediaData,
-                    currentOnDemandPlay: vod,
-                    requestToken: +1
-                });
-            }
         }
     }
 
@@ -517,12 +530,20 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
         netEaseRecommendPlayList: () =>
         {
-            const { allMediaData, totalPage, currentPage } = this.state;
+            const { allMediaData, totalPage, currentPage, isCurrentInMultiPage } = this.state;
             const currentRequestToken = this.state.requestToken + 1;
             const netease = new NetEasePlatform();
             if (allMediaData.length > 0)
             {
-                const mlod = netease.MLOD.bind(netease);
+                if (!isCurrentInMultiPage)
+                {
+                    const mlod = netease.MLOD.bind(netease);
+                    this.setState({ currentOnDemandPlay: mlod });
+                } else if (isCurrentInMultiPage)
+                {
+                    const MOD = netease.MOD.bind(netease);
+                    this.setState({ currentOnDemandPlay: MOD });
+                }
 
                 // 计算起始和结束索引
                 const startIndex = (currentPage - 1) * this.itemsPerPage;
@@ -533,7 +554,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
 
                 this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: mlod });
 
             } else
             {
@@ -614,7 +634,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         },
         netEaseSearchSongListByKeyword: () =>
         {
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
+            const { searchKeyword, allMediaData, currentPage, totalPage, updating, isCurrentInMultiPage } = this.state;
             const { pushAllData } = this.controller;
             const netease = new NetEasePlatform();
             const currentRequestToken = this.state.requestToken + 1;
@@ -623,7 +643,14 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
             const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
             if (currentPage <= maxPage)
             {
-
+                if (!isCurrentInMultiPage)
+                {
+                    this.setState({ currentOnDemandPlay: MLOD });
+                } else if (isCurrentInMultiPage)
+                {
+                    const MOD = netease.MOD.bind(netease);
+                    this.setState({ currentOnDemandPlay: MOD });
+                }
                 const startIndex = (currentPage - 1) * this.itemsPerPage;
                 const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
 
@@ -632,7 +659,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
 
                 this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: MLOD });
 
             } else if (!updating)
             {
@@ -663,7 +689,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         netEaseSearchAlbumByKeyword: () =>
         {
 
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
+            const { searchKeyword, allMediaData, currentPage, totalPage, updating, isCurrentInMultiPage } = this.state;
             const { pushAllData } = this.controller;
             const netease = new NetEasePlatform();
             const currentRequestToken = this.state.requestToken + 1;
@@ -682,7 +708,14 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
 
                 this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: AOD });
+                if (!isCurrentInMultiPage)
+                {
+                    this.setState({ currentOnDemandPlay: AOD });
+                } else if (isCurrentInMultiPage)
+                {
+                    const MOD = netease.MOD.bind(netease);
+                    this.setState({ currentOnDemandPlay: MOD });
+                }
 
             } else if (!updating)
             {
@@ -803,13 +836,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
                 })
             }
-        },
-        neteaseRadioMultiPage: () =>
-        {
-            const { mediaData, allMediaData, currentPage, totalPage } = this.state;
-
-            console.log(mediaData)
-
         }
     }
 

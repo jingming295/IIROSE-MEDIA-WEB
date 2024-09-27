@@ -1,12 +1,9 @@
 import { SendFetch } from "../..";
-import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 import { LiveRoomDetail, LiveRoomInitDetail, LiveRoomPlayInfoDetail, LiveRoomStatus, LiveUserDetail } from "./LiveDetailInterface";
 import { LiveStream } from "./LiveStreamInterface";
 
 export class BiliBiliLiveApi extends SendFetch
 {
-    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
-    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 
      * @param roomId 
@@ -14,12 +11,20 @@ export class BiliBiliLiveApi extends SendFetch
      */
     public async getLiveRoomDetail(roomId: number)
     {
-        const url = `${this.bcors}https://api.live.bilibili.com/room/v1/Room/get_info`;
+        const bcors = this.getBilibiliCors()
+        const url = `${bcors}https://api.live.bilibili.com/room/v1/Room/get_info`;
         const params = new URLSearchParams({
             room_id: roomId.toString()
         });
-        const headers = this.returnBilibiliHeaders();
-        const response = await this.sendGet(url, params, headers);
+
+        const bParams = this.returnBilibiliHeadersParam();
+
+        bParams.forEach((value, key) =>
+        {
+            params.append(key, value);
+        })
+
+        const response = await this.sendGet(url, params);
         if (response && response.ok)
         {
             const data: LiveRoomDetail = await response.json();
@@ -158,7 +163,8 @@ export class BiliBiliLiveApi extends SendFetch
             qn: number | null = null,
         )
     {
-        const url = `${this.bcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
+        const bcors = this.getBilibiliCors()
+        const url = `${bcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
         const params = new URLSearchParams({
             cid: cid.toString()
         });
@@ -166,9 +172,14 @@ export class BiliBiliLiveApi extends SendFetch
         quality && params.append('quality', quality.toString());
         qn && params.append('qn', qn.toString());
 
-        const headers = this.returnBilibiliHeaders();
+        const bParams = this.returnBilibiliHeadersParam();
 
-        const response = await this.sendGet(url, params, headers);
+        bParams.forEach((value, key) =>
+        {
+            params.append(key, value);
+        })
+
+        const response = await this.sendGet(url, params);
 
         if (response && response.ok)
         {

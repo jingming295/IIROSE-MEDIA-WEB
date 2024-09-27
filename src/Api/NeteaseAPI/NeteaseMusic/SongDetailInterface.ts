@@ -9,10 +9,10 @@ export interface SongDetailFromBinaryify
 {
   code: number;
   privileges: [];
-  songs?: SongDetailFromXCSong[];
+  songs?: SongsFromBinaryify[];
 }
 
-export interface SongDetailFromXCSong
+export interface SongsFromBinaryify
 {
   a: null
   al: {

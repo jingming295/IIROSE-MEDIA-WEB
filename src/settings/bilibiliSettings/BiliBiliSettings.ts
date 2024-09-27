@@ -9,7 +9,7 @@ export interface BilibiliVideoSettings
     streamqn: number,
     streamSeconds: number,
     videoStreamFormat: number,
-    api: 'MY' | 'Beijing'
+    api: 'MY' | 'Beijing' | 'Dev'
 }
 
 export class BiliBiliSettings
@@ -289,7 +289,7 @@ export class BiliBiliSettings
 
         const set = (t: HTMLElement, s: string) =>
         {
-            const api = s as 'MY' | 'Beijing';
+            const api = s as 'MY' | 'Beijing' | 'Dev';
 
             const bilibiliSetting = localStorage.getItem('bilibiliSetting');
             if (bilibiliSetting)
@@ -310,12 +310,14 @@ export class BiliBiliSettings
 
         const selectOption = [
             ['MY', '马来西亚'],
-            ['Beijing', '中国 - 北京']
+            ['Beijing', '中国 - 北京'],
+            ['Dev', '开发者模式']
         ];
 
         const mdiClass = [
             'mdi-crosshairs-gps',
-            'mdi-crosshairs-gps'
+            'mdi-crosshairs-gps',
+            'mdi-dev-to'
         ];
 
         selectOption.forEach((item, index) =>
@@ -430,11 +432,12 @@ export class BiliBiliSettings
         }, {});
     }
 
-    public parseBilibiliApi(api: 'MY' | 'Beijing')
+    public parseBilibiliApi(api: 'MY' | 'Beijing' | 'Dev')
     {
         const selectOption = [
             ['MY', '马来西亚'],
-            ['Beijing', '中国 - 北京']
+            ['Beijing', '中国 - 北京'],
+            ['Dev', '开发者模式']
         ];
 
         const selectedOption = selectOption.find((option) => option[0] === api);

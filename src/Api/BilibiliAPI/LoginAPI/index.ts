@@ -2,6 +2,7 @@
 import { QRcode, Refresh, RefreshCookiedata, buvid, qrLogin } from './interface';
 import { SendFetch } from '../..';
 import { NavUserInfo } from './LoginInfoInterface';
+import { BiliBiliSettings } from '../../../settings/bilibiliSettings/BiliBiliSettings';
 // import { MainPageCookie } from '../../Generate/MainPageCookieInterface';
 // const jsdom = require('jsdom');
 // const { JSDOM } = jsdom;
@@ -13,11 +14,17 @@ export class BiliBiliLoginApi extends SendFetch
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/poll`;
         const headers = this.returnBilibiliHeaders();
         // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value} bili_ticket=${CookieData['bili_ticket']?.value}bmg_af_switch=${CookieData['bmg_af_switch']?.value}FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value}browser_resolution=${CookieData['browser_resolution']?.value}header_theme_version=${CookieData['header_theme_version']?.value}home_feed_column=${CookieData['home_feed_column']?.value}bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value}enable_web_push=${CookieData['enable_web_push']?.value}_uuid=${CookieData['_uuid']?.value}b_lsid=${CookieData['b_lsid']?.value}buvid3=${CookieData['buvid3']?.value}b_ut=${CookieData['b_ut']?.value}buvid_fp=${CookieData['buvid_fp']?.value}b_nut=${CookieData['b_nut']?.value}buvid4=${CookieData['buvid4']?.value}`);
-        const data = new URLSearchParams({
+        const params = new URLSearchParams({
             qrcode_key: qrcode_key
         });
 
-        const response = await this.sendGet(url, data, headers);
+        const bParams = this.returnBilibiliHeadersParam();
+        for (const [key, value] of bParams)
+        {
+            params.set(key, value);
+        }
+
+        const response = await this.sendGet(url, params, headers);
 
         if (response && response.ok)
         {
@@ -79,8 +86,8 @@ export class BiliBiliLoginApi extends SendFetch
     public async getBuvid()
     {
         const url = `${this.cors}https://api.bilibili.com/x/frontend/finger/spi`;
-        const headers = this.returnBilibiliHeaders();
-        const response = await this.sendGet(url, new URLSearchParams(''), headers);
+        const bParams = this.returnBilibiliHeadersParam();
+        const response = await this.sendGet(url, bParams);
         if (response && response.ok)
         {
             const data: buvid = await response.json();
@@ -483,15 +490,19 @@ export class BiliBiliLoginApi extends SendFetch
     public async getNavUserData(sessdata?: string)
     {
         const url = `${this.cors}https://api.bilibili.com/x/web-interface/nav`;
-        let headers: Headers = new Headers();
+        const params = new URLSearchParams
         if (!sessdata)
         {
-            headers = this.returnBilibiliHeaders();
+            const bParams = this.returnBilibiliHeadersParam();
+            for (const [key, value] of bParams)
+            {
+                params.set(key, value);
+            }
         } else
         {
-            headers.append('cookie-trans', `SESSDATA=${sessdata}`);
+            params.append('cookie', `SESSDATA=${sessdata}`);
         }
-        const response = await this.sendGet(url, new URLSearchParams(''), headers);
+        const response = await this.sendGet(url, params);
         if (response && response.ok)
         {
             const data: NavUserInfo = await response.json();

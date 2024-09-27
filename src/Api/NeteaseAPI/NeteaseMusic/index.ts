@@ -1,5 +1,5 @@
 import { SendFetch } from "../../index";
-import { SongDetail, SongDetailFromBinaryify, SongDetailFromXCSong, SongDetailSong } from "./SongDetailInterface";
+import { SongDetail, SongDetailFromBinaryify, SongDetailSong, SongsFromBinaryify } from "./SongDetailInterface";
 import { Lyric, SongList, xcSongResource } from "./SongList";
 import { d } from "../Crypto";
 import { AlbumData } from "./AlbumInterface";
@@ -21,10 +21,7 @@ export class NeteaseMusicAPI extends SendFetch
             n: '100000',
             s: '8'
         });
-
-        const headers = new Headers();
-        headers.append('Referer', 'https://music.163.com/');
-        const response = await this.sendGet(url, params, headers);
+        const response = await this.sendGet(url, params);
         if (response && response.ok)
         {
             const data: SongList = await response.json();
@@ -43,16 +40,14 @@ export class NeteaseMusicAPI extends SendFetch
             csrf_token: ''
         }
 
-        const headers = new Headers();
         const we = d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
         }
         const encparams = new URLSearchParams(enc);
-        headers.append('content-type', 'application/x-www-form-urlencoded')
 
-        const response = await this.sendPost(url, encparams, headers);
+        const response = await this.sendPost(url, encparams);
 
         if (response && response.ok)
         {
@@ -63,6 +58,36 @@ export class NeteaseMusicAPI extends SendFetch
         {
             return null;
         }
+    }
+
+    public async getNeteaseAlbumDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
+    {
+        try
+        {
+            const theresaAPI = window.netease?.theresaAPI;
+            const xcAPI = window.netease?.xcAPI;
+
+            const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+            const url = `${realAPI}album`;
+            const params = new URLSearchParams({
+                id: id.toString(),
+            });
+
+            const response = await this.sendGet(url, params);
+
+            if (response && response.ok)
+            {
+                const data: AlbumData = await response.json();
+                return data;
+            } else
+            {
+                return null;
+            }
+        } catch (error)
+        {
+            return null;
+        }
+
     }
 
     /**
@@ -89,11 +114,8 @@ export class NeteaseMusicAPI extends SendFetch
                 const params = new URLSearchParams({
                     ids: `[${chunk.toString()}]`
                 });
-                url.search = params.toString();
 
-                const headers = this.returnNeteaseHeaders();
-
-                const response = await this.sendGet(url.toString(), params, headers, true);
+                const response = await this.sendGet(url.toString(), params, undefined, true);
 
                 if (response && response.ok)
                 {
@@ -138,45 +160,56 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongDetailFromBinaryify(id: number[], api: 'xc' | 'theresa')
+    public async getNeteaseSongDetailFromBinaryify(ids: number[], api: 'xc' | 'theresa')
     {
+
+        const CHUNK_SIZE = 500;
+        const allSongs: SongsFromBinaryify[] = []; // 用于存储所有的 songs
+
+        // 将 ids 数组拆分为多个子数组
+        const chunks = this.chunkArray(ids, CHUNK_SIZE);
         const theresaAPI = window.netease?.theresaAPI;
         const xcAPI = window.netease?.xcAPI;
 
         const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
 
-        const url = new URL(`${realAPI}song/detail`);
-        const params = new URLSearchParams({
-            ids: id.toString(),
-        });
-
-        const headers = new Headers();
-        headers.append('Referer', 'https://music.163.com/');
-
-        // 创建一个 AbortController 实例
-        const controller = new AbortController();
-        const signal = controller.signal;
-
-        // 设置超时时间为 4 秒
-        const timeout = 4000;
-        setTimeout(() => controller.abort(), timeout);
-
         try
         {
-            const response = await this.sendGet(url.toString(), params, headers, false, signal);
+            // 逐个请求每个子数组
+            for (const chunk of chunks)
+            {
+                const url = new URL(`${realAPI}song/detail`);
+                const params = new URLSearchParams({
+                    ids: chunk.toString()
+                });
 
-            if (response && response.ok)
-            {
-                const data: SongDetailFromBinaryify = await response.json();
-                return data;
-            } else
-            {
-                return null;
+                const response = await this.sendGet(url.toString(), params, undefined, true);
+
+                if (response && response.ok)
+                {
+                    const data: SongDetailFromBinaryify = await response.json();
+                    if (data.songs)
+                    {
+                        allSongs.push(...data.songs);
+                    } else
+                    {
+                        console.error('获取歌曲详情失败');
+                        return null;
+                    }
+                } else
+                {
+                    console.error('Request failed', response);
+                    return null;
+                }
             }
+
+            return allSongs;
+
         } catch (error)
         {
             return null;
         }
+
     }
 
     /**
@@ -184,16 +217,18 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongListDetailFromXC(id: number)
+    public async getNeteaseSongListDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
     {
-        const url = `https://xc.null.red:8043/api/netease/playlist/detail`;
+        const theresaAPI = window.netease?.theresaAPI;
+        const xcAPI = window.netease?.xcAPI;
+
+        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+        const url = `${realAPI}playlist/detail`;
         const params = new URLSearchParams({
             id: id.toString(),
         });
 
-        const headers = this.returnNeteaseHeaders();
-
-        const response = await this.sendGet(url, params, headers);
+        const response = await this.sendGet(url, params, undefined);
 
         if (response && response.ok)
         {
@@ -278,37 +313,6 @@ export class NeteaseMusicAPI extends SendFetch
             return lyric;
         } else
         {
-            return null;
-        }
-    }
-
-    public imoeGetSongResource = async (id: number) =>
-    {
-        const createSign = async (id: number) =>
-        {
-            const token = '2126696677';
-            const time = Date.now();
-            const text = `${id}.metadata.${time}|${token}`;
-
-            const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-            const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-            return {
-                sign: hex,
-                time: time
-            }
-        }
-        try
-        {
-            const { sign, time } = await createSign(id);
-
-            const resp = await fetch(`https://ifs.imoe.xyz/api/v1/163?id=${id}&type=metadata&time=${time}&sign=${sign}`);
-            const metadata: xcSongResource = await resp.json();
-            metadata.url += `#.mp3`;
-            return metadata;
-        } catch (error)
-        {
-            console.error(error);
             return null;
         }
     }

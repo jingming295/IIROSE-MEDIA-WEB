@@ -1,4 +1,4 @@
-import { SongDetailFromXCSong } from "./SongDetailInterface";
+import { SongsFromBinaryify } from "./SongDetailInterface";
 
 export interface AlbumData
 {
@@ -98,5 +98,5 @@ export interface AlbumData
         tags: string;
         type: string;
     }
-    songs: SongDetailFromXCSong[]
+    songs: SongsFromBinaryify[]
 }

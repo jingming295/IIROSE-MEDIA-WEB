@@ -1,12 +1,9 @@
 import { SendFetch } from "../..";
-import { BiliBiliSettings } from "../../../settings/bilibiliSettings/BiliBiliSettings";
 import { WBI } from "../Crypto/WBI";
-import { SearchRequest, SearchRequestByType, SearchRequestByTypeArticle, SearchRequestByTypeLive, SearchRequestByTypeLiveRoom, SearchRequestByTypeLiveUser, SearchRequestByTypeMediaBangumiAndMediaFT, SearchRequestByTypePhoto, SearchRequestByTypeVideo } from "./SearchRequestInterface";
+import { SearchRequest, SearchRequestByTypeArticle, SearchRequestByTypeLive, SearchRequestByTypeLiveRoom, SearchRequestByTypeLiveUser, SearchRequestByTypeMediaBangumiAndMediaFT, SearchRequestByTypePhoto, SearchRequestByTypeVideo } from "./SearchRequestInterface";
 
 export class BiliBiliSearchApi extends SendFetch
 {
-    bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
-    bcors = this.getBilibiliCors(this.bvSetting.api)
     /**
      * 综合搜索（web端）
      * @param keyword 
@@ -73,7 +70,8 @@ export class BiliBiliSearchApi extends SendFetch
             category_id: number | null = null
         )
     {
-        const url = `${this.bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
+        const bcors = this.getBilibiliCors();
+        const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
         const params = new URLSearchParams({
             search_type: search_type,
             keyword: keyword
@@ -91,8 +89,14 @@ export class BiliBiliSearchApi extends SendFetch
         wbidata.w_rid && params.append('w_rid', wbidata.w_rid);
         wbidata.wts && params.append('wts', wbidata.wts.toString());
 
-        const headers = this.returnBiliBiliHeadersBuvidOnly();
-        const response = await this.sendGet(url, params, headers);
+        const bParams = this.returnBilibiliHeadersParam()
+
+        for (const [key, value] of bParams.entries())
+        {
+            params.append(key, value);
+        }
+
+        const response = await this.sendGet(url, params);
         if (response && response.ok)
         {
             const data = await response.json();

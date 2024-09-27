@@ -1,12 +1,15 @@
 import { BilibiliACC } from "../Account/BiliBili/BilibiliAccountInterface";
 import { GetBiliBiliAccount } from "../Account/BiliBili/GetBiliBili";
 import { ShowMessage } from "../iirose_func/ShowMessage";
+import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
 
 export class SendFetch
 {
     public cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
     public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
     public beijingcors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
+    public devcors = `http://localhost:8080/`;
+
     constructor()
     {
         if (window.iirosemedia && window.iirosemedia.cors !== undefined)
@@ -14,18 +17,12 @@ export class SendFetch
             this.cors = window.iirosemedia.cors;
         }
     }
-    public async sendGet(url: string, params: URLSearchParams, headers: Headers, warn: boolean = true, signal?: AbortSignal)
+    public async sendGet(url: string, params: URLSearchParams, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
     {
+        const fullUrl = `${url}?${params.toString()}`;
+
         try
         {
-            if (window.iirosemedia && window.iirosemedia.cors !== undefined)
-            {
-                if (headers.get('cookie-trans'))
-                {
-                    headers.append('cookie', headers.get('cookie-trans') as string);
-                }
-            }
-            const fullUrl = `${url}?${params.toString()}`;
             const response = await fetch(fullUrl, {
                 method: 'GET',
                 headers: headers,
@@ -35,7 +32,7 @@ export class SendFetch
             if (!response.ok && warn)
             {
                 const showmessage = new ShowMessage();
-                showmessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+                showmessage.show(`GET请求失败，url: ${fullUrl} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
             }
 
             return response;
@@ -44,8 +41,8 @@ export class SendFetch
             if (warn)
             {
                 const showmessage = new ShowMessage();
-                showmessage.show(`GET请求失败，url: ${url} 信息：${error}`);
-                console.log(`GET请求失败，url: ${url} 信息：${error}`);
+                showmessage.show(`GET请求失败，url: ${fullUrl} 信息：${error}`);
+                console.log(`GET请求失败，url: ${fullUrl} 信息：${error}`);
             }
             return null;
         }
@@ -58,6 +55,12 @@ export class SendFetch
         return new Promise((resolve, reject) =>
         {
             const xhr = new XMLHttpRequest();
+
+            headers.forEach((value, key) =>
+            {
+                xhr.setRequestHeader(key, value);
+            })
+
             xhr.open('GET', fullUrl, true);
             xhr.setRequestHeader('Origin', ''); // 设置 Origin 为空
             xhr.onreadystatechange = function ()
@@ -79,12 +82,12 @@ export class SendFetch
         });
     }
 
-    public async sendPost(url: string, params: URLSearchParams | string, headers: Headers)
+    public async sendPost(url: string, params: URLSearchParams | string, headers?: Headers)
     {
 
         try
         {
-            if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+            if (window.iirosemedia && window.iirosemedia.cors !== undefined && headers)
             {
                 if (headers.get('cookie-trans'))
                 {
@@ -100,7 +103,7 @@ export class SendFetch
             if (!response.ok)
             {
                 const showmessage = new ShowMessage();
-                showmessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+                showmessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
             }
 
             return response;
@@ -208,17 +211,6 @@ export class SendFetch
         });
     }
 
-    protected returnNeteaseHeaders()
-    {
-        const headers = new Headers();
-        headers.append('User-Agent', 'Mozilla/5.0 (Linux; U; Android 8.1.0; zh-cn; BKK-AL10 Build/HONORBKK-AL10) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/10.6 Mobile Safari/537.36');
-        // headers.append('Content-Type', 'application/x-www-form-urlencoded');
-        headers.append('Referer', 'https://music.163.com');
-        // headers.append('X-Real-IP', '::1');
-        // headers.append('X-Forwarded-For', '::1');
-        // headers.append('Cookie', 'osver=undefined; deviceId=undefined; appver=8.9.70; versioncode=140; mobilename=undefined; buildver=1697745346; resolution=1920x1080; __csrf=; os=android; channel=undefined; requestId=1697745346367_0886; MUSIC_A=1f5fa7b6a6a9f81a11886e5186fde7fb0b63372bce7ff361fa5cb1a86d5fbbbbadd2bc8204eeee5e04bf7bf7e7f4428eeb3a754c1a3a779110722d253c67f6e9fac900d7a89533ee3324751bcc9aaf44c3061cd18d77b7a0');
-        return headers;
-    }
 
     protected returnBilibiliHeaders()
     {
@@ -242,6 +234,29 @@ export class SendFetch
             headers.append('cookie-trans', cookieString);
         }
         return headers;
+    }
+
+    protected returnBilibiliHeadersParam()
+    {
+        const params = new URLSearchParams();
+        const bilibiliAccount = localStorage.getItem('bilibiliAccount');
+        // params.append('rfr', 'https://www.bilibili.com');
+        if (bilibiliAccount)
+        {
+            const account: BilibiliACC = JSON.parse(bilibiliAccount);
+            const excludedKeys = ['face', 'uname'];
+            const cookieString = Object.entries(account)
+                .filter(([key, value]) =>
+                    value !== undefined &&
+                    value !== null &&
+                    value !== '' &&
+                    key !== 'id' &&
+                    !excludedKeys.includes(key))
+                .map(([key, value]) => `${key}=${value}`)
+                .join(';');
+            params.append('cookie', cookieString);
+        }
+        return params;
     }
 
     protected returnBiliBiliHeadersBuvidOnly()
@@ -268,19 +283,21 @@ export class SendFetch
         return headers;
     }
 
-    protected getBilibiliCors(api: 'MY' | 'Beijing')
+    protected getBilibiliCors()
     {
-
+        const bvSettings = new BiliBiliSettings().getBilibiliVideoSettings();
+        const api = bvSettings.api;
         if (api === 'Beijing')
         {
             return this.beijingcors;
         } else if (api === 'MY')
         {
             return this.malaysiacors;
+        } else if (api === 'Dev')
+        {
+            return this.devcors;
         }
-
         return this.cors;
-
     }
 
 }

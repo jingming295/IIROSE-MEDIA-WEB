@@ -8,6 +8,7 @@ export interface PlatformData
     duration?: number;
     trackCount?: string;
     multiPage?: Promise<boolean>;
+    multiAction?: boolean;
     bilibili?: {
         aid?: number;
         bvid?: string;

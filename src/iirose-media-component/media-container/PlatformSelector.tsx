@@ -30,6 +30,7 @@ export class PlatformSelector extends Component<PlatformSelectorProps, PlatformS
         if (prevProps.platform !== this.props.platform)
         {
             this.setState({ activeIndex: 0 });
+            this.handleSwitchPlatform(0);
         }
 
     }

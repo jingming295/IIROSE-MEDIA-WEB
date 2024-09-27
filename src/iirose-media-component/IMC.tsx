@@ -28,7 +28,6 @@ export class IMC extends Component<IMCProps, IMCState>
     componentDidUpdate(prevProps: Readonly<IMCProps>, prevState: Readonly<IMCState>): void
     {
         const { needOutFromMultiPage, CategoriesIndex } = this.state;
-
         if (CategoriesIndex !== prevState.CategoriesIndex)
         {
             this.setState({ needOutFromMultiPage: true });
@@ -63,7 +62,6 @@ export class IMC extends Component<IMCProps, IMCState>
     protected switchPlatforms = async (index: number) =>
     {
         await this.setState({ CategoriesIndex: index });
-
         if (index !== 2 && index !== 3)
         {
             this.setState({ needOutFromSettings: true });

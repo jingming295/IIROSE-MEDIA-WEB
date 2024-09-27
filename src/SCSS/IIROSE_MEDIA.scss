@@ -548,47 +548,56 @@
               }
             }
 
-            .MediaCardButtonContainer {
-              border-top: 1px solid rgba(0, 0, 0, 0.1);
-              color: black;
+            .MediaCardButtonsWrapper {
               display: flex;
-              justify-content: center;
-              line-height: 88px;
-              font-size: 20px;
-              cursor: pointer;
+              justify-content: space-between;
+              border-top: 1px solid rgba(0, 0, 0, 0.1);
+              .MediaCardButtonContainer {
+                width: 100%;
+                color: black;
+                display: flex;
+                justify-content: center;
+                line-height: 88px;
+                font-size: 20px;
+                cursor: pointer;
 
-              .MediaCardPlayButtonIcon,
-              .MediaCardPickButtonIcon {
-                font-size: 28px;
+                .MediaCardPickButtonIcon {
+                  font-weight: bold;
+                }
+
+                .MediaCardPlayButtonIcon,
+                .MediaCardPickButtonIcon {
+                  font-size: 28px;
+                }
+
+                .MediaCardPlayButtonText {
+                  font-weight: bold;
+                  margin-left: 22px;
+                }
+
+                .MediaCardPlayButtonText,
+                .MediaCardPlayButtonIcon,
+                .MediaCardPickButtonIcon {
+                  transition: all 0.5s ease-in-out;
+                }
+
+                .MediaCardPlayButtonIcon::before {
+                  content: "\F02CB";
+                  font-family: "md";
+                }
+
+                .MediaCardPickButtonIcon::before {
+                  content: "\F0412";
+                  font-family: "md";
+                }
               }
 
-              .MediaCardPlayButtonText {
-                font-weight: bold;
-                margin-left: 22px;
-              }
-
-              .MediaCardPlayButtonText,
-              .MediaCardPlayButtonIcon,
-              .MediaCardPickButtonIcon {
-                transition: all 0.5s ease-in-out;
-              }
-
-              .MediaCardPlayButtonIcon::before {
-                content: "\F02CB";
-                font-family: "md";
-              }
-
-              .MediaCardPickButtonIcon::before {
-                content: "\F0412";
-                font-family: "md";
-              }
-            }
-
-            .MediaCardButtonContainer:hover {
-              .MediaCardPlayButtonText,
-              .MediaCardPlayButtonIcon,
-              .MediaCardPickButtonIcon {
-                opacity: 0.7;
+              .MediaCardButtonContainer:hover {
+                .MediaCardPlayButtonText,
+                .MediaCardPlayButtonIcon,
+                .MediaCardPickButtonIcon {
+                  opacity: 0.7;
+                }
               }
             }
           }

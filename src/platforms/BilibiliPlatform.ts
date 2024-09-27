@@ -51,6 +51,7 @@ export class BilibiliPlatform
             {
                 for (const item of res.data.item)
                 {
+                    if (item.id === 0) continue; // 过滤掉不是视频的数据
                     const data: PlatformData = {
                         title: this.removeEmTagsUsingDOMParser(item.title),
                         coverImg: item.pic,
@@ -97,6 +98,8 @@ export class BilibiliPlatform
             {
                 for (const item of res.data.result)
                 {
+                    if (item.id === 0) continue; // 过滤掉不是视频的数据
+                    console.log(item)
                     const duration = this.timeToSeconds(item.duration);
 
                     const data: PlatformData = {
@@ -142,9 +145,6 @@ export class BilibiliPlatform
                 }
                 totalPage = Math.ceil(res.data.numResults / this.itemPerPage);
             }
-
-
-
             return { platformData, totalPage, allPlatformData }
 
         } catch (error)

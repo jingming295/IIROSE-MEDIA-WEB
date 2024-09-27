@@ -1,3 +1,4 @@
+import { BiliBiliAccount } from "./Account/BiliBili/SetBiliBili";
 import { Environment } from "./environment/Environment";
 import { IMCInit } from "./iirose-media-component/IMCInit";
 import './SCSS/IIROSE_MEDIA.scss';
@@ -10,6 +11,9 @@ class APP
         const environment = new Environment();
         environment.setEnv();
         LocalStorageUtils.Init();
+
+        const bilibiliAcc = new BiliBiliAccount();
+        bilibiliAcc.setBiliBiliAccountDefaultCookie();
     }
 
     async init()

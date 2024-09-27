@@ -748,6 +748,14 @@ export class NetEasePlatform
      */
     private mergeLyrics(jpLyrics: string, cnLyrics: string): string
     {
+        const lyricOption = this.neteaseSetting.lyricOption;
+
+        if (lyricOption === 'off') return '';
+
+        if (lyricOption === 'original') return jpLyrics;
+
+        if (lyricOption === 'translated') return cnLyrics;
+
         const jpLines = jpLyrics.split('\n');
         const cnLines = cnLyrics.split('\n');
 
@@ -963,6 +971,17 @@ export class NetEasePlatform
                 const songResource = await this.neteaseMusicApi.getSongResource(songsID[count], this.neteaseSetting.quality);
 
                 if (!songResource) throw new Error('获取歌曲资源失败');
+
+                const lyricOption = this.neteaseSetting.lyricOption;
+                let lyric = ``;
+                if (lyricOption === 'off') lyric = '';
+
+                if (lyricOption === 'original') lyric = songResource.lrc;
+
+                if (lyricOption === 'translated') lyric = songResource.lrc_translation;
+
+                if (lyricOption === 'both') lyric = songResource.lrc_control;
+
                 const mediaData: MediaData = {
                     type: 'music',
                     name: item.name,
@@ -973,7 +992,7 @@ export class NetEasePlatform
                     duration: item.dt / 1000,
                     bitRate: Math.floor(songResource.br / 1000),
                     color: this.baseHex,
-                    lyrics: songResource.lrc_control,
+                    lyrics: lyric,
                     origin: 'netease'
                 }
 

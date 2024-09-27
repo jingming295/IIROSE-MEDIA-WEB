@@ -70,7 +70,6 @@ export interface Categories
 export class MediaContainer extends Component<MediaContainerProps, MediaContainerState>
 {
     static contextType = MediaContainerContext;
-    bilibiliPlatform = new BilibiliPlatform();
     private itemsPerPage = 10
     mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
 
@@ -422,10 +421,11 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          */
         BilibiliRecommend: () =>
         {
-            const data = this.bilibiliPlatform.getRecommendVideosBasicsData(
+            const bilibiliPlatform = new BilibiliPlatform();
+            const data = bilibiliPlatform.getRecommendVideosBasicsData(
                 this.bilibiliAction.bilibiliRefreshCount
             );
-            const vod = this.bilibiliPlatform.VOD.bind(this.bilibiliPlatform);
+            const vod = bilibiliPlatform.VOD.bind(bilibiliPlatform);
             this.setState({
                 mediaData: data,
                 currentOnDemandPlay: vod,
@@ -911,12 +911,21 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
                 const apiInText = neteaseSettings.parseNetEaseMusicApi(neteaseMusicSettings.api);
 
+                const lyricOptionInText = neteaseSettings.parseNetEaseMusicLyricOption(neteaseMusicSettings.lyricOption);
+
                 const settingData: SettingData[] = [{
                     title: '音乐的音质',
                     actionTitle: qualityInText,
                     icon: 'mdi-music',
                     action: neteaseSettings.setNeteaseMusicQuality.bind(neteaseSettings)
-                }, {
+                },
+                {
+                    title: '歌词',
+                    actionTitle: lyricOptionInText,
+                    icon: 'mdi-card-bulleted',
+                    action: neteaseSettings.setNeteaseMusicLyric.bind(neteaseSettings)
+                },
+                {
                     title: '默认API',
                     actionTitle: apiInText,
                     icon: 'mdi-code-braces',

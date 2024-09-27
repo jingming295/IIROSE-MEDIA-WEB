@@ -4,6 +4,7 @@ export interface NeteaseSetting
 {
     quality: 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster';
     api: 'default' | 'xc' | 'theresa';
+    lyricOption: 'off' | 'original' | 'translated' | 'both';
 }
 export class NetEaseSettings
 {
@@ -103,6 +104,49 @@ export class NetEaseSettings
 
     }
 
+    public setNeteaseMusicLyric(changeActionTitleAction?: (actionTitle?: string) => void)
+    {
+        const set = (t: HTMLElement, s: string) =>
+        {
+            const neteaseSettings = localStorage.getItem('neteaseSetting');
+
+            if (neteaseSettings)
+            {
+                const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
+                neteaseSetting.lyricOption = s as 'off' | 'original' | 'translated' | 'both';
+                localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));
+            }
+
+            if (changeActionTitleAction)
+            {
+                const lyricOptionInText = this.parseNetEaseMusicLyricOption(s);
+                changeActionTitleAction(lyricOptionInText);
+            }
+        }
+
+        const mdiClass = [
+            'mdi-close',
+            'mdi-book-open-variant',
+            'mdi-translate',
+            'mdi-book-open-variant',
+        ];
+
+        const selectOption = [
+            ['off', '关闭歌词'],
+            ['original', '原文歌词'],
+            ['translated', '翻译歌词'],
+            ['both', '原文 + 翻译歌词'],
+        ];
+
+
+        selectOption.forEach((item, index) =>
+        {
+            item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
+        });
+
+        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+    }
+
     public getNeteaseMusicSetting(): NeteaseSetting
     {
         const neteaseSetting = localStorage.getItem('neteaseSetting');
@@ -113,7 +157,8 @@ export class NetEaseSettings
         {
             return {
                 quality: 'lossless',
-                api: 'default'
+                api: 'default',
+                lyricOption: 'both',
             }
         }
     }
@@ -148,5 +193,19 @@ export class NetEaseSettings
         const optionInText = selectOption.find((option) => option[0] === api);
 
         return optionInText ? optionInText[1] : '网易云默认API（最快）';
+    }
+
+    public parseNetEaseMusicLyricOption(lyricOption: string)
+    {
+        const selectOption = [
+            ['off', '关闭歌词'],
+            ['original', '原文歌词'],
+            ['translated', '翻译歌词'],
+            ['both', '原文 + 翻译歌词']
+        ];
+
+        const optionInText = selectOption.find((option) => option[0] === lyricOption);
+
+        return optionInText ? optionInText[1] : '原文 + 翻译歌词';
     }
 }

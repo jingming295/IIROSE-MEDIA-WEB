@@ -20,12 +20,15 @@ export class SendFetch
     public async sendGet(url: string, params: URLSearchParams, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
     {
         const fullUrl = `${url}?${params.toString()}`;
-
+        if (!headers) headers = new Headers();
         try
         {
             const response = await fetch(fullUrl, {
                 method: 'GET',
-                headers: headers,
+                headers: {
+                    ...headers,
+                    Origin: 'https://iirose.com'
+                },
                 signal: signal
             });
 
@@ -87,6 +90,7 @@ export class SendFetch
 
         try
         {
+            if (!headers) headers = new Headers();
             if (window.iirosemedia && window.iirosemedia.cors !== undefined && headers)
             {
                 if (headers.get('cookie-trans'))
@@ -96,7 +100,10 @@ export class SendFetch
             }
             const response = await fetch(url, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    ...headers,
+                    Origin: 'https://iirose.com'
+                },
                 body: params
             });
 

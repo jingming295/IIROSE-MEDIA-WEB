@@ -17,12 +17,16 @@ export class About
             if (s === `0`)
             {
                 window.open('https://afdian.com/a/mingj')
+            } else if (s === `1`)
+            {
+                window.open('https://github.com/sponsors/jingming295') // Github Sponsor
             }
 
         }
 
         const selectOption = [
             [0, `爱发电`, `${this.generatePic(`https://static.afdiancdn.com/static/img/logo/logo.png`)}`],
+            [1, `Github Sponsor`, `${this.generatePic(`http://r.iirose.com/i/24/9/28/19/3436-QA.png`)}`],
         ]
         this.iiroseUtils.buildSelect2(null, selectOption, DonatePlatform, false, true, null, false, null, () => { })
 

@@ -605,11 +605,13 @@ export class BiliBiliVideoApi extends SendFetch
         });
 
         const bParams = this.returnBilibiliHeadersParam()
-
+        console.log(`bParams: ${bParams.toString()}`);
         for (const [key, value] of bParams)
         {
             params.set(key, value);
         }
+
+        console.log(`params: ${params.toString()}`);
 
         const response = await this.sendGet(url, params);
         if (response && response.ok)

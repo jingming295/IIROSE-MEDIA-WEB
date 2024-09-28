@@ -1020,7 +1020,7 @@ export class NetEasePlatform
             {
                 for (const item of songDetailSongs)
                 {
-                    const playUrl = `https://v.iarc.top//?server=netease&type=url&id=${item.id}#.mp3`
+                    const playUrl = `https://v.iarc.top/?server=netease&type=url&id=${item.id}#.mp3`
 
                     const lyrdata = await this.neteaseMusicApi.getLyric(item.id);
 

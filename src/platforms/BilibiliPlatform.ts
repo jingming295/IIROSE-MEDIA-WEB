@@ -99,7 +99,6 @@ export class BilibiliPlatform
                 for (const item of res.data.result)
                 {
                     if (item.id === 0) continue; // 过滤掉不是视频的数据
-                    console.log(item)
                     const duration = this.timeToSeconds(item.duration);
 
                     const data: PlatformData = {
@@ -285,6 +284,22 @@ export class BilibiliPlatform
 
     }
 
+    public async getBilibiliVideoDetail(bvid: string)
+    {
+        try
+        {
+            const res = await this.bilibiliVideoApi.getBilibiliVideoData(null, bvid);
+            if (res && res.code === 0 && res.data)
+            {
+                return res.data;
+            } else throw new Error('获取视频信息失败');
+        } catch (error)
+        {
+            this.showmessage.show((error as Error).message);
+            return null;
+        }
+    }
+
     public async VOD(platformData: PlatformData)
     {
         const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
@@ -350,8 +365,6 @@ export class BilibiliPlatform
             let streamFormat = bvSetting.videoStreamFormat
 
             streamFormat = this.getStreamPlatform(streamFormat, bvSetting.qn);
-
-            console.log(streamFormat)
 
             const res = await this.bilibiliVideoApi.getBilibiliVideoStream(aid, bvid, cid, bvSetting.qn, streamFormat);
             if (res && res.code === 0 && res.data)

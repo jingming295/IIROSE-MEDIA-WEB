@@ -3,7 +3,7 @@ import { SongDetail, SongDetailFromBinaryify, SongDetailSong, SongsFromBinaryify
 import { Lyric, SongList, xcSongResource } from "./SongList";
 import { d } from "../Crypto";
 import { AlbumData } from "./AlbumInterface";
-import { MVPlayURLData } from "./MVInterfaces";
+import { MVDetail, MVPlayURLData } from "./MVInterfaces";
 
 export class NeteaseMusicAPI extends SendFetch
 {
@@ -144,6 +144,38 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
+    public async getNeteaseMVDetail(id: number)
+    {
+        const url = `${this.cors}https://music.163.com/weapi/v1/mv/detail`
+        const params = {
+            id: id.toString(),
+            csrf_token: ''
+        }
+
+        const headers = new Headers();
+        const we = d(params);
+        const enc = {
+            params: we.encText,
+            encSecKey: we.encSecKey
+        }
+
+        const encparams = new URLSearchParams(enc);
+
+        headers.append('content-type', 'application/x-www-form-urlencoded')
+
+        const response = await this.sendPost(url, encparams, headers);
+
+        if (response && response.ok)
+        {
+            const data: MVDetail = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+
+    }
+
     // 拆分数组的辅助函数
     private chunkArray(array: number[], size: number): number[][]
     {
@@ -233,6 +265,30 @@ export class NeteaseMusicAPI extends SendFetch
         if (response && response.ok)
         {
             const data: SongList = await response.json();
+            return data;
+        } else
+        {
+            return null;
+        }
+    }
+
+    public async getNeteaseMVDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
+    {
+
+        const theresaAPI = window.netease?.theresaAPI;
+        const xcAPI = window.netease?.xcAPI;
+
+        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
+        const url = `${realAPI}mv/detail`;
+        const params = new URLSearchParams({
+            mvid: id.toString(),
+        });
+
+        const response = await this.sendGet(url, params, undefined);
+
+        if (response && response.ok)
+        {
+            const data: MVDetail = await response.json();
             return data;
         } else
         {

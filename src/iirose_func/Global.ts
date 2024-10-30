@@ -6,6 +6,8 @@ declare global
     {
         _alert?: (message: string) => void;
 
+        functionBtnDo(e: number, t?: undefined, o?: undefined): void;
+
         /**
          * 显示图片
          * @param e img的链接
@@ -44,6 +46,12 @@ declare global
 
             service: {
                 getUserCard: (uid: string, type: number) => void;
+                moveinputDo: (e: string, t: undefined) => void;
+            }
+            IMW?: {
+                backup: {
+                    moveinputDo: (e: string, t: undefined) => void;
+                }
             }
         }
 

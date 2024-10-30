@@ -11,7 +11,6 @@ class APP
         const environment = new Environment();
         environment.setEnv();
         LocalStorageUtils.Init();
-
         const bilibiliAcc = new BiliBiliAccount();
         bilibiliAcc.setBiliBiliAccountDefaultCookie();
     }

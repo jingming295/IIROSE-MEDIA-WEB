@@ -12,12 +12,16 @@ import { GetBiliBiliAccount } from '../../Account/BiliBili/GetBiliBili';
 import { BiliBiliSettings } from '../../settings/bilibiliSettings/BiliBiliSettings';
 import { NetEaseSettings } from '../../settings/neteaseSettings/NetEaseSettings';
 import { About } from '../../platforms/About';
+import { PluginSettings } from '../../settings/pluginSettings/PluginSettings';
 
 interface MediaContainerProps
 {
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
     needOutFromSettings: boolean;
+    searchKeyword: string;
+    active: boolean;
+    changeSearchKeyword: (keyword: string | null) => void
     ShowOrHideIMC: () => Promise<void>;
 }
 
@@ -35,6 +39,7 @@ export interface MediaContainerState
     settingsData: SettingData[] | null;
     isCurrentInMultiPage: boolean;
     requestToken: number;
+    onlineCount: number;
     currentSubNavBarAction: () => void;
     currentOnDemandPlay: (platformData: PlatformData) => void;
 }
@@ -72,16 +77,65 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
     static contextType = MediaContainerContext;
     private itemsPerPage = 10
     mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
+    private intervalId: NodeJS.Timeout | null = null;
 
     constructor(props: MediaContainerProps)
     {
         super(props);
     }
 
+    sleep(ms: number): Promise<void>
+    {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // 定义 API 调用的类型
+    callAPI = async (): Promise<void> =>
+    {
+        try
+        {
+            const { settingsData } = this.state;
+            await fetch(`https://xc.null.red:8043/api/online/heartbeat?t=mingmedia&_=${Date.now()}`);
+            await this.sleep(200);
+            const response = await fetch(`https://xc.null.red:8043/api/online/list?t=mingmedia&_=${Date.now()}`);
+            const data: { online: number } = await response.json();
+            this.setState({ onlineCount: data.online });
+            if (settingsData)
+            {
+                if (settingsData[0].title === '作者')
+                {
+                    this.AboutAction.about()
+                }
+            }
+
+        } catch (error)
+        {
+            console.error(error);
+        }
+    };
+
     componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>): void
     {
-        const { needOutFromMultiPage, needOutFromSettings } = this.props;
+        const { needOutFromMultiPage, needOutFromSettings, active } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
+        const propsSearchKeyword = this.props.searchKeyword;
+
+        const prevPropsSearchKeyword = prevProps.searchKeyword;
+        if (prevPropsSearchKeyword !== propsSearchKeyword)
+        {
+            const { SubNavBarIndex } = this.state;
+            if (propsSearchKeyword === null || propsSearchKeyword === '')
+            {
+                if (SubNavBarIndex === 0) return
+                this.setState({ allMediaData: [] });
+                this.setState({ mediaData: null });
+                this.setState({ searchKeyword: '', currentPage: 1 });
+            } else
+            {
+                this.setState({ allMediaData: [] });
+                this.setState({ searchKeyword: propsSearchKeyword, currentPage: 1 });
+            }
+        }
 
         // 退出多页
         if (needOutFromMultiPage && isCurrentInMultiPage)
@@ -127,14 +181,30 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         {
             this.setState({ totalPage: 0, currentPage: 1, allMediaData: [], mediaData: null });
         }
+
+        // 设置定时器
+        if (!this.intervalId)
+        {
+            this.callAPI();
+            this.intervalId = setInterval(this.callAPI, 2 * 60 * 1000);
+        }
+
+    }
+
+    componentWillUnmount(): void
+    {
+        // 组件卸载时清除定时器
+        if (this.intervalId)
+        {
+            clearInterval(this.intervalId);
+        }
     }
 
     render()
     {
-        const { CategoriesIndex, ShowOrHideIMC } = this.props;
+        const { CategoriesIndex, ShowOrHideIMC, changeSearchKeyword, active } = this.props;
         const { PlatformIndex, mediaData, settingsData, searchKeyword, currentPage, totalPage, isCurrentInMultiPage, currentSubNavBarAction, currentOnDemandPlay } = this.state;
         const {
-            changeSearchKeyword,
             changecurrentPage,
             updateSubNavBarIndex,
             updateCurrentSubNavBarAction,
@@ -230,33 +300,12 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         oldItems: null as OldItems | null,
         settingsData: null as SettingData[] | null,
         requestToken: 0,
+        onlineCount: 0,
         currentSubNavBarAction: () => { },
         currentOnDemandPlay: () => { },
     }
 
     private controller = {
-        /**
-         * @description 更新搜索词
-         * @param keyword 
-         * @returns 
-         */
-        changeSearchKeyword: (keyword: string | null) =>
-        {
-            const { SubNavBarIndex } = this.state;
-            if (keyword === null || keyword === '')
-            {
-                keyword = '';
-                if (SubNavBarIndex === 0) return
-                this.setState({ allMediaData: [] });
-                this.setState({ mediaData: null });
-                this.setState({ searchKeyword: keyword, currentPage: 1 });
-            } else
-            {
-                this.setState({ allMediaData: [] });
-                this.setState({ searchKeyword: keyword, currentPage: 1 });
-            }
-
-        },
         /**
          * @description 更新目前的页面
          * @param page 
@@ -935,6 +984,25 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 this.setState({ settingsData: settingData });
             }
         },
+        plugin: {
+            chatBox: () =>
+            {
+                const pluginSetting = new PluginSettings()
+
+                const ps = pluginSetting.getPluginSetting();
+
+                const isProxyAtInputInText = ps.chatBox.isProxyAtInput ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off-outline';
+
+                const plugin: SettingData[] = [{
+                    title: '代理蔷薇@输入',
+                    actionTitle: isProxyAtInputInText,
+                    icon: 'mdi-at',
+                    action: pluginSetting.isProxyAtInputSetting.bind(pluginSetting)
+                }]
+
+                this.setState({ settingsData: plugin });
+            }
+        }
     }
 
     private AboutAction = {
@@ -949,7 +1017,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     await this.props.ShowOrHideIMC();
                     const about = new About()
                     about.aboutCreator()
-
                 }
             }, {
                 title: '项目源代码地址',
@@ -977,6 +1044,13 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                 {
                     const about = new About()
                     about.aboutSponsorList(this.props.ShowOrHideIMC)
+                }
+            }, {
+                title: '在线人数',
+                actionTitle: this.state.onlineCount.toString(),
+                icon: 'mdi-account-group',
+                action: () =>
+                {
                 }
             }]
             this.setState({ settingsData: aboutData });
@@ -1064,14 +1138,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                                 this.netEaseAction.netEaseSearchSongListByKeyword();
                             }
                         }
-                        // , {
-                        //     title: '搜索电台',
-                        //     class: 'search',
-                        //     searchAction: () =>
-                        //     {
-                        //         this.netEaseAction.netEaseSearchRadioByKeyword();
-                        //     }
-                        // }
                     ]
                 }
             ]
@@ -1113,13 +1179,27 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                             }
                         }
                     ]
+                }, {
+                    title: '插件设置',
+                    iconsrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAJzUExURQAAAAQEBczo/1NfaTA2OwcHCA0NDgoKCwAAAAUFBR0dHx8fIQgICAAAAAAAAAMDAwAAAAAAAAAAAAAAAAcHBxESEwAAAAAAAAoKCxYXGAEBAQAAAAsMDBcYGQAAAAAAABcXGQYGBgAAAAEBASoqLTM0NwAAAAAAAAAAABcXGDg5PQAAAA0ODg0NDgAAACEiJAAAAAAAAA8QEQ8QEQAAAD5AQzI6PxIUFgcHCEJLUp2yxHCAjD5ARAEBAQ8SEwAAAAAAAAAAAAEBARASFAcHBwsLDAAAAAAAADM6QBwdHwAAABIVFxwdHwcICQcICQgJChYXGRYXGT9DRxcXGRMUFhMVFj9DSAkJChYWGLS5xUlLT5aapKywuwAAAAEBAQsLDAAAABcYGR0dHwcICCMjJVFTWKuxva20wa20wGJlbI2RmrPB0Km5yLC+zZ+kr5ecpq69zKe3xqu6yaWrt36CiqWrtldZXqmwu7G4xYeLlLjE0rjBz25xeHh7g6uyvrO/zrK/zayzv3h8hIGFjrfC0LfAzbXC0Ka3xqa2xbC3w6i4x6K0w56wwZquv5mtvrnE0qS1xJyvv5esvJarvJesvpitv5esvYKGj7XBz6O0xJitvpKnt36Qnm59ioWXp5etvoOGj7jCz3GBjnKCj15rdl5sdlBSWJquvn6PnqqxvSIjJaa2xp2wwJ2xwnF/i3F/jLTBz7nG1IWOmbbC0b3I1p2msp2nsmJla7K/zrzH1bbBz6Wst6y7yrrF073I142VoHh8g7vG1HZ9hau6yImRm77J17bC0LjD0qi3xrO/zam4x77I13d6grPAzq61wZ6kr////7E8OHsAAABkdFJOUwAAAAAAAAAAHbT8/cYtf5wCCxUDr8gNPrrWkRjB1hZC3bZbo/P3pVpA3fwQw8Mi5Qorzs9n/vvXtnh21/6i22QZBkfcrsE5Zfv8Gtj7tre219j71dvb+7bW9/X5bkekpxHV+8ZuWyL/AAAAAWJLR0TQDtbPnAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAAd0SU1FB+gKFBAAGzVLgboAAAMLSURBVDjLdZP3X1JRGMavTc3JUBGc5QJT1BwtRbKobGim2Z5qpKicK6BewBFDBETxFs6GVlqOQsUEQwxHlq1/qXuFq/bJ3p/OOc9zPu857+f7QNCW8vTaV1rq7eML/ac8/MrKH/L5j/wD/tVIZAoEUagVlQJBVXVgELYmk7bqwbQQOgMihdYIAYBrw8IhBj2EFrypR0SKxJKo/Qei62AABPUxsXFRErEoMoLQ45kNiFAqY8kbmwBWzS2PWTKpEGlgxrv0hIMKBLuoVKlh0KrRtAJYrVIKAEAUiQnrhiR2G4zf1Gp0+naDoV2v02jxPdzGTlo3JFNlHfhJp7ELffLUhKJdxk7c3yGjJrt6pKR29wDQa0D7+geePTe96EMNvQD0vDyUQrwyLX0QdBpQdCgj8/CRo8deoaihEwweT3PPj0LKkqs1RhR9nc3J4e7YeSL3DYoaNWp5Fonigc3f7+Sp6EZY19U3lM3DL+zazcsd6uvSwY3RoVQ/T8irrKKmrgno0f4MDtHy9Jl+VA+a6moqhr2gs+WVQuz/I6a3mTmEIe/cgGkEm4ew8t15aJSPzQSMjU+8v8AlDNyLHybGx7BjAX/UbdCaJ6fyNw35U5Nmrdvgza+CBUA7bZkp2Gxx6aNlWgsEcBXfG/KZra6tbwZW21zhxiM5hXM2K2iu/1Q96wP5+gdejmmB7fOOhSKeS+cVLzjm7XBLTFigP4ZfQFB47Gc1MDudi0WcPC43j1O86HSagVoeGx7khi+OpQJLiM25cKWgpKSgcMFpQ5aAihVHtGREyZQA2BGnY25meXlmzuFE7AAoZVEMl06hS6T4V5fM8zbLyorFNm9ewr8oldAp6wZyiFgI1stu/bK6Om21u3ZC8VWyC3maCEPu6zcphpx2bU2LITfYg40JEdHc6AdHNiDw92vXfzT+dEErT+/ugJGGyA3wI5iKXzdu3rq9gX1aqqxNwdzAHgM/kX3n7h4iOPfCoRQqOzF+a7QSkpL3EtH7jUcvOSlhu/AO4+Gd3S68RPzvY/F/8Ff8/wBg5SxMeGq5NgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyNC0xMC0yMFQxNjowMDoyMSswMDowMDjebBEAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjQtMTAtMjBUMTY6MDA6MjErMDA6MDBJg9StAAAAKHRFWHRkYXRlOnRpbWVzdGFtcAAyMDI0LTEwLTIwVDE2OjAwOjI3KzAwOjAwfUbASAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAASUVORK5CYII=',
+                    color: 'rgb(150,171,188)',
+                    collectable: false,
+                    subNavBarItems: [
+                        {
+                            title: '聊天框',
+                            searchAction: () =>
+                            {
+                                this.settingsAction.plugin.chatBox();
+                            }
+                        }
+                    ]
                 }
             ]
         }, {
             platform: [
                 {
                     title: '关于这个插件',
-                    iconsrc: 'https://static.codemao.cn/i/24/9/19/21/1053-JU.png',
+                    iconsrc: 'data:image/png;base64,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',
                     color: 'rgb(100, 149, 237)',
                     collectable: false,
                     subNavBarItems: [

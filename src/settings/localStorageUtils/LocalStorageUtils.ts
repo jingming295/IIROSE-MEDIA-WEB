@@ -1,6 +1,7 @@
 import { BilibiliVideoSettings } from "../bilibiliSettings/BiliBiliSettings";
 import { CommonSettings, CommonSettingsInterface } from "../commonSettings/CommonSettings";
 import { NeteaseSetting } from "../neteaseSettings/NetEaseSettings";
+import { PluginSettingsInterface } from "../pluginSettings/PluginSettings";
 
 export class LocalStorageUtils
 {
@@ -10,6 +11,7 @@ export class LocalStorageUtils
         this.setBilibili()
         this.setNetease()
         this.setCommonSetting()
+        this.setPluginSetting()
     }
 
     private static setBilibili()
@@ -105,6 +107,20 @@ export class LocalStorageUtils
             }
         }
         return comminSettings;
+    }
+
+    private static setPluginSetting()
+    {
+        const lsPluginSetting = localStorage.getItem('imwPluginSetting');
+        if (!lsPluginSetting)
+        {
+            const pluginSetting: PluginSettingsInterface = {
+                chatBox: {
+                    isProxyAtInput: true
+                }
+            }
+            localStorage.setItem('imwPluginSetting', JSON.stringify(pluginSetting));
+        }
     }
 
 }

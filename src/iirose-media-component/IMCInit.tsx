@@ -1,10 +1,12 @@
 import { Attributes, Component, ComponentChild, ComponentChildren, h, Ref, render } from 'preact';
 import { IMC } from './IMC';
+import { Input_Behavior_Module } from '../input-behavior-module/Input-Behavior-Module';
 
 interface IIROSE_MEDIA_CONTAINER_STATE
 {
     active: boolean;
     init: boolean;
+    searchKeyword: string;
 }
 
 class Gesture
@@ -79,15 +81,32 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
 
     state = {
         active: false,
-        init: false
+        init: false,
+        searchKeyword: ''
     }
 
     componentDidMount(): void
     {
+        const { changeSearchKeyword } = this.controller;
+        const { ShowOrHideIMC } = this;
         window.addEventListener("keydown", this.KeyBoardCallApp.bind(this.gasture));
         window.addEventListener("touchstart", this.gasture.handleTouchStart.bind(this.gasture));
         window.addEventListener("touchend", this.gasture.touchEnd.bind(this.gasture));
         this.mainHolder = document.getElementById('mainHolder');
+        Input_Behavior_Module.init(changeSearchKeyword.bind(this), ShowOrHideIMC.bind(this));
+    }
+
+    controller = {
+        /**
+         * @description 更新搜索词
+         * @param keyword 
+         * @returns 
+         */
+        changeSearchKeyword: (keyword: string | null) =>
+        {
+            if (keyword !== null && keyword !== '')
+                this.setState({ searchKeyword: keyword });
+        }
     }
 
     componentDidUpdate(previousProps: Readonly<object>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
@@ -112,12 +131,18 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
 
     render(): ComponentChild
     {
-        const { active, init } = this.state;
+        const { active, init, searchKeyword } = this.state;
+        const { changeSearchKeyword } = this.controller;
         const activeClass = active ? 'ShowIIROSE_MEDIA_CONTAINER' : 'IIROSE_MEDIA_CONTAINER';
         return (
             <div id="IIROSE_MEDIA_CONTAINER" class={`IIROSE_MEDIA_CONTAINER ${activeClass}`}>
                 {
-                    init ? <IMC ShowOrHideIMC={this.ShowOrHideIMC.bind(this)} /> : null
+                    init ? <IMC
+                        ShowOrHideIMC={this.ShowOrHideIMC.bind(this)}
+                        searchKeyword={searchKeyword}
+                        changeSearchKeyword={changeSearchKeyword}
+                        active={active}
+                    /> : null
                 }
             </div>
         );
@@ -128,8 +153,8 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
     private async ShowOrHideIMC()
     {
         const { active, init } = this.state;
-        if (!init) this.setState({ init: true });
-        this.setState({ active: !active });
+        if (!init) await this.setState({ init: true });
+        await this.setState({ active: !active });
         await new Promise(resolve => setTimeout(resolve, 100));
     }
 

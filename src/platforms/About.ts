@@ -38,6 +38,7 @@ export class About
         const selectOption = [
             [`5e9e45731b5a9`, `ゑん`, `${this.generatePic(`http://r.iirose.com/i/22/2/10/23/0445-1S.gif#e`)}`],
             [`6090dec4e5836`, `情の蛊`, `${this.generatePic(`http://r.iirose.com/i/24/8/15/22/0929-HM.jpg`)}`],
+            [`610b8b97b7031`, `章小鱼`, `${this.generatePic(`http://r.iirose.com/i/24/9/14/20/2513-SK.png`)}`]
 
         ]
 

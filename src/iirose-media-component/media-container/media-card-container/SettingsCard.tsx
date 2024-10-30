@@ -31,17 +31,29 @@ export class SettingsCard extends Component<SettingsCardProps>
     render()
     {
         const { settingsData } = this.props;
+        const actionClassName = this.state.actionTitle.startsWith('mdi')
+            ? `action ${this.state.actionTitle}`
+            : 'action textAction';
 
+        const fontStyle = this.state.actionTitle.startsWith('mdi')
+            ? {
+                fontFamily: 'md',
+                fontSize: '48px',
+                fontWeight: 'unset',
+            } // 替换为你想要的字体
+            : {};
         return (
             <div className='actionWrapper' onClick={() =>
             {
-                settingsData.action(this.updateActionTitle)
+                settingsData.action(this.updateActionTitle);
             }}>
-                <div className='action textAction'>
-                    {this.state.actionTitle}
+                <div className={actionClassName} style={fontStyle}>
+                    {!this.state.actionTitle.startsWith('mdi') && (
+                        this.state.actionTitle
+                    )}
                 </div>
             </div>
-        )
+        );
     }
 
 }

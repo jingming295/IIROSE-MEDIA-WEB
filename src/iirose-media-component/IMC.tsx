@@ -12,6 +12,9 @@ interface IMCState
 interface IMCProps
 {
     ShowOrHideIMC: () => Promise<void>;
+    searchKeyword: string;
+    changeSearchKeyword: (keyword: string | null) => void
+    active: boolean;
 
 }
 
@@ -41,7 +44,7 @@ export class IMC extends Component<IMCProps, IMCState>
     render()
     {
         const { CategoriesIndex, needOutFromMultiPage, needOutFromSettings } = this.state;
-
+        const { searchKeyword, active, changeSearchKeyword } = this.props;
         return (
             <div className='IIROSE_MEDIA' id='IIROSE_MEDIA'>
                 <IMCNavigationBar
@@ -53,6 +56,9 @@ export class IMC extends Component<IMCProps, IMCState>
                     needOutFromMultiPage={needOutFromMultiPage}
                     needOutFromSettings={needOutFromSettings}
                     ShowOrHideIMC={this.props.ShowOrHideIMC}
+                    searchKeyword={searchKeyword}
+                    changeSearchKeyword={changeSearchKeyword}
+                    active={active}
                 />
             </div>
         );

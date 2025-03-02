@@ -52,7 +52,15 @@ export class Input_Behavior_Module
             {
                 InputPlatformAnalysis.Analysis(e, originalMethod);
             }
-            else if (e.slice(1) !== '' && e.slice(1) !== null && !/^[\p{P}\p{S}]/u.test(e.slice(1)))
+            else if (
+                e.length === 2 && /\p{P}|\p{S}/u.test(e[1]) ||
+                window.Probe.getMediaLink ||
+                e.length === 1 ||
+                e === '@@@'
+            )
+            {
+                return originalMethod(e, t);
+            } else
             {
                 if (this.firstTime)
                 {
@@ -63,11 +71,6 @@ export class Input_Behavior_Module
                     ShowOrHideIMC();
                 }
                 changeSearchKeyword(e.slice(1));
-            }
-            else
-            {
-                return originalMethod(e, t);
-
             }
         }
         else

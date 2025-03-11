@@ -4,4 +4,5 @@
 # 忽略 node_modules 目录
 /node_modules
 
-
+# 忽略 yarn.lock 文件
+/yarn.lock

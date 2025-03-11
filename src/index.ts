@@ -20,7 +20,7 @@ class APP
         if (typeof document === 'undefined')
         {
             console.log(
-                `%c [Ming's IIROSE - MEDIA - WEB] - FAILED `,
+                `%c [Ming's IIROSE-MEDIA-WEB] - FAILED `,
                 `color: #FF5733; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
             );
             return;
@@ -41,7 +41,7 @@ class APP
 
         console.log(
             `%c [Ming's IIROSE-MEDIA-WEB] - LOADED `,
-            `color: #EC9E3C; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
+            `color: #4CAF50; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
         );
     }
 
@@ -52,7 +52,7 @@ class APP
         if (!iframeDocument)
         {
             console.log(
-                `%c [Ming's IIROSE - MEDIA - WEB] - Unable to get Iframe `,
+                `%c [Ming's IIROSE-MEDIA-WEB] - UNABLE TO GET IFRAME `,
                 `color: #FF5733; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
             );
 
@@ -63,7 +63,6 @@ class APP
         const script = iframeDocument.createElement('script');
         script.type = 'module'; // 使用模块类型
         script.textContent = `
-            // 将你需要在 iframe 中执行的代码放在这里
             (() => {
                 
                 const app = new (${APP.toString()})();

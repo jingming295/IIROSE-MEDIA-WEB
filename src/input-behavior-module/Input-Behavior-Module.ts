@@ -66,6 +66,8 @@ export class Input_Behavior_Module
                 {
                     await ShowOrHideIMC();
                     this.firstTime = false
+
+
                 } else
                 {
                     ShowOrHideIMC();

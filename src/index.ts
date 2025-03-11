@@ -19,7 +19,10 @@ class APP
     {
         if (typeof document === 'undefined')
         {
-            console.log('[IIROSE-MEDIA] - 加载失败，当前环境不支持document对象');
+            console.log(
+                `%c [Ming's IIROSE - MEDIA - WEB] - FAILED `,
+                `color: #FF5733; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
+            );
             return;
         }
 
@@ -36,7 +39,10 @@ class APP
             this.injectScriptIntoIframe(mainFrame);
         }
 
-        console.log('[IIROSE-MEDIA] - 加载成功');
+        console.log(
+            `%c [Ming's IIROSE-MEDIA-WEB] - LOADED `,
+            `color: #EC9E3C; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
+        );
     }
 
     injectScriptIntoIframe(iframe: HTMLIFrameElement)
@@ -45,7 +51,11 @@ class APP
         const iframeDocument = iframe.contentDocument || iframe.contentWindow?.document;
         if (!iframeDocument)
         {
-            console.log('[IIROSE-MEDIA] - 无法获取 iframe 文档');
+            console.log(
+                `%c [Ming's IIROSE - MEDIA - WEB] - Unable to get Iframe `,
+                `color: #FF5733; background: black; margin: 1em 0; padding: 5px 0; font-weight: 900`
+            );
+
             return;
         }
 
@@ -55,9 +65,7 @@ class APP
         script.textContent = `
             // 将你需要在 iframe 中执行的代码放在这里
             (() => {
-                console.log('[IIROSE-MEDIA] - 脚本已成功注入到 mainFrame');
                 
-                // 在这里可以调用你当前脚本的 init 函数
                 const app = new (${APP.toString()})();
                 app.init();
             })();

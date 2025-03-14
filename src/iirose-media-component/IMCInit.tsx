@@ -162,7 +162,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
 
     private KeyBoardCallApp(event: KeyboardEvent)
     {
-        if ((event.altKey && event.key === 's') || (event.altKey && event.key === 'ß'))
+        if ((event.altKey && event.key === 's') || (event.altKey && event.key === 'S') || (event.altKey && event.key === 'ß'))
         {
             event.preventDefault();
             event.stopPropagation();

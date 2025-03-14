@@ -28,7 +28,11 @@ class APP
 
         const mainFrame = document.getElementById('mainFrame') as HTMLIFrameElement | null;
         const mainContainer = document.getElementById('mainContainer') as HTMLDivElement | null;
-        if (!mainContainer) return;
+        if (!mainContainer)
+        {
+
+            return
+        }
 
         // 初始化主要功能
         new IMCInit(mainContainer);

@@ -1,6 +1,7 @@
 import { Attributes, Component, ComponentChild, ComponentChildren, h, Ref, render } from 'preact';
 import { IMC } from './IMC';
 import { Input_Behavior_Module } from '../input-behavior-module/Input-Behavior-Module';
+import { closeSidebar } from '../iirose_func/CloseSideBar';
 
 interface IIROSE_MEDIA_CONTAINER_STATE
 {
@@ -120,11 +121,13 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
                 this.mainHolder.classList.add('hidemainHolder');
                 document.body.addEventListener('mousedown', this.IMCActiveEvent);
                 document.body.addEventListener('touchstart', this.IMCActiveEvent);
+                closeSidebar()
             } else if (!active && previousState.active)
             {
                 this.mainHolder.classList.remove('hidemainHolder');
                 document.body.removeEventListener('mousedown', this.IMCActiveEvent);
                 document.body.removeEventListener('touchstart', this.IMCActiveEvent);
+                closeSidebar()
             }
         }
     }

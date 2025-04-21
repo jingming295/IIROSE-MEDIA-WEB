@@ -1,11 +1,4 @@
-// const crypto = require('crypto');
-import { QRcode, Refresh, RefreshCookiedata, buvid, qrLogin } from './interface';
 import { SendFetch } from '../..';
-import { NavUserInfo } from './LoginInfoInterface';
-import { BiliBiliSettings } from '../../../settings/bilibiliSettings/BiliBiliSettings';
-// import { MainPageCookie } from '../../Generate/MainPageCookieInterface';
-// const jsdom = require('jsdom');
-// const { JSDOM } = jsdom;
 
 export class BiliBiliLoginApi extends SendFetch
 {

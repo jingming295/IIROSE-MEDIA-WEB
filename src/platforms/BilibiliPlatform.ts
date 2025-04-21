@@ -482,7 +482,7 @@ export class BilibiliPlatform
 
     }
 
-    private async getDashUrlAndQn(data: dash)
+    private async getDashUrlAndQn(data: StreamDash)
     {
 
         const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();

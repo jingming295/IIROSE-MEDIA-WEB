@@ -1,18 +1,18 @@
-export interface SongDetail
+interface SongDetail
 {
   songs?: SongDetailSong[];
   equalizers: string; // 这里是一个键值对，值的类型未知，可以根据需要修改
   code: number;
 }
 
-export interface SongDetailFromBinaryify
+interface SongDetailFromBinaryify
 {
   code: number;
   privileges: [];
   songs?: SongsFromBinaryify[];
 }
 
-export interface SongsFromBinaryify
+interface SongsFromBinaryify
 {
   a: null
   al: {
@@ -93,7 +93,7 @@ export interface SongsFromBinaryify
 
 }
 
-export interface SongDetailSong
+interface SongDetailSong
 {
   name: string;
   id: number;

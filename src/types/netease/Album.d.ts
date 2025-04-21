@@ -1,6 +1,4 @@
-import { SongsFromBinaryify } from "./SongDetailInterface";
-
-export interface AlbumData
+interface AlbumData
 {
     code: number;
     resourceState: boolean;

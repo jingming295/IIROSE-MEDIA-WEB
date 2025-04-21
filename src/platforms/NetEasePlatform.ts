@@ -1,8 +1,4 @@
 import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
-import { AlbumData } from "../Api/NeteaseAPI/NeteaseMusic/AlbumInterface";
-import { MVDetail } from "../Api/NeteaseAPI/NeteaseMusic/MVInterfaces";
-import { SongDetailFromBinaryify, SongDetailSong, SongsFromBinaryify } from "../Api/NeteaseAPI/NeteaseMusic/SongDetailInterface";
-import { SongList, xcSongResource } from "../Api/NeteaseAPI/NeteaseMusic/SongList";
 import { NeteaseSearchAPI } from "../Api/NeteaseAPI/NeteaseSearch";
 import { RecommendSongList } from "../Api/NeteaseAPI/NeteaseSearch/RecommendInterface";
 import { SearchData } from "../Api/NeteaseAPI/NeteaseSearch/SearchInterface";

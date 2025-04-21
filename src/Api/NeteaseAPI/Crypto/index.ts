@@ -1,11 +1,4 @@
-import CryptoJS, { enc } from 'crypto-js';
-import { ParamsObject, SearchSimpleAlbumParamsObject } from './interface';
-
-interface LinuxapiResult
-{
-    eparams: string;
-}
-
+import CryptoJS from 'crypto-js';
 export interface EapiResult
 {
     params: string;

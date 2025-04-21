@@ -1,4 +1,4 @@
-interface SearchRequest
+interface BilibiliSearchRequest
 {
     code: number;
     message: string;

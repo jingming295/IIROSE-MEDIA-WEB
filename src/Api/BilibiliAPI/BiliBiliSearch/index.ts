@@ -30,7 +30,7 @@ export class BiliBiliSearchApi extends SendFetch
 
         if (response && response.ok)
         {
-            const data: SearchRequest = await response.json();
+            const data: BilibiliSearchRequest = await response.json();
             return data;
 
         } else

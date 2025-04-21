@@ -21,7 +21,7 @@ interface BVideoStreamData
     seek_param?: string; // start?
     seek_type?: string; // offset?
     durl?: durl[]; // 视频分段流信息 注：仅 FLV / MP4 格式存在此字段 (传入的fnval为1)
-    dash?: dash; // DASH 流信息	注：仅 DASH 格式存在此字段 (传入的fnval为dash所接受的)
+    dash?: StreamDash; // DASH 流信息	注：仅 DASH 格式存在此字段 (传入的fnval为dash所接受的)
     support_formats?: SupportFormat[]; // 支持格式的详细信息
     high_format?: null; // （？）
     last_play_time?: number; // 上次播放进度，单位为毫秒
@@ -39,7 +39,7 @@ interface durl
     order: number; // 视频分段序号
 }
 
-interface dash
+interface StreamDash
 {
     duration: number; // 视频长度，单位为秒
     minBufferTime: number; // 1.5?

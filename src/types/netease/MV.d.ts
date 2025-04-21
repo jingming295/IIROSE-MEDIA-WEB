@@ -1,4 +1,4 @@
-export interface MVPlayURLData
+interface MVPlayURLData
 {
     code: number;
     data?: {
@@ -17,7 +17,7 @@ export interface MVPlayURLData
     }
 }
 
-export interface MVDetail
+interface MVDetail
 {
     code: number;
     bufferPic: string;
@@ -44,7 +44,7 @@ export interface MVDetail
     }
 }
 
-export interface MVDetailData
+interface MVDetailData
 {
     artistId: number;
     artistName: string;

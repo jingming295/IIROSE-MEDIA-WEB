@@ -1,9 +1,5 @@
 import { SendFetch } from "../../index";
-import { SongDetail, SongDetailFromBinaryify, SongDetailSong, SongsFromBinaryify } from "./SongDetailInterface";
-import { Lyric, SongList, xcSongResource } from "./SongList";
 import { d } from "../Crypto";
-import { AlbumData } from "./AlbumInterface";
-import { MVDetail, MVPlayURLData } from "./MVInterfaces";
 
 export class NeteaseMusicAPI extends SendFetch
 {

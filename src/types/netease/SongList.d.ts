@@ -1,6 +1,6 @@
 
 // 小草提供的网易云音乐接口返回的数据结构
-export interface xcSongResource
+interface xcSongResource
 {
     auther: string;
     br: number;
@@ -23,7 +23,7 @@ export interface xcSongResource
 /**
  * 歌词
  */
-export interface Lyric
+interface Lyric
 {
     sgc: boolean;
     sfy: boolean;
@@ -59,7 +59,7 @@ interface lrc
 /**
  * 歌单
  */
-export interface SongList
+interface SongList
 {
     code: number;
     relatedVideos: string;

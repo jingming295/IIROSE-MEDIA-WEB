@@ -1,6 +1,5 @@
 import md5 from 'md5';
 import { BiliBiliLoginApi } from '../LoginAPI';
-import { parse } from 'path';
 
 /**
  * 

@@ -1,4 +1,4 @@
-export interface VideoTags
+interface VideoTags
 {
     code: 0 | -400 | number;
     message: string;
@@ -31,7 +31,7 @@ interface TagList
     extra_attr: number; // ???
 }
 
-export interface LikeTagResult
+interface LikeTagResult
 {
     code: 0 | -400 | -403 | number;
     message: string;

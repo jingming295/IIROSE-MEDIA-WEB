@@ -1,6 +1,5 @@
 import { SendFetch } from "../..";
 import { WBI } from "../Crypto/WBI";
-import { SearchRequest, SearchRequestByTypeArticle, SearchRequestByTypeLive, SearchRequestByTypeLiveRoom, SearchRequestByTypeLiveUser, SearchRequestByTypeMediaBangumiAndMediaFT, SearchRequestByTypePhoto, SearchRequestByTypeVideo } from "./SearchRequestInterface";
 
 export class BiliBiliSearchApi extends SendFetch
 {

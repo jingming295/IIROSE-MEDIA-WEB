@@ -1,8 +1,4 @@
 import { SendFetch } from "../..";
-import { FollowMovie } from "./FollowMovieInterface";
-import { MovieDetailEPSS, MovieDetailMDID, MovieSeasonSection } from "./MovieDetailInterface";
-import { MovieStreamFormat } from "./MovieStreamInterface";
-import { TimeLine } from "./TimeLineInterface";
 
 
 export class BiliBiliMovieApi extends SendFetch
@@ -170,7 +166,8 @@ export class BiliBiliMovieApi extends SendFetch
         types: string,
         before: number,
         after: number,
-    ){
+    )
+    {
         const url = 'https://api.bilibili.com/pgc/web/timeline';
         const params = new URLSearchParams({
             types: types,
@@ -184,7 +181,7 @@ export class BiliBiliMovieApi extends SendFetch
 
         if (response && response.ok)
         {
-            const data:TimeLine = await response.json();
+            const data: TimeLine = await response.json();
             return data;
         } else
         {
@@ -193,7 +190,8 @@ export class BiliBiliMovieApi extends SendFetch
 
     }
 
-    public async followMovie(season_id:number){
+    public async followMovie(season_id: number)
+    {
         const url = 'https://api.bilibili.com/pgc/web/follow/add';
         const params = new URLSearchParams({
             season_id: season_id.toString(),
@@ -208,7 +206,7 @@ export class BiliBiliMovieApi extends SendFetch
 
         if (response && response.ok)
         {
-            const data:FollowMovie = await response.json();
+            const data: FollowMovie = await response.json();
             return data;
         } else
         {
@@ -216,7 +214,8 @@ export class BiliBiliMovieApi extends SendFetch
         }
     }
 
-    public async unfollowMovie(season_id:number){
+    public async unfollowMovie(season_id: number)
+    {
         const url = 'https://api.bilibili.com/pgc/web/follow/del';
         const params = new URLSearchParams({
             season_id: season_id.toString(),
@@ -231,7 +230,7 @@ export class BiliBiliMovieApi extends SendFetch
 
         if (response && response.ok)
         {
-            const data:FollowMovie = await response.json();
+            const data: FollowMovie = await response.json();
             return data;
         } else
         {

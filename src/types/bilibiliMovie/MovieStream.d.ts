@@ -1,4 +1,4 @@
-export interface MovieStreamFormat
+interface MovieStreamFormat
 {
     code: number;
     message: string;

@@ -1,5 +1,6 @@
 import { SendFetch } from "../Api";
 // 全局声明，告诉 TypeScript window 具有 iirosemedia 属性
+
 declare global
 {
     interface Window
@@ -16,20 +17,6 @@ declare global
         }
     }
 }
-
-export interface ipinfo
-{
-    city: string;
-    country: string;
-    ip: string;
-    loc: string;
-    org: string;
-    postal: string;
-    readme: string;
-    region: string;
-    timezone: string;
-}
-
 export class Environment
 {
     public async setEnv()

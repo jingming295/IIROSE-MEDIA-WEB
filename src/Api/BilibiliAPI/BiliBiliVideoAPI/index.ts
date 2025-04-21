@@ -1,19 +1,5 @@
-import { BVideoStream } from "./StreamInterface";
 import { SendFetch } from "../..";
-import { videoStatus } from "./VideoStatusInterface";
-import { BilibiliPagesAndCids, BVideoDetail } from "./VideoDetailInterface";
-import { AddCoin, AddFavorite, LikeVideo, ShareVideo, hasLiked, isAddFavorited, isAddedCoin, likeTriple } from "./ActionInterface";
-import { Snapshot } from "./VideoSnapshotInterface";
-import { LikeTagResult, VideoTags } from "./VideoTagsInterface";
-import { RecommandVideo, RecommendVideoFromMainPage, RecommentShortVideo } from "./RecommendVideoInterface";
-import { interactVideoDetail } from "./InteractVideoInterface";
-import { HighEnergyBar } from "./HighEnergyBarListInterface";
-import { reportResult } from "./ReportInterface";
-import { OnlineViewer } from "./OnlineViewersInterface";
 import { WBI } from "../Crypto/WBI";
-import { AIConclusion, likeAndDislikeAIConclusion } from "./AIConclusionInterface";
-import { AppealType, MakeAppealResult } from "./AppealInterface";
-import { SeasonArchives } from "./SeasonArchivesInterface";
 
 export class BiliBiliVideoApi extends SendFetch
 {

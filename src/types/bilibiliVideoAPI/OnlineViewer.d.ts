@@ -1,4 +1,4 @@
-export interface OnlineViewer
+interface OnlineViewer
 {
     code: number;
     message: string;

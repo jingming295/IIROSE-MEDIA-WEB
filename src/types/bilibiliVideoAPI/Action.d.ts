@@ -1,11 +1,11 @@
-export interface LikeVideo
+interface LikeVideo
 {
     code: 0 | -101 | -111 | -400 | -403 | 10003 | 65004 | 65006 | number,
     message: string,
     ttl: number;
 }
 
-export interface hasLiked
+interface hasLiked
 {
     code: 0 | -101 | -400,
     message: string,
@@ -13,7 +13,7 @@ export interface hasLiked
     data: 0 | 1 | 2; // 0: 未点赞, 1: 已点赞, 2: 已点踩
 }
 
-export interface AddCoin
+interface AddCoin
 {
     code: 0 | -101 | -102 | -104 | -400 | 10003 | 34002 | 34003 | 34004 | 34005 | number,
     message: string,
@@ -46,7 +46,7 @@ interface addCoinUnauthorizedAccessData
     }
 }
 
-export interface isAddedCoin
+interface isAddedCoin
 {
     code: 0 | -101 | -400 | number,
     message: string,
@@ -56,7 +56,7 @@ export interface isAddedCoin
     }
 }
 
-export interface AddFavorite
+interface AddFavorite
 {
     code: 0 | -101 | -111 | -400 | -403 | 10003 | 11010 | 11201 | 11202 | 11203 | 72010017 | 2001000 | number,
     message: string,
@@ -65,7 +65,7 @@ export interface AddFavorite
     }
 }
 
-export interface isAddFavorited
+interface isAddFavorited
 {
     code: 0 | -101 | -111 | -400 | -403 | 10003 | number,
     message: string,
@@ -76,7 +76,7 @@ export interface isAddFavorited
     }
 }
 
-export interface likeTriple
+interface likeTriple
 {
     code: 0 | -101 | -111 | -400 | -403 | 10003 | number,
     message: string,
@@ -92,7 +92,7 @@ export interface likeTriple
     }
 }
 
-export interface ShareVideo
+interface ShareVideo
 {
     code: 0 | -101 | -400 | number,
     message: string,

@@ -1,4 +1,4 @@
-export interface BVideoStream
+interface BVideoStream
 {
     code: number;
     message: string;
@@ -39,7 +39,7 @@ interface durl
     order: number; // 视频分段序号
 }
 
-export interface dash
+interface dash
 {
     duration: number; // 视频长度，单位为秒
     minBufferTime: number; // 1.5?

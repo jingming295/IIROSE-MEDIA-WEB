@@ -1,11 +1,13 @@
-export interface LiveStream{
+interface LiveStream
+{
     code: number;
     message: string;
     ttl: number;
     data?: LiveStreamData;
 }
 
-interface LiveStreamData{
+interface LiveStreamData
+{
     current_quality: number; // 当前画质代码 quality
     accept_quality: number[]; // 可选画质代码 quality
     current_qn: number; // 当前画质代码 qn
@@ -16,7 +18,8 @@ interface LiveStreamData{
     durl?: Durl[];
 }
 
-interface Durl{
+interface Durl
+{
     url: string; // 视频流地址
     length: number; // 未知
     order: number; // 服务器线路序号

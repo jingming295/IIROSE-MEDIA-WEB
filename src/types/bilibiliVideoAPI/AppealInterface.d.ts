@@ -1,11 +1,13 @@
-export interface AppealType{
+interface AppealType
+{
     code: number;
     message: string;
     ttl: number;
     data: AppealData[];
 }
 
-interface AppealData{
+interface AppealData
+{
     tid: number; // 类型tid	
     business: number // 不清楚有什么用途
     weight: number; // 权重
@@ -18,7 +20,8 @@ interface AppealData{
     controls?: controls[]
 }
 
-interface controls{
+interface controls
+{
     tid: number; // 类型tid
     bid: number; // 不清楚有什么用途
     name: string; // 提示名称
@@ -28,9 +31,10 @@ interface controls{
     required: number; // 是否必填
 }
 
-export interface MakeAppealResult{
-	code: number;
+interface MakeAppealResult
+{
+    code: number;
     message: string;
     ttl: number;
-    data?:null; // 需要完善
+    data?: null; // 需要完善
 }

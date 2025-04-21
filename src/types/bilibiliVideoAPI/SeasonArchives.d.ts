@@ -1,10 +1,11 @@
-export interface SeasonArchives{
+interface SeasonArchives
+{
     code: number;
     message: string;
     ttl: number;
-    data?:{
+    data?: {
         aids: number[];
-        archives:{
+        archives: {
             aid: number
             bvid: string
             ctime: number
@@ -14,7 +15,7 @@ export interface SeasonArchives{
             pic: string
             playback_position: number
             pubdate: number
-            stat:{
+            stat: {
                 view: number
                 vt: number
             }
@@ -30,7 +31,7 @@ export interface SeasonArchives{
             mid: number
             name: string
             ptime: number
-            season_id: number   
+            season_id: number
             total: number;
         }
         page: {

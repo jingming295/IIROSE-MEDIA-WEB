@@ -1,4 +1,4 @@
-export interface interactVideoDetail
+interface interactVideoDetail
 {
     code: 0 | -400 | -404 | 99003 | 99077 | number;
     message: string;

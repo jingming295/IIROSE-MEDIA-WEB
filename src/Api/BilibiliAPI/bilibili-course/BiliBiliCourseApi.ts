@@ -1,6 +1,4 @@
 import { SendFetch } from "../..";
-import { BVideoStream } from "../BiliBiliVideoAPI/StreamInterface";
-import { CoursePagesData } from "./CourseStreamInterface";
 
 export class BiliBiliCourseApi extends SendFetch
 {

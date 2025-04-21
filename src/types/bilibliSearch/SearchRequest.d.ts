@@ -1,4 +1,4 @@
-export interface SearchRequest
+interface SearchRequest
 {
     code: number;
     message: string;
@@ -74,7 +74,7 @@ export interface SearchRequest
     }
 }
 
-export interface SearchRequestByType
+interface SearchRequestByType
 {
     code: number;
     message: string;
@@ -98,7 +98,7 @@ export interface SearchRequestByType
     }
 }
 
-export interface SearchRequestByTypeVideo
+interface SearchRequestByTypeVideo
 {
     code: number;
     message: string;
@@ -122,7 +122,7 @@ export interface SearchRequestByTypeVideo
     }
 }
 
-export interface SearchRequestByTypeMediaBangumiAndMediaFT
+interface SearchRequestByTypeMediaBangumiAndMediaFT
 {
     code: number;
     message: string;
@@ -146,7 +146,7 @@ export interface SearchRequestByTypeMediaBangumiAndMediaFT
     }
 }
 
-export interface SearchRequestByTypeLive
+interface SearchRequestByTypeLive
 {
     code: number;
     message: string;
@@ -174,7 +174,7 @@ export interface SearchRequestByTypeLive
     }
 }
 
-export interface SearchRequestByTypeLiveRoom
+interface SearchRequestByTypeLiveRoom
 {
     code: number;
     message: string;
@@ -198,7 +198,7 @@ export interface SearchRequestByTypeLiveRoom
     }
 }
 
-export interface SearchRequestByTypeLiveUser
+interface SearchRequestByTypeLiveUser
 {
     code: number;
     message: string;
@@ -222,7 +222,7 @@ export interface SearchRequestByTypeLiveUser
     }
 }
 
-export interface SearchRequestByTypeArticle
+interface SearchRequestByTypeArticle
 {
     code: number;
     message: string;
@@ -246,7 +246,7 @@ export interface SearchRequestByTypeArticle
     }
 }
 
-export interface SearchRequestByTypePhoto
+interface SearchRequestByTypePhoto
 {
     code: number;
     message: string;
@@ -345,7 +345,7 @@ interface media_ftAndmedia_bangumiResult
     index_show: string; // 全*话
 }
 
-export interface VideoResult
+interface VideoResult
 {
     type: 'video' | 'ketang'; // 类型
     id: number; // 视频aid
@@ -501,7 +501,7 @@ interface liveResult
     live_user: live_userResult[];
 }
 
-export interface live_roomResult
+interface live_roomResult
 {
     area: number; // 不知道有什么用途
     attentions: number; // 主播粉丝数

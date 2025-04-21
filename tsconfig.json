@@ -2,6 +2,8 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "ESNext", // 必须是 ES 模块以便 Tree Shaking
+        // "noUnusedLocals": true,
+        // "noUnusedParameters": true,
         "strict": true,
         "removeComments": true, // 移除注释
         "noEmitOnError": true,

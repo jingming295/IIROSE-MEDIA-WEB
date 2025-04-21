@@ -1,6 +1,4 @@
-import { VideoData } from "./VideoDetailInterface";
-
-export interface RecommandVideo
+interface RecommandVideo
 {
     code: number;
     message: string;
@@ -8,7 +6,7 @@ export interface RecommandVideo
     data?: VideoData[];
 }
 
-export interface RecommendVideoFromMainPage
+interface RecommendVideoFromMainPage
 {
     code: number;
     message: string;
@@ -113,7 +111,7 @@ export interface RecommendVideoFromMainPage
 
 }
 
-export interface RecommentShortVideo
+interface RecommentShortVideo
 {
     code: number;
     message: string;

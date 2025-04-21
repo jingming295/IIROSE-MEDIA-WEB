@@ -1,4 +1,4 @@
-export interface MovieDetailEPSS
+interface MovieDetailEPSS
 {
   code: number;
   message: string;
@@ -277,7 +277,7 @@ interface MovieDetail_Episodes
   vid: string;
 }
 
-export interface MovieDetailMDID
+interface MovieDetailMDID
 {
   code: number;
   message: string;
@@ -308,7 +308,7 @@ export interface MovieDetailMDID
   }
 }
 
-export interface MovieSeasonSection
+interface MovieSeasonSection
 {
   code: number;
   message: string;

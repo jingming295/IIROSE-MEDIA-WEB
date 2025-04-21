@@ -1,11 +1,13 @@
-export interface videoStatus{
+interface videoStatus
+{
     code: number;
     message: string;
     ttl: number;
     data: videoStatusData | null;
 }
 
-interface videoStatusData{
+interface videoStatusData
+{
     aid: number;
     bvid: string;
     view: number;

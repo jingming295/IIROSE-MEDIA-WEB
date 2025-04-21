@@ -1,7 +1,7 @@
 /**
  * 使用 https://api.bilibili.com/x/web-interface/view 的时候返回的接口
  */
-export interface BVideoDetail
+interface BVideoDetail
 {
   code: number;
   message: string;
@@ -12,7 +12,7 @@ export interface BVideoDetail
 /**
  * BVideoDetail下的data
  */
-export interface VideoData
+interface VideoData
 {
   bvid: string;
   aid: number;
@@ -280,7 +280,7 @@ interface SubtitleList
   }
 }
 
-export interface BilibiliPagesAndCids
+interface BilibiliPagesAndCids
 {
 
   code: number;

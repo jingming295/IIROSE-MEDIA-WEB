@@ -1,4 +1,4 @@
-export interface AIConclusion
+interface AIConclusion
 {
     code: number;
     message: string;
@@ -24,7 +24,7 @@ export interface AIConclusion
     }
 }
 
-export interface likeAndDislikeAIConclusion
+interface likeAndDislikeAIConclusion
 {
     code: number;
     message: string;

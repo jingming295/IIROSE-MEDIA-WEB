@@ -1,4 +1,4 @@
-export interface LiveRoomDetail
+interface LiveRoomDetail
 {
     code: number;
     msg: string;
@@ -6,7 +6,7 @@ export interface LiveRoomDetail
     data?: LiveRoomDetailData;
 }
 
-export interface LiveRoomStatus
+interface LiveRoomStatus
 {
     code: number;
     msg: string;
@@ -15,7 +15,7 @@ export interface LiveRoomStatus
 
 }
 
-export interface LiveRoomInitDetail
+interface LiveRoomInitDetail
 {
     code: number;
     msg: string;
@@ -40,7 +40,7 @@ export interface LiveRoomInitDetail
     }
 }
 
-export interface LiveUserDetail
+interface LiveUserDetail
 {
     code: number;
     msg: string;
@@ -56,7 +56,7 @@ export interface LiveUserDetail
             } // 认证信息
             gender: number; // 性别 -1: 保密 1: 女 2: 男
         }
-        exp:{
+        exp: {
             master_level: {
                 level: number; // 主播等级
                 color: number; // 等级框颜色
@@ -70,19 +70,20 @@ export interface LiveUserDetail
         glory_count: number; // 主播荣誉数
         pendant: string; // 直播间头像框url
         link_group_num: number; // 未知
-        room_news:{
+        room_news: {
             content: string; // 公告内容
-            ctime:string // 公告时间
+            ctime: string // 公告时间
             ctime_text: string; // 公告日期
         } // 主播公告
     }
 }
 
-export interface LiveRoomPlayInfoDetail{
+interface LiveRoomPlayInfoDetail
+{
     code: number;
     message: string;
     ttl: number;
-    data:LiveRoomPlayInfoDetailData
+    data: LiveRoomPlayInfoDetailData
 }
 
 interface LiveRoomDetailData
@@ -179,7 +180,8 @@ interface LiveRoomStatusData
     link: string; // 未知
 }
 
-interface LiveRoomPlayInfoDetailData{
+interface LiveRoomPlayInfoDetailData
+{
     room_id: number; // 直播间长号
     short_id: number; // 直播间短号
     uid: number; // 主播uid
@@ -193,43 +195,43 @@ interface LiveRoomPlayInfoDetailData{
     pwd_verified: boolean; // 是否通过密码验证 当encrypted为true时才有意义
     live_time: string; // 开播时间 秒级时间戳
     room_shield: number; // 未知
-    all_special_types:number[]; // 未知
-    playurl_info:{
+    all_special_types: number[]; // 未知
+    playurl_info: {
         conf_json: string; // 未知
         playurl: {
             cid: number; // 直播间id
-            g_qn_desc:{
+            g_qn_desc: {
                 qn: number; // 清晰度
                 desc: string; // 清晰度描述
                 hdr_desc: string; // 未知
                 attr_desc: null; // 未知
             }[]; // 清晰度列表
-            stream:{
+            stream: {
                 protocol: string; // 协议名
-                format:{
+                format: {
                     format_name: string; // 格式名
-                    codec:{
+                    codec: {
                         codec_name: string; // 编码名
                         current_qn: number; // 当前清晰度
                         accept_qn: number[]; // 支持的清晰度
                         base_url: string; // 播放源路径
-                        url_info:{
-                            host:string; // 域名
+                        url_info: {
+                            host: string; // 域名
                             extra: string; // URL参数
                             stream_ttl: number; // 未知
                         }[] // 域名信息列表
-                        hdr_qn:null // 未知
+                        hdr_qn: null // 未知
                         dolby_type: number // 未知
                         attr_name: string // 未知
                     }[] // 编码列表
                 }[]
                 master_url: string; // 未知
             }[] // 直播流信息
-            p2p_data:{
-                p2p:boolean; // 未知
+            p2p_data: {
+                p2p: boolean; // 未知
                 p2p_type: number // 未知
                 m_p2p: boolean // 未知
-                m_servers:null // 未知
+                m_servers: null // 未知
             }
             dolby_qn: null; // 未知
         }

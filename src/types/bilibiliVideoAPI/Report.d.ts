@@ -1,4 +1,5 @@
-export interface reportResult{
+interface reportResult
+{
     code: number;
     message: string;
     ttl: number;

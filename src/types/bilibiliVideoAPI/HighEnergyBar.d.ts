@@ -1,7 +1,8 @@
-export interface HighEnergyBar{
+interface HighEnergyBar
+{
     step_sec: number;
-    tagstr:string
-    events:{
+    tagstr: string
+    events: {
         default: number[]
     }
     debug: string

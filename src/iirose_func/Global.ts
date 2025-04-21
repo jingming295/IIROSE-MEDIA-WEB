@@ -1,4 +1,4 @@
-import jQuery from 'jquery'; // 导入 jQuery 库
+import JQuery from 'jquery'; // 导入 jQuery 库
 
 declare global
 {
@@ -74,7 +74,6 @@ declare global
                 transform: string;
             }
         },
-
         Probe: {
             gestureMouseEvent: boolean // 是否在处理手势事件
             getMediaLink: number // 如果为1则获取媒体链接，经常用于更换背景音乐
@@ -94,8 +93,6 @@ declare global
 interface AlbumShow extends HTMLImageElement
 {
     resetScroll(): void;
-
-
 }
 
 

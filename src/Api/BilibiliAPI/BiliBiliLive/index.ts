@@ -1,6 +1,4 @@
 import { SendFetch } from "../..";
-import { LiveRoomDetail, LiveRoomInitDetail, LiveRoomPlayInfoDetail, LiveRoomStatus, LiveUserDetail } from "./LiveDetailInterface";
-import { LiveStream } from "./LiveStreamInterface";
 
 export class BiliBiliLiveApi extends SendFetch
 {

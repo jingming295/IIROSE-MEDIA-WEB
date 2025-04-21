@@ -1,4 +1,4 @@
-export interface TimeLine
+interface TimeLine
 {
     code: number;
     message: string;

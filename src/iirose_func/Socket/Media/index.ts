@@ -1,6 +1,4 @@
 import { MediaData } from "./MediaCardInterface";
-import { encode } from 'html-entities';
-
 export class Media
 {
     public mediaCard(media: MediaData)
@@ -20,6 +18,18 @@ export class Media
             }
         }
 
+        const encodeHTML = (str: string): string =>
+        {
+            const htmlEntitiesMap = {
+                '<': '&lt;',
+                '>': '&gt;',
+                '&': '&amp;',
+                '"': '&quot;',
+                "'": '&#39;' // 单引号
+            };
+            return str.replace(/[<>&"']/g, (char) => htmlEntitiesMap[char as '<' | '>' | '&' | '"' | "'"] || char);
+        }
+
         function durationToText(duration: number)
         {
             const secondsInMinute = 60;
@@ -33,6 +43,8 @@ export class Media
             const secondsInTenMillionYears = secondsInMillionYears * 10;
             const secondsInHundredMillionYears = secondsInTenMillionYears * 10;
             const secondsInBillionYears = secondsInHundredMillionYears * 10;
+
+
 
             const billionYears = Math.floor(duration / secondsInBillionYears);
             duration %= secondsInBillionYears;
@@ -119,6 +131,7 @@ export class Media
 
             return text.trim();
         }
+
         const timestamp = new Date().getTime();
         const typeMap: {
             [key: string]: string;
@@ -154,9 +167,9 @@ export class Media
         {
             t = media.type;
         }
-        const medianame = encode(media.name);
-        const mediasinger = encode(media.singer);
-        const mediacolor = encode(media.color);
+        const medianame = encodeHTML(media.name);
+        const mediasinger = encodeHTML(media.singer);
+        const mediacolor = encodeHTML(media.color);
         if (media.type === 'video')
         {
             const data = {

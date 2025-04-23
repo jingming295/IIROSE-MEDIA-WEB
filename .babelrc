@@ -1,5 +1,0 @@
-{
-    "plugins": [
-        "minify-dead-code-elimination"
-    ]
-}

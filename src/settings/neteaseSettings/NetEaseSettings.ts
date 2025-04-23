@@ -12,7 +12,7 @@ export class NetEaseSettings
     public setNeteaseMusicQuality(changeActionTitleAction?: (actionTitle?: string) => void)
     {
 
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const neteaseSettings = localStorage.getItem('neteaseSetting');
 
@@ -63,7 +63,7 @@ export class NetEaseSettings
 
     public setNeteaseDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
     {
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const neteaseSettings = localStorage.getItem('neteaseSetting');
 
@@ -106,7 +106,7 @@ export class NetEaseSettings
 
     public setNeteaseMusicLyric(changeActionTitleAction?: (actionTitle?: string) => void)
     {
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const neteaseSettings = localStorage.getItem('neteaseSetting');
 

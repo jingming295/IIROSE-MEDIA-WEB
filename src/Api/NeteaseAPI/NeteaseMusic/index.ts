@@ -36,7 +36,7 @@ export class NeteaseMusicAPI extends SendFetch
             csrf_token: ''
         }
 
-        const we = d(params);
+        const we = await d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
@@ -149,7 +149,7 @@ export class NeteaseMusicAPI extends SendFetch
         }
 
         const headers = new Headers();
-        const we = d(params);
+        const we = await d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
@@ -379,7 +379,7 @@ export class NeteaseMusicAPI extends SendFetch
         }
 
         const headers = new Headers();
-        const we = d(params);
+        const we = await d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey

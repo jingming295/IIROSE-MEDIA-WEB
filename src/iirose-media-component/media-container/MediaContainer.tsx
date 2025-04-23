@@ -116,7 +116,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
     componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>): void
     {
-        const { needOutFromMultiPage, needOutFromSettings, active } = this.props;
+        const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
         const propsSearchKeyword = this.props.searchKeyword;
 
@@ -202,8 +202,8 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
     render()
     {
-        const { CategoriesIndex, ShowOrHideIMC, changeSearchKeyword, active } = this.props;
-        const { PlatformIndex, mediaData, settingsData, searchKeyword, currentPage, totalPage, isCurrentInMultiPage, currentSubNavBarAction, currentOnDemandPlay } = this.state;
+        const { CategoriesIndex, ShowOrHideIMC, changeSearchKeyword } = this.props;
+        const { PlatformIndex, mediaData, settingsData, searchKeyword, currentPage, totalPage, isCurrentInMultiPage, currentOnDemandPlay } = this.state;
         const {
             changecurrentPage,
             updateSubNavBarIndex,
@@ -547,7 +547,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          */
         BiliBiliSearchLiveByKeyword: () =>
         {
-            const { searchKeyword, currentPage, allMediaData } = this.state;
+            const { searchKeyword, currentPage } = this.state;
 
             const currentRequestToken = this.state.requestToken + 1;
             if (searchKeyword === '')

@@ -1,4 +1,4 @@
-import { Attributes, Component, ComponentChild, ComponentChildren, h, Ref, render } from 'preact';
+import { Component, ComponentChild, render } from 'preact';
 import { IMC } from './IMC';
 import { Input_Behavior_Module } from '../input-behavior-module/Input-Behavior-Module';
 import { closeSidebar } from '../iirose_func/CloseSideBar';
@@ -110,7 +110,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
         }
     }
 
-    componentDidUpdate(previousProps: Readonly<object>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
+    componentDidUpdate(_previousProps: Readonly<object>, previousState: Readonly<IIROSE_MEDIA_CONTAINER_STATE>): void
     {
         const { active } = this.state;
 

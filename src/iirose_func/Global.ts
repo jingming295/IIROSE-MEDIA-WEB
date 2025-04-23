@@ -1,5 +1,3 @@
-import JQuery from 'jquery'; // 导入 jQuery 库
-
 declare global
 {
     interface Window

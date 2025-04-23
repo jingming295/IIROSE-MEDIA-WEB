@@ -11,7 +11,7 @@ export class About
     async aboutDonate()
     {
 
-        function DonatePlatform(t: HTMLElement, s: string)
+        function DonatePlatform(_t: HTMLElement, s: string)
         {
 
             if (s === `0`)
@@ -42,7 +42,7 @@ export class About
 
         ]
 
-        const DonatePerson = async (t: HTMLElement, s: string) =>
+        const DonatePerson = async (_t: HTMLElement, s: string) =>
         {
             await ShowOrHideIMC()
             this.iiroseUtils.getUserCard(s)

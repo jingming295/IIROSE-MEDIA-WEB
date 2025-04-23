@@ -1,4 +1,4 @@
-import { Component, JSX } from 'preact';
+import { Component } from 'preact';
 import { MediaCardImg } from "./MediaCardImg";
 import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";

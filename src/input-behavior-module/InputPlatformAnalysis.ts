@@ -1,4 +1,3 @@
-import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
 import { BilibiliPlatform } from "../platforms/BilibiliPlatform";
 import { PlatformData } from "../platforms/interfaces";
 import { NetEasePlatform } from "../platforms/NetEasePlatform";

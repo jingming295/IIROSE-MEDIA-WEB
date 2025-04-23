@@ -21,7 +21,7 @@ export class NetEasePlatform
 
     public async buildSelect(action: (select: number) => Promise<void>)
     {
-        function cb(t: HTMLElement, s: string)
+        function cb(_t: HTMLElement, s: string)
         {
             const selectNumber = parseInt(s);
             action(selectNumber);
@@ -88,7 +88,6 @@ export class NetEasePlatform
             }
             if (!res || !res.result)
             {
-                // const res = await this.neteaseSearch.NeteaseRecommandPlayList()
                 return { platformData: [], totalPage: 0 }
             }
 
@@ -658,11 +657,6 @@ export class NetEasePlatform
     {
         try
         {
-
-            const offset = (page - 1) * 100;
-            const xcAPI = window.netease?.xcAPI
-            const theresaAPI = window.netease?.theresaAPI
-            const neteaseAPI = this.neteaseSetting.api
 
             const platformData: PlatformData[] = [];
 

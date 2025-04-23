@@ -1,84 +1,10 @@
 import { SendFetch } from "../../index";
-import { NeteaseMusicAPI } from "../NeteaseMusic/index";
 import { d } from "../Crypto";
 import { SearchData } from "./SearchInterface";
 import { RecommendSongList } from "./RecommendInterface";
 
 export class NeteaseSearchAPI extends SendFetch
 {
-
-    /**
-     * 获取网易云主页推荐歌单
-     * @returns 
-     */
-    public async NeteaseRecommandPlayList(): Promise<[] | null>
-    {
-        const url = `${this.cors}https://music.163.com/discover`;
-        const response = await this.sendGet(url, new URLSearchParams());
-        if (response && response.ok)
-        {
-            const data = await response.text();
-            const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(data, 'text/html');
-            const uCovers = htmlDoc.querySelectorAll('.u-cover');
-            const extractedData: [] = [];
-            const neteaseMusic = new NeteaseMusicAPI();
-            const uCoversArray = Array.from(uCovers);
-            for (const uCover of uCoversArray)
-            {
-                const img = uCover.querySelector('img');
-                const aElement = uCover.querySelector('a');
-                if (aElement && img?.src)
-                {
-                    if (aElement.href.includes('/playlist'))
-                    {
-                        const imageUrl = new URL(img.src);
-                        imageUrl.search = '';
-                        const title = aElement.title;
-                        const href = aElement.href;
-                        const urlParams = new URLSearchParams(href.split('?')[1]);
-                        const id = urlParams.get('id');
-                        const songDetail = neteaseMusic.getSongListDetail(Number(id));
-                        if (!songDetail) return null;
-                        const item = {
-                            id: parseInt(id || '') || 0,
-                            title: title,
-                            img: imageUrl.toString(),
-                            url: href,
-                            author: new Promise<string>((resolve, reject) =>
-                            {
-                                // 处理 songDetail 的 Promise
-                                songDetail.then((detail) =>
-                                {
-                                    if (detail && detail.playlist && detail.playlist.creator)
-                                    {
-                                        resolve(detail.playlist.creator.nickname);
-                                    } else
-                                    {
-                                        resolve('无法获取'); // 默认值
-                                    }
-                                }).catch((error) =>
-                                {
-                                    console.error('Error fetching song detail:', error);
-                                    reject(error);
-                                });
-                            }),
-                            duration: '歌单'
-                        }
-
-                        // extractedData.push(item);
-                    }
-
-                }
-            }
-            // console.log(data)
-
-            return extractedData;
-        } else
-        {
-            return null;
-        }
-    }
 
     public async getNeteaseRecommandPlayList(limit: number)
     {
@@ -91,7 +17,7 @@ export class NeteaseSearchAPI extends SendFetch
             csrf_token: ''
         }
 
-        const we = d(params);
+        const we = await d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey
@@ -129,7 +55,7 @@ export class NeteaseSearchAPI extends SendFetch
             limit: limit, // 返回歌曲数量
             offset: offset.toString(), // 偏移量
         }
-        const we = d(params);
+        const we = await d(params);
         const enc = {
             params: we.encText,
             encSecKey: we.encSecKey

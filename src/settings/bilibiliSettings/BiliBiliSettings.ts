@@ -18,7 +18,7 @@ export class BiliBiliSettings
     bilibiliLoginAPI = new BiliBiliLoginApi()
     public setAccount(changeActionTitleAction?: (actionTitle?: string) => void)
     {
-        const login = (t: HTMLElement, s: string) =>
+        const login = (_t: HTMLElement, s: string) =>
         {
             const handleUserInputCookie = async (input: string | null) =>
             {
@@ -77,7 +77,7 @@ export class BiliBiliSettings
             }
         }
 
-        function logOut(t: HTMLElement, s: string)
+        function logOut(_t: HTMLElement, s: string)
         {
             if (s === '1')
             {
@@ -114,7 +114,7 @@ export class BiliBiliSettings
     public setBilibiliVideoQuality(changeActionTitleAction?: (actionTitle?: string) => void)
     {
 
-        const setBilibiliVideoQuality = (t: HTMLElement, s: string) =>
+        const setBilibiliVideoQuality = (_t: HTMLElement, s: string) =>
         {
             const qn = parseInt(s);
 
@@ -177,7 +177,7 @@ export class BiliBiliSettings
             [10000, '原生画质'],
         ];
 
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const qn = parseInt(s);
 
@@ -243,7 +243,7 @@ export class BiliBiliSettings
     public setGetVideoFormat(changeActionTitleAction?: (actionTitle?: string) => void)
     {
 
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const format = parseInt(s);
 
@@ -287,7 +287,7 @@ export class BiliBiliSettings
     public setBilibiliDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
     {
 
-        const set = (t: HTMLElement, s: string) =>
+        const set = (_t: HTMLElement, s: string) =>
         {
             const api = s as 'MY' | 'Beijing' | 'Dev';
 

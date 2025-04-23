@@ -25,4 +25,5 @@ jobs:
     - name: Build
       run: |
         npm i
-        npm run dev
+        npm i @rollup/rollup-linux-x64-gnu
+        npm run build

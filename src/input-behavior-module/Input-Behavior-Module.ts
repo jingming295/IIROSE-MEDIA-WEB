@@ -1,6 +1,9 @@
 import { PluginSettings } from "../settings/pluginSettings/PluginSettings";
 import { InputPlatformAnalysis } from "./InputPlatformAnalysis";
 
+/**
+ * 代理@ 事件的
+ */
 export class Input_Behavior_Module
 {
     static firstTime = true;

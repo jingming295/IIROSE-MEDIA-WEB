@@ -1,21 +1,13 @@
 import { BiliBiliAccount } from "./Account/BiliBili/SetBiliBili";
 import { Environment } from "./environment/Environment";
-import { IMCInit } from "./iirose-media-component/IMCInit";
+import { IMCInit } from "./page";
 import './SCSS/IIROSE_MEDIA.scss';
 import { LocalStorageUtils } from "./settings/localStorageUtils/LocalStorageUtils";
 
 class APP
 {
-    constructor()
-    {
-        const environment = new Environment();
-        environment.setEnv();
-        LocalStorageUtils.Init();
-        const bilibiliAcc = new BiliBiliAccount();
-        bilibiliAcc.setBiliBiliAccountDefaultCookie();
-    }
 
-    async init()
+    public static async init()
     {
         if (typeof document === 'undefined')
         {
@@ -26,16 +18,22 @@ class APP
             return;
         }
 
+        const environment = new Environment();
+        environment.setEnv();
+        LocalStorageUtils.Init();
+        const bilibiliAcc = new BiliBiliAccount();
+        bilibiliAcc.setBiliBiliAccountDefaultCookie();
+
+
         const mainFrame = document.getElementById('mainFrame') as HTMLIFrameElement | null;
         const mainContainer = document.getElementById('mainContainer') as HTMLDivElement | null;
         if (!mainContainer)
         {
-
             return
         }
 
         // 初始化主要功能
-        new IMCInit(mainContainer);
+        IMCInit.init(mainContainer)
 
         // 检查 mainFrame 是否存在并注入脚本
         if (mainFrame && mainFrame.contentWindow && mainFrame.contentDocument)
@@ -49,7 +47,7 @@ class APP
         );
     }
 
-    injectScriptIntoIframe(iframe: HTMLIFrameElement)
+    public static injectScriptIntoIframe(iframe: HTMLIFrameElement)
     {
         // 获取 iframe 的文档对象
         const iframeDocument = iframe.contentDocument || iframe.contentWindow?.document;
@@ -79,5 +77,4 @@ class APP
     }
 }
 
-const app = new APP();
-app.init();
+APP.init();

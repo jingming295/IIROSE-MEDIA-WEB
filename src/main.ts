@@ -34,6 +34,11 @@ class APP
             return
         }
 
+        const script = document.createElement('script');
+        script.src = '//unpkg.com/react-scan/dist/auto.global.js';
+        script.crossOrigin = 'anonymous';
+        document.head.prepend(script); // 插入到<head>最前面
+
         // 初始化主要功能
         new IMCInit(mainContainer);
 

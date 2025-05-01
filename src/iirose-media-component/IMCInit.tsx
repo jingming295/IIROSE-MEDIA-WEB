@@ -72,7 +72,17 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
 {
     private IMCActiveEvent: (event: MouseEvent | TouchEvent) => void;
     private mainHolder: HTMLElement | null = null;
-    gasture = new Gesture(this.ShowOrHideIMC.bind(this));
+
+    private ShowOrHideIMC = async () =>
+    {
+        const { active, init } = this.state;
+        if (!init) await this.setState({ init: true });
+        await this.setState({ active: !active });
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+
+    gasture = new Gesture(this.ShowOrHideIMC);
 
     constructor(props: undefined)
     {
@@ -152,18 +162,7 @@ export class IIROSE_MEDIA_CONTAINER extends Component<object, IIROSE_MEDIA_CONTA
     }
 
 
-
-    private async ShowOrHideIMC()
-    {
-        const { active, init } = this.state;
-        if (!init) await this.setState({ init: true });
-        await this.setState({ active: !active });
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-
-
-    private KeyBoardCallApp(event: KeyboardEvent)
+    private KeyBoardCallApp = (event: KeyboardEvent) =>
     {
         if ((event.altKey && event.key === 's') || (event.altKey && event.key === 'S') || (event.altKey && event.key === 'ß'))
         {

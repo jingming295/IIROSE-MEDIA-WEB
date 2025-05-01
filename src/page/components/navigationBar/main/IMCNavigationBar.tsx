@@ -1,19 +1,19 @@
 import { Component } from 'preact';
 
-interface IMCNavigationBarProps
+interface MainNavigationBarProps
 {
-    switchPlatforms: (index: number) => void;
-    ShowOrHideIMC: () => void;
+    switchPage: (index: number) => void;
+    ShowHideMainApp: () => void;
 }
 
-interface IMCNavigationBarState
+interface MainNavigationBarState
 {
     activeButtonIndex: number;
 }
 
-export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNavigationBarState>
+export class MainNavigationBar extends Component<MainNavigationBarProps, MainNavigationBarState>
 {
-    constructor(props: IMCNavigationBarProps)
+    constructor(props: MainNavigationBarProps)
     {
         super(props);
         this.state = {
@@ -21,15 +21,15 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
         }
     }
 
-    back = () =>
+    quitFromMainApp = () =>
     {
-        const { ShowOrHideIMC } = this.props
-        ShowOrHideIMC()
+        const { ShowHideMainApp } = this.props
+        ShowHideMainApp()
     }
 
-    handlePlatformChange = (index: number) =>
+    handleSwitchPage = (index: number) =>
     {
-        this.props.switchPlatforms(index);
+        this.props.switchPage(index);
         this.setState({ activeButtonIndex: index }); // 更新活动按钮索引
     }
 
@@ -41,7 +41,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
             <div className='IIroseMainNavigationBar'>
 
                 <div className='LeftComponent'>
-                    <div className='NavBarButton NavBarButtonActive' id='BackButton' onClick={this.back}>
+                    <div className='NavBarButton NavBarButtonActive' id='BackButton' onClick={this.quitFromMainApp}>
                         <div className='NavBarButtonIcon' id='BackIcon'>
                         </div>
                     </div>
@@ -57,7 +57,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
                     <div
                         className={`NavBarButton ${activeButtonIndex === 1 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handlePlatformChange(1)}
+                        onClick={() => this.handleSwitchPage(1)}
                     >
                         <div className='NavBarButtonIcon' id='MusicIcon'>
                         </div>
@@ -67,7 +67,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
                     <div
                         className={`NavBarButton ${activeButtonIndex === 0 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handlePlatformChange(0)}
+                        onClick={() => this.handleSwitchPage(0)}
                     >
                         <div className='NavBarButtonIcon' id='VideoIcon'>
                         </div>
@@ -77,7 +77,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
                     <div
                         className={`NavBarButton ${activeButtonIndex === 2 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handlePlatformChange(2)}
+                        onClick={() => this.handleSwitchPage(2)}
                     >
                         <div className='NavBarButtonIcon' id='SettingIcon'>
                         </div>
@@ -87,7 +87,7 @@ export class IMCNavigationBar extends Component<IMCNavigationBarProps, IMCNaviga
                     <div
                         className={`NavBarButton ${activeButtonIndex === 3 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handlePlatformChange(3)}
+                        onClick={() => this.handleSwitchPage(3)}
                     >
                         <div className='NavBarButtonIcon mdi-information-outline' id=''>
                         </div>

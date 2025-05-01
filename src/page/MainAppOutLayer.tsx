@@ -1,24 +1,24 @@
 import { Component } from 'preact';
-import { IMCNavigationBar } from './IMCNavigationBar';
-import { MediaContainer } from './media-container/MediaContainer';
+import { MainNavigationBar } from './components/navigationBar/main/IMCNavigationBar';
+import { MediaContainer } from '../iirose-media-component/media-container/MediaContainer';
 
-interface IMCState
+interface MainAppOutLayerState
 {
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
     needOutFromSettings: boolean;
 }
 
-interface IMCProps
+interface MainAppOutLayerProps
 {
-    ShowOrHideIMC: () => Promise<void>;
+    ShowHideMainApp: () => Promise<void>;
     searchKeyword: string;
     changeSearchKeyword: (keyword: string | null) => void
-    active: boolean;
+    mainAppDisplay: boolean;
 
 }
 
-export class IMC extends Component<IMCProps, IMCState>
+export class MainAppOutLayer extends Component<MainAppOutLayerProps, MainAppOutLayerState>
 {
     state = {
         CategoriesIndex: 0,
@@ -28,7 +28,7 @@ export class IMC extends Component<IMCProps, IMCState>
 
     itemsPerPage = 10;
 
-    componentDidUpdate(_prevProps: Readonly<IMCProps>, prevState: Readonly<IMCState>): void
+    componentDidUpdate(_prevProps: Readonly<MainAppOutLayerProps>, prevState: Readonly<MainAppOutLayerState>): void
     {
         const { needOutFromMultiPage, CategoriesIndex } = this.state;
         if (CategoriesIndex !== prevState.CategoriesIndex)
@@ -44,28 +44,31 @@ export class IMC extends Component<IMCProps, IMCState>
     render()
     {
         const { CategoriesIndex, needOutFromMultiPage, needOutFromSettings } = this.state;
-        const { searchKeyword, active, changeSearchKeyword } = this.props;
+        const { searchKeyword, mainAppDisplay, changeSearchKeyword } = this.props;
         return (
             <div className='IIROSE_MEDIA' id='IIROSE_MEDIA'>
-                <IMCNavigationBar
-                    switchPlatforms={this.switchPlatforms}
-                    ShowOrHideIMC={this.props.ShowOrHideIMC}
+                <MainNavigationBar
+                    switchPage={this.switchPage}
+                    ShowHideMainApp={this.props.ShowHideMainApp}
                 />
                 <MediaContainer
                     CategoriesIndex={CategoriesIndex}
                     needOutFromMultiPage={needOutFromMultiPage}
                     needOutFromSettings={needOutFromSettings}
-                    ShowOrHideIMC={this.props.ShowOrHideIMC}
+                    ShowOrHideIMC={this.props.ShowHideMainApp}
                     searchKeyword={searchKeyword}
                     changeSearchKeyword={changeSearchKeyword}
-                    active={active}
+                    active={mainAppDisplay}
                 />
             </div>
         );
     }
 
-    // Method to switch categories
-    protected switchPlatforms = async (index: number) =>
+    /**
+     * 
+     * @param index 0: 视频 1: 音乐 2: 设置 3: 关于
+     */
+    protected switchPage = async (index: number) =>
     {
         await this.setState({ CategoriesIndex: index });
         if (index !== 2 && index !== 3)

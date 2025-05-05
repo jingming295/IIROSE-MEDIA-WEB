@@ -4,8 +4,7 @@ import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
 import { MediaCardMessage } from "./MediaCardMessage";
 import { PlatformData } from "../../../platforms/interfaces";
-import { SettingData } from "../../../settings/interfaces";
-import { SettingsCard } from "./SettingsCard";
+import { SettingCard } from "../../../page/components/SettingCard";
 
 interface MediaCardProps
 {
@@ -104,14 +103,8 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
             return (
                 <div className='MediaCardContainer'>
                     {
-                        settingsData.map((item, index) => (
-                            <div className='SettingsCard' key={index}>
-                                <div className="titleWrapper">
-                                    <div className={`titleIcon ${item.icon}`}></div>
-                                    <div className='title'>{item.title}</div>
-                                </div>
-                                < SettingsCard settingsData={item} />
-                            </div>
+                        settingsData.map((item) => (
+                            < SettingCard settingsData={item} />
                         ))
                     }
                 </div>

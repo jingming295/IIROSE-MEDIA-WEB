@@ -2,10 +2,14 @@ import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import { visualizer } from 'rollup-plugin-visualizer';
+import tailwindcss from '@tailwindcss/vite'
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [preact(),
-  cssInjectedByJsPlugin()
+  plugins: [
+    preact(),
+    tailwindcss(),
+    cssInjectedByJsPlugin()
   ],
   build: {
     lib: {

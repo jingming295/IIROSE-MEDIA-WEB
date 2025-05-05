@@ -1,6 +1,6 @@
 import { Component } from 'preact';
 
-import { Platform } from "./MediaContainer";
+import { Platform } from "../../page/MediaContainer";
 interface PlatformSelectorProps
 {
     platform: Platform[];

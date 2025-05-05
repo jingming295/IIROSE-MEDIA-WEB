@@ -1,18 +1,17 @@
 import { Component } from 'preact';
-import { MediaSearchBar } from './MediaSearchBar';
-import { PlatformSelector } from './PlatformSelector';
-import { MediaContainerSubNavBar } from './MediaContainerSubNavBar';
-import { MediaCard } from './media-card-container/MediaCard';
-import { PlatformData } from '../../platforms/interfaces';
-import { SettingData } from '../../settings/interfaces';
-import { MediaContainerContext, Provider } from './media-container-context/MediaContainerContext';
-import { BilibiliPlatform } from '../../platforms/BilibiliPlatform';
-import { NetEasePlatform } from '../../platforms/NetEasePlatform';
-import { GetBiliBiliAccount } from '../../Account/BiliBili/GetBiliBili';
-import { BiliBiliSettings } from '../../settings/bilibiliSettings/BiliBiliSettings';
-import { NetEaseSettings } from '../../settings/neteaseSettings/NetEaseSettings';
-import { About } from '../../platforms/About';
-import { PluginSettings } from '../../settings/pluginSettings/PluginSettings';
+import { MediaSearchBar } from '../iirose-media-component/media-container/MediaSearchBar';
+import { PlatformSelector } from '../iirose-media-component/media-container/PlatformSelector';
+import { MediaContainerSubNavBar } from '../iirose-media-component/media-container/MediaContainerSubNavBar';
+import { MediaCard } from '../iirose-media-component/media-container/media-card-container/MediaCard';
+import { PlatformData } from '../platforms/interfaces';
+import { MediaContainerContext, Provider } from '../iirose-media-component/media-container/media-container-context/MediaContainerContext';
+import { BilibiliPlatform } from '../platforms/BilibiliPlatform';
+import { NetEasePlatform } from '../platforms/NetEasePlatform';
+import { GetBiliBiliAccount } from '../Account/BiliBili/GetBiliBili';
+import { BiliBiliSettings } from '../settings/bilibiliSettings/BiliBiliSettings';
+import { NetEaseSettings } from '../settings/neteaseSettings/NetEaseSettings';
+import { About } from '../platforms/About';
+import { PluginSettings } from '../settings/pluginSettings/PluginSettings';
 
 interface MediaContainerProps
 {

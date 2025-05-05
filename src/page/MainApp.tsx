@@ -1,133 +1,86 @@
-import { Component, ComponentChild } from "preact";
-import { MainAppOutLayer } from "./MainAppOutLayer";
-import { Input_Behavior_Module } from "../input-behavior-module/Input-Behavior-Module";
-import { closeSidebar } from "../iirose_func/CloseSideBar";
-import { Gesture } from "../listener/Gesture";
+import { Component } from 'preact';
+import { MainNavigationBar } from './components/navigationBar/main/IMCNavigationBar';
+import { MediaContainer } from './MediaContainer';
 
 interface MainAppState
 {
-    mainAppDisplay: boolean;
-    init: boolean;
-    searchKeyword: string;
+    CategoriesIndex: number;
+    needOutFromMultiPage: boolean;
+    needOutFromSettings: boolean;
 }
 
-export class MainApp extends Component<object, MainAppState>
+interface MainAppProps
 {
-    private ShowHideMainApp = async () =>
-    {
-        const { mainAppDisplay, init } = this.state;
-        if (!init) await this.setState({ init: true });
-        await this.setState({ mainAppDisplay: !mainAppDisplay });
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    ShowHideMainApp: () => Promise<void>;
+    searchKeyword: string;
+    changeSearchKeyword: (keyword: string | null) => void
+    mainAppDisplay: boolean;
 
-    private mainHolder: HTMLElement | null = null;
+}
 
-    gasture = new Gesture(this.ShowHideMainApp);
-
-    constructor(props: undefined)
-    {
-        super(props);
-    }
-
+export class MainApp extends Component<MainAppProps, MainAppState>
+{
     state = {
-        mainAppDisplay: false,
-        init: false,
-        searchKeyword: ''
+        CategoriesIndex: 0,
+        needOutFromMultiPage: false,
+        needOutFromSettings: false,
     }
 
+    itemsPerPage = 10;
 
-    render(): ComponentChild
+    componentDidUpdate(_prevProps: Readonly<MainAppProps>, prevState: Readonly<MainAppState>): void
     {
-        const { mainAppDisplay, init, searchKeyword } = this.state;
-        const { changeSearchKeyword } = this.controller;
-        const activeClass = mainAppDisplay ? 'ShowIIROSE_MEDIA_CONTAINER' : 'IIROSE_MEDIA_CONTAINER';
+        const { needOutFromMultiPage, CategoriesIndex } = this.state;
+        if (CategoriesIndex !== prevState.CategoriesIndex)
+        {
+            this.setState({ needOutFromMultiPage: true });
+        } else if (needOutFromMultiPage)
+        {
+            this.setState({ needOutFromMultiPage: false })
+        }
+
+    }
+
+    render()
+    {
+        const { CategoriesIndex, needOutFromMultiPage, needOutFromSettings } = this.state;
+        const { searchKeyword, mainAppDisplay, changeSearchKeyword } = this.props;
         return (
-            <div id="IIROSE_MEDIA_CONTAINER" class={`IIROSE_MEDIA_CONTAINER ${activeClass}`}>
-                {
-                    init ? <MainAppOutLayer
-                        ShowHideMainApp={this.ShowHideMainApp}
-                        searchKeyword={searchKeyword}
-                        changeSearchKeyword={changeSearchKeyword}
-                        mainAppDisplay={mainAppDisplay}
-                    /> : null
-                }
+            <div className='IIROSE_MEDIA' id='IIROSE_MEDIA'>
+                <MainNavigationBar
+                    switchPage={this.switchPage}
+                    ShowHideMainApp={this.props.ShowHideMainApp}
+                />
+                <MediaContainer
+                    CategoriesIndex={CategoriesIndex}
+                    needOutFromMultiPage={needOutFromMultiPage}
+                    needOutFromSettings={needOutFromSettings}
+                    ShowOrHideIMC={this.props.ShowHideMainApp}
+                    searchKeyword={searchKeyword}
+                    changeSearchKeyword={changeSearchKeyword}
+                    active={mainAppDisplay}
+                />
             </div>
         );
     }
 
-    componentDidMount(): void
+    /**
+     * 
+     * @param index 0: 视频 1: 音乐 2: 设置 3: 关于
+     */
+    protected switchPage = async (index: number) =>
     {
-        const { changeSearchKeyword } = this.controller;
-        const { ShowHideMainApp } = this;
-        this.mainHolder = document.getElementById('mainHolder');
-        Input_Behavior_Module.init(changeSearchKeyword, ShowHideMainApp);
-
-        window.addEventListener("keydown", this.hotkeyControlApp);
-        window.addEventListener("touchstart", this.gasture.handleTouchStart);
-        window.addEventListener("touchend", this.gasture.touchEnd);
-    }
-
-    componentWillUnmount(): void
-    {
-        window.removeEventListener("keydown", this.hotkeyControlApp);
-        window.removeEventListener("touchstart", this.gasture.handleTouchStart);
-        window.removeEventListener("touchend", this.gasture.touchEnd);
-    }
-
-    componentDidUpdate(_previousProps: Readonly<object>, previousState: Readonly<MainAppState>): void
-    {
-        const { mainAppDisplay } = this.state;
-
-        if (this.mainHolder)
+        await this.setState({ CategoriesIndex: index });
+        if (index !== 2 && index !== 3)
         {
-            if (mainAppDisplay && !previousState.mainAppDisplay)
-            {
-                this.mainHolder.classList.add('hidemainHolder');
-                document.body.addEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                document.body.addEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                closeSidebar()
-            } else if (!mainAppDisplay && previousState.mainAppDisplay)
-            {
-                this.mainHolder.classList.remove('hidemainHolder');
-                document.body.removeEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                document.body.removeEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                closeSidebar()
-            }
+            this.setState({ needOutFromSettings: true });
+        } else if (this.state.needOutFromSettings)
+        {
+            this.setState({ needOutFromSettings: false });
         }
-    }
 
-    controller = {
-        /**
-         * @description 更新搜索词
-         * @param keyword 
-         * @returns 
-         */
-        changeSearchKeyword: (keyword: string | null) =>
-        {
-            if (keyword !== null && keyword !== '')
-                this.setState({ searchKeyword: keyword });
-        }
-    }
-
-
-
-    private hotkeyControlApp = (event: KeyboardEvent) =>
-    {
-        if ((event.altKey && event.key === 's') || (event.altKey && event.key === 'S') || (event.altKey && event.key === 'ß'))
-        {
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            const focusedElement = document.activeElement as HTMLElement;
-            if (focusedElement && focusedElement.tagName === 'TEXTAREA')
-            {
-                focusedElement.blur();
-            }
-            this.ShowHideMainApp();
-        } else if (event.key === 'Escape')
-        {
-            this.setState({ mainAppDisplay: false });
-        }
     }
 }
+
+
+

@@ -10,7 +10,6 @@ interface MediaCardProps
 {
     mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null
     settingsData: SettingData[] | null;
-    collectable: boolean;
 }
 
 interface MediaCardState
@@ -97,7 +96,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
     render()
     {
         const { data, loading, error } = this.state;
-        const { collectable, settingsData } = this.props;
+        const { settingsData } = this.props;
         if (settingsData)
         {
             return (
@@ -144,7 +143,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
                 {data.platformData.map((item, index) => (
                     <div className='MediaCard' key={index}>
                         <MediaCardImg src={item.coverImg} platformData={item} />
-                        <MediaCardInfo platformData={item} collectable={collectable} />
+                        <MediaCardInfo platformData={item} />
                         <MediaCardButton
                             platformData={item}
                         />

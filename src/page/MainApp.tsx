@@ -1,5 +1,5 @@
 import { Component } from 'preact';
-import { MainNavigationBar } from './components/navigationBar/main/IMCNavigationBar';
+import { MainNavigationBar } from './components/navigationBar/main/MainNavigationBar';
 import { MediaContainer } from './MediaContainer';
 
 interface MainAppState
@@ -48,7 +48,7 @@ export class MainApp extends Component<MainAppProps, MainAppState>
         return (
             <div className='IIROSE_MEDIA' id='IIROSE_MEDIA'>
                 <MainNavigationBar
-                    switchPage={this.switchPage}
+                    switchCategories={this.switchCategories}
                     ShowHideMainApp={this.props.ShowHideMainApp}
                 />
                 <MediaContainer
@@ -68,7 +68,7 @@ export class MainApp extends Component<MainAppProps, MainAppState>
      * 
      * @param index 0: 视频 1: 音乐 2: 设置 3: 关于
      */
-    protected switchPage = async (index: number) =>
+    protected switchCategories = async (index: number) =>
     {
         await this.setState({ CategoriesIndex: index });
         if (index !== 2 && index !== 3)

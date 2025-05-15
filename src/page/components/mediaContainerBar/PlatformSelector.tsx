@@ -1,6 +1,6 @@
 import { Component } from 'preact';
 
-import { Platform } from "../../page/MediaContainer";
+import { Platform } from "../../MediaContainer";
 interface PlatformSelectorProps
 {
     platform: Platform[];
@@ -60,9 +60,6 @@ export class PlatformSelector extends Component<PlatformSelectorProps, PlatformS
                                     </img>
                                     <div className="PlatformTitle">{item.title}</div>
                                 </div>
-                                {
-                                    item.collectable ? <div className="goFavoriteIcon"></div> : null
-                                }
                             </div>
                         );
                     })

@@ -1,7 +1,7 @@
 import { Component } from 'preact';
-import { MediaSearchBar } from './components/bar/MediaSearchBar';
-import { PlatformSelector } from '../iirose-media-component/media-container/PlatformSelector';
-import { MediaContainerSubNavBar } from '../iirose-media-component/media-container/MediaContainerSubNavBar';
+import { MediaSearchBar } from './components/mediaContainerBar/MediaSearchBar';
+import { PlatformSelector } from './components/mediaContainerBar/PlatformSelector';
+import { MediaContainerSubNavBar } from './components/mediaContainerBar/MediaContainerSubNavBar';
 import { MediaCard } from '../iirose-media-component/media-container/media-card-container/MediaCard';
 import { PlatformData } from '../platforms/interfaces';
 import { MediaContainerContext, Provider } from '../iirose-media-component/media-container/media-container-context/MediaContainerContext';

@@ -1,6 +1,6 @@
 import { Component } from 'preact';
 import { MainNavigationBar } from './components/navigationBar/main/MainNavigationBar';
-import { MediaContainer } from './MediaContainer';
+import { MainAppContainer } from './MainAppContainer';
 
 interface MainAppState
 {
@@ -51,7 +51,7 @@ export class MainApp extends Component<MainAppProps, MainAppState>
                     switchCategories={this.switchCategories}
                     ShowHideMainApp={this.props.ShowHideMainApp}
                 />
-                <MediaContainer
+                <MainAppContainer
                     CategoriesIndex={CategoriesIndex}
                     needOutFromMultiPage={needOutFromMultiPage}
                     needOutFromSettings={needOutFromSettings}

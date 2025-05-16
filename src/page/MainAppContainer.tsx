@@ -13,7 +13,7 @@ import { NetEaseSettings } from '../settings/neteaseSettings/NetEaseSettings';
 import { About } from '../platforms/About';
 import { PluginSettings } from '../settings/pluginSettings/PluginSettings';
 
-interface MediaContainerProps
+interface MainAppContainerProps
 {
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
@@ -24,7 +24,7 @@ interface MediaContainerProps
     ShowOrHideIMC: () => Promise<void>;
 }
 
-export interface MediaContainerState
+interface MainAppContainerState
 {
     PlatformIndex: number;
     searchKeyword: string;
@@ -43,41 +43,14 @@ export interface MediaContainerState
     currentOnDemandPlay: (platformData: PlatformData) => void;
 }
 
-export interface OldItems
-{
-    mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null;
-    allMediaData: PlatformData[];
-    SubNavBarAction: () => void;
-    OnDemandPlay: (platformData: PlatformData) => void;
-    totalPage: number;
-    currentPage: number;
-}
-
-export interface Platform
-{
-    title: string;
-    iconsrc: string;
-    color: string;
-    subNavBarItems: {
-        title: string;
-        class?: string;
-        searchAction: () => void;
-    }[];
-}
-
-export interface Categories
-{
-    platform: Platform[];
-}
-
-export class MediaContainer extends Component<MediaContainerProps, MediaContainerState>
+export class MainAppContainer extends Component<MainAppContainerProps, MainAppContainerState>
 {
     static contextType = MediaContainerContext;
     private itemsPerPage = 10
     mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
     private intervalId: NodeJS.Timeout | null = null;
 
-    constructor(props: MediaContainerProps)
+    constructor(props: MainAppContainerProps)
     {
         super(props);
     }
@@ -112,7 +85,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         }
     };
 
-    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>): void
+    componentDidUpdate(prevProps: Readonly<MainAppContainerProps>, prevState: Readonly<MainAppContainerState>): void
     {
         const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;

@@ -437,7 +437,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
         /**
          * @description 哔哩哔哩首页推荐
          */
-        BilibiliRecommend: () =>
+        snbclick_bilibiliRecommand: () =>
         {
             const bilibiliPlatform = new BilibiliPlatform();
             const data = bilibiliPlatform.getRecommendVideosBasicsData(
@@ -457,7 +457,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
          * @description 哔哩哔哩搜索视频
          * @returns 
          */
-        BiliBiliSearchVideoByKeyword: () =>
+        snbclick_bilibiliSearchVideoByKeyword: () =>
         {
             const {
                 searchKeyword,
@@ -514,7 +514,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
          * @description 哔哩哔哩搜索直播
          * @returns 
          */
-        BiliBiliSearchLiveByKeyword: () =>
+        snbclick_bilibiliSearchLiveByKeyword: () =>
         {
             const { searchKeyword, currentPage } = this.state;
 
@@ -1038,7 +1038,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '首页推荐',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BilibiliRecommend()
+                                this.bilibiliAction.snbclick_bilibiliRecommand()
                             }
                         },
                         {
@@ -1046,7 +1046,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BiliBiliSearchVideoByKeyword();
+                                this.bilibiliAction.snbclick_bilibiliSearchVideoByKeyword();
                             }
                         },
                         {
@@ -1054,7 +1054,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BiliBiliSearchLiveByKeyword();
+                                this.bilibiliAction.snbclick_bilibiliSearchLiveByKeyword();
                             }
                         }
                     ]

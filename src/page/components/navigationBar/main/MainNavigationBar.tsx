@@ -2,7 +2,7 @@ import { Component } from 'preact';
 
 interface MainNavigationBarProps
 {
-    switchPage: (index: number) => void;
+    switchCategories: (index: number) => void;
     ShowHideMainApp: () => void;
 }
 
@@ -29,7 +29,7 @@ export class MainNavigationBar extends Component<MainNavigationBarProps, MainNav
 
     handleSwitchPage = (index: number) =>
     {
-        this.props.switchPage(index);
+        this.props.switchCategories(index);
         this.setState({ activeButtonIndex: index }); // 更新活动按钮索引
     }
 

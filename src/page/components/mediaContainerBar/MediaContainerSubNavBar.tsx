@@ -1,5 +1,4 @@
 import { Component } from 'preact';
-import { Platform, Categories } from "./MediaContainer";
 interface MediaContainerSubNavBarProps
 {
     platform: Platform;

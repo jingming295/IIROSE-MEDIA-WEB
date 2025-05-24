@@ -1,4 +1,4 @@
-export interface SettingData
+interface SettingData
 {
     title: string;
     actionTitle: string;

@@ -1,0 +1,10 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/theme.css" layer(theme);
+@config "../tailwind.config.js";
+
+@layer utilities {
+    .font-md{
+        font-family: 'md' !important;    
+    }
+}

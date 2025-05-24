@@ -1,20 +1,19 @@
 import { Component } from 'preact';
-import { MediaSearchBar } from './MediaSearchBar';
-import { PlatformSelector } from './PlatformSelector';
-import { MediaContainerSubNavBar } from './MediaContainerSubNavBar';
-import { MediaCard } from './media-card-container/MediaCard';
-import { PlatformData } from '../../platforms/interfaces';
-import { SettingData } from '../../settings/interfaces';
-import { MediaContainerContext, Provider } from './media-container-context/MediaContainerContext';
-import { BilibiliPlatform } from '../../platforms/BilibiliPlatform';
-import { NetEasePlatform } from '../../platforms/NetEasePlatform';
-import { GetBiliBiliAccount } from '../../Account/BiliBili/GetBiliBili';
-import { BiliBiliSettings } from '../../settings/bilibiliSettings/BiliBiliSettings';
-import { NetEaseSettings } from '../../settings/neteaseSettings/NetEaseSettings';
-import { About } from '../../platforms/About';
-import { PluginSettings } from '../../settings/pluginSettings/PluginSettings';
+import { MediaSearchBar } from './components/mediaContainerBar/MediaSearchBar';
+import { PlatformSelector } from './components/mediaContainerBar/PlatformSelector';
+import { MediaContainerSubNavBar } from './components/mediaContainerBar/MediaContainerSubNavBar';
+import { MediaCard } from '../iirose-media-component/media-container/media-card-container/MediaCard';
+import { PlatformData } from '../platforms/interfaces';
+import { MediaContainerContext, Provider } from '../iirose-media-component/media-container/media-container-context/MediaContainerContext';
+import { BilibiliPlatform } from '../platforms/BilibiliPlatform';
+import { NetEasePlatform } from '../platforms/NetEasePlatform';
+import { GetBiliBiliAccount } from '../Account/BiliBili/GetBiliBili';
+import { BiliBiliSettings } from '../settings/bilibiliSettings/BiliBiliSettings';
+import { NetEaseSettings } from '../settings/neteaseSettings/NetEaseSettings';
+import { About } from '../platforms/About';
+import { PluginSettings } from '../settings/pluginSettings/PluginSettings';
 
-interface MediaContainerProps
+interface MainAppContainerProps
 {
     CategoriesIndex: number;
     needOutFromMultiPage: boolean;
@@ -25,7 +24,7 @@ interface MediaContainerProps
     ShowOrHideIMC: () => Promise<void>;
 }
 
-export interface MediaContainerState
+interface MainAppContainerState
 {
     PlatformIndex: number;
     searchKeyword: string;
@@ -44,42 +43,14 @@ export interface MediaContainerState
     currentOnDemandPlay: (platformData: PlatformData) => void;
 }
 
-export interface OldItems
-{
-    mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null;
-    allMediaData: PlatformData[];
-    SubNavBarAction: () => void;
-    OnDemandPlay: (platformData: PlatformData) => void;
-    totalPage: number;
-    currentPage: number;
-}
-
-export interface Platform
-{
-    title: string;
-    iconsrc: string;
-    color: string;
-    collectable: boolean;
-    subNavBarItems: {
-        title: string;
-        class?: string;
-        searchAction: () => void;
-    }[];
-}
-
-export interface Categories
-{
-    platform: Platform[];
-}
-
-export class MediaContainer extends Component<MediaContainerProps, MediaContainerState>
+export class MainAppContainer extends Component<MainAppContainerProps, MainAppContainerState>
 {
     static contextType = MediaContainerContext;
     private itemsPerPage = 10
     mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
     private intervalId: NodeJS.Timeout | null = null;
 
-    constructor(props: MediaContainerProps)
+    constructor(props: MainAppContainerProps)
     {
         super(props);
     }
@@ -114,7 +85,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         }
     };
 
-    componentDidUpdate(prevProps: Readonly<MediaContainerProps>, prevState: Readonly<MediaContainerState>): void
+    componentDidUpdate(prevProps: Readonly<MainAppContainerProps>, prevState: Readonly<MainAppContainerState>): void
     {
         const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
@@ -252,7 +223,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                                     }
                                 />
                             }
-
                             <PlatformSelector
                                 platform={categories.platform}
                                 isCurrentInMultiPage={isCurrentInMultiPage}
@@ -276,7 +246,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
 
                         <MediaCard
                             mediaData={mediaData}
-                            collectable={categoriesPlatform.collectable}
                             settingsData={settingsData}
                         />
                     </div>
@@ -468,7 +437,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
         /**
          * @description 哔哩哔哩首页推荐
          */
-        BilibiliRecommend: () =>
+        snbclick_bilibiliRecommand: () =>
         {
             const bilibiliPlatform = new BilibiliPlatform();
             const data = bilibiliPlatform.getRecommendVideosBasicsData(
@@ -488,7 +457,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          * @description 哔哩哔哩搜索视频
          * @returns 
          */
-        BiliBiliSearchVideoByKeyword: () =>
+        snbclick_bilibiliSearchVideoByKeyword: () =>
         {
             const {
                 searchKeyword,
@@ -545,7 +514,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
          * @description 哔哩哔哩搜索直播
          * @returns 
          */
-        BiliBiliSearchLiveByKeyword: () =>
+        snbclick_bilibiliSearchLiveByKeyword: () =>
         {
             const { searchKeyword, currentPage } = this.state;
 
@@ -1064,13 +1033,12 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '哔哩哔哩视频',
                     iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/video/bilibili/ic_launcher.png',
                     color: 'rgb(209, 79, 118)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '首页推荐',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BilibiliRecommend()
+                                this.bilibiliAction.snbclick_bilibiliRecommand()
                             }
                         },
                         {
@@ -1078,7 +1046,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BiliBiliSearchVideoByKeyword();
+                                this.bilibiliAction.snbclick_bilibiliSearchVideoByKeyword();
                             }
                         },
                         {
@@ -1086,7 +1054,7 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.BiliBiliSearchLiveByKeyword();
+                                this.bilibiliAction.snbclick_bilibiliSearchLiveByKeyword();
                             }
                         }
                     ]
@@ -1099,7 +1067,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '网易云音乐',
                     iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
                     color: 'rgb(221, 28, 4)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '推荐歌单',
@@ -1148,7 +1115,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '哔哩哔哩视频',
                     iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/video/bilibili/ic_launcher.png',
                     color: 'rgb(209, 79, 118)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '账号',
@@ -1169,7 +1135,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '网易云音乐',
                     iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
                     color: 'rgb(221, 28, 4)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '音乐设置',
@@ -1183,7 +1148,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '插件设置',
                     iconsrc: 'data:image/png;base64,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',
                     color: 'rgb(150,171,188)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '聊天框',
@@ -1201,7 +1165,6 @@ export class MediaContainer extends Component<MediaContainerProps, MediaContaine
                     title: '关于这个插件',
                     iconsrc: 'data:image/png;base64,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',
                     color: 'rgb(100, 149, 237)',
-                    collectable: false,
                     subNavBarItems: [
                         {
                             title: '关于',

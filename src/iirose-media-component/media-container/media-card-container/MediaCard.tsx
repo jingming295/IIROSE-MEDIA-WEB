@@ -4,14 +4,12 @@ import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
 import { MediaCardMessage } from "./MediaCardMessage";
 import { PlatformData } from "../../../platforms/interfaces";
-import { SettingData } from "../../../settings/interfaces";
-import { SettingsCard } from "./SettingsCard";
+import { SettingCard } from "../../../page/components/SettingCard";
 
 interface MediaCardProps
 {
     mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null
     settingsData: SettingData[] | null;
-    collectable: boolean;
 }
 
 interface MediaCardState
@@ -98,20 +96,14 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
     render()
     {
         const { data, loading, error } = this.state;
-        const { collectable, settingsData } = this.props;
+        const { settingsData } = this.props;
         if (settingsData)
         {
             return (
                 <div className='MediaCardContainer'>
                     {
-                        settingsData.map((item, index) => (
-                            <div className='SettingsCard' key={index}>
-                                <div className="titleWrapper">
-                                    <div className={`titleIcon ${item.icon}`}></div>
-                                    <div className='title'>{item.title}</div>
-                                </div>
-                                < SettingsCard settingsData={item} />
-                            </div>
+                        settingsData.map((item) => (
+                            < SettingCard settingsData={item} />
                         ))
                     }
                 </div>
@@ -151,7 +143,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState>
                 {data.platformData.map((item, index) => (
                     <div className='MediaCard' key={index}>
                         <MediaCardImg src={item.coverImg} platformData={item} />
-                        <MediaCardInfo platformData={item} collectable={collectable} />
+                        <MediaCardInfo platformData={item} />
                         <MediaCardButton
                             platformData={item}
                         />

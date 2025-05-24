@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { MainApp } from "./MainApp";
+import { MainAppControlLayer } from "./MainAppControlLayer";
 
 export class IMCInit
 {
@@ -8,6 +8,6 @@ export class IMCInit
     {
         const container = document.createElement('div');
         mc.appendChild(container);
-        render(<MainApp />, container);
+        render(<MainAppControlLayer />, container);
     }
 }

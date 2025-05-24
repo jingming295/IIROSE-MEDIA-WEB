@@ -1,11 +1,11 @@
 import { Component } from 'preact';
-import { IIROSEUtils } from '../../iirose_func/IIROSEUtils';
+import { IIROSEUtils } from '../../../iirose_func/IIROSEUtils';
 
 interface MediaSearchBarProps
 {
-    searchKeyword: string | null;
-    currentPage: number;
-    totalPage: number;
+    searchKeyword: string | null; // 用于显示在搜索栏的keyword
+    currentPage: number; // 当前页面
+    totalPage: number; // 总页面
     isCurrentInMultiPage: boolean;
     mediaSearchBarActions: MediaSearchBarActions;
 }
@@ -44,15 +44,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps>
         }
     }
 
-    public async outFromMultiPage()
-    {
-        const { switchToOutFromMultiPage } = this.props.mediaSearchBarActions;
-        await switchToOutFromMultiPage();
-    }
-
     render()
     {
-        const { searchKeyword, currentPage, totalPage, isCurrentInMultiPage } = this.props;
+        const { searchKeyword, currentPage, totalPage, isCurrentInMultiPage, mediaSearchBarActions } = this.props;
         let pages = '-/-';
 
         if (totalPage)
@@ -88,10 +82,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps>
 
                         {
                             isCurrentInMultiPage &&
-                            <div className='returnButtonWrapper PaginationControllerButtonWrapper' onClick={() =>
-                            {
-                                this.outFromMultiPage();
-                            }}>
+                            <div className='returnButtonWrapper PaginationControllerButtonWrapper' onClick={() => mediaSearchBarActions.switchToOutFromMultiPage}>
                                 <div className='returnIcon'></div>
                                 <div className='PaginationControllerButton'>返回</div>
                             </div>

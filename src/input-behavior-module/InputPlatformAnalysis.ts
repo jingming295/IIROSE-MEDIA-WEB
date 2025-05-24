@@ -14,14 +14,16 @@ export class InputPlatformAnalysis
         const domain = url.hostname;
         const path = url.pathname;
         const hash = url.hash;
-
+        const search = url.search;
+        console.log(url)
         if (domain === 'www.bilibili.com')
         {
             this.BiliBiliAnalysis(path);
             return
         } else if (domain === 'music.163.com')
         {
-            this.NeteaseMusicAnalysis(hash);
+            if (hash) this.NeteaseMusicHashAnalysis(hash);
+            else if (search) this.NeteaseMusicSearchAnalysis(search, path);
             return
         } else
         {
@@ -55,7 +57,7 @@ export class InputPlatformAnalysis
         }
     }
 
-    private static async NeteaseMusicAnalysis(hash: string)
+    private static async NeteaseMusicHashAnalysis(hash: string)
     {
         const queryString = hash.split('?')[1];  // 获取 "id=536623501" 部分
         if (!queryString) return;
@@ -88,6 +90,48 @@ export class InputPlatformAnalysis
             const data = platformData[0];
             neteasePlatform.AOD(data);
         } else if (hash.includes('mv'))
+        {
+            const neteasePlatform = new NetEasePlatform()
+            const ids = [parseInt(id)];
+            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'mv');
+            if (!platformData) return;
+            const data = platformData[0];
+            neteasePlatform.MVOD(data);
+        }
+    }
+
+    private static async NeteaseMusicSearchAnalysis(search: string, pathname: string)
+    {
+        const queryString = search.split('?')[1];  // 获取 "id=536623501" 部分
+        if (!queryString) return;
+        const searchParams = new URLSearchParams(queryString);
+        const id = searchParams.get('id');
+        if (!id) return;
+        if (pathname.includes('song'))
+        {
+            const neteasePlatform = new NetEasePlatform()
+            const ids = [parseInt(id)];
+            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'song');
+            if (!platformData) return;
+            const data = platformData[0];
+            neteasePlatform.MOD(data);
+        } else if (pathname.includes('playlist'))
+        {
+            const neteasePlatform = new NetEasePlatform()
+            const ids = [parseInt(id)];
+            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'playlist');
+            if (!platformData) return;
+            const data = platformData[0];
+            neteasePlatform.MLOD(data);
+        } else if (pathname.includes('album'))
+        {
+            const neteasePlatform = new NetEasePlatform()
+            const ids = [parseInt(id)];
+            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'album');
+            if (!platformData) return;
+            const data = platformData[0];
+            neteasePlatform.AOD(data);
+        } else if (pathname.includes('mv'))
         {
             const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];

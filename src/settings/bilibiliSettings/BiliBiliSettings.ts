@@ -215,7 +215,6 @@ export class BiliBiliSettings
 
     public setBilibiliStreamSeconds(changeActionTitleAction?: (actionTitle?: string) => void)
     {
-
         function set(userInput: string | null)
         {
             if (!userInput) return;

@@ -73,12 +73,11 @@ export class NeteaseSearchAPI extends SendFetch
 
     }
 
-    public async getNeteaseRecommandPlayListFromBinaryify(limit: number = 30, api: 'xc' | 'theresa', warn = true)
+    public async getNeteaseRecommandPlayListFromBinaryify(limit: number = 30, warn = true)
     {
-        const theresaAPI = window.netease?.theresaAPI;
+
         const xcAPI = window.netease?.xcAPI;
-        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
-        const url = `${realAPI}/personalized`
+        const url = `${xcAPI}/personalized`
         const params = new URLSearchParams();
         params.append('limit', limit.toString());
         const response = await this.sendGet(url, params, undefined, warn);
@@ -92,14 +91,12 @@ export class NeteaseSearchAPI extends SendFetch
         }
     }
 
-    public async getNeteaseSearchDataFromBinaryify(keyWord: string, type: number, offset: number, api: 'xc' | 'theresa', limit: number = 100)
+    public async getNeteaseSearchDataFromBinaryify(keyWord: string, type: number, offset: number, limit: number = 100)
     {
-        const theresaAPI = window.netease?.theresaAPI;
+
         const xcAPI = window.netease?.xcAPI;
 
-        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
-
-        const url = new URL(`${realAPI}cloudsearch`);
+        const url = new URL(`${xcAPI}cloudsearch`);
         const params = new URLSearchParams({
             keywords: keyWord,
             type: type.toString(),
@@ -117,26 +114,5 @@ export class NeteaseSearchAPI extends SendFetch
         {
             return null;
         }
-    }
-
-    private getRealAPI(api: 'xc' | 'theresa', xcAPI?: string, theresaAPI?: string)
-    {
-        let realAPI = null;
-
-        if (api === 'xc' && xcAPI)
-        {
-            realAPI = xcAPI;
-        } else if (api === 'theresa' && theresaAPI)
-        {
-            realAPI = theresaAPI;
-        } else if (theresaAPI)
-        {
-            realAPI = theresaAPI;
-        } else if (xcAPI)
-        {
-            realAPI = xcAPI;
-        }
-
-        return realAPI;
     }
 }

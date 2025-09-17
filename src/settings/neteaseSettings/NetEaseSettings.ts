@@ -3,7 +3,7 @@ import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 export interface NeteaseSetting
 {
     quality: 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster';
-    api: 'default' | 'xc' | 'theresa';
+    api: 'default' | 'xc';
     lyricOption: 'off' | 'original' | 'translated' | 'both';
 }
 export class NetEaseSettings
@@ -70,7 +70,7 @@ export class NetEaseSettings
             if (neteaseSettings)
             {
                 const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
-                neteaseSetting.api = s as 'default' | 'xc' | 'theresa';
+                neteaseSetting.api = s as 'default' | 'xc';
                 localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));
             }
 

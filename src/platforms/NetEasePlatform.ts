@@ -72,16 +72,15 @@ export class NetEasePlatform
         const allPlatformData: PlatformData[] = [];
         const limit = 100;
         const xcAPI = window?.netease?.xcAPI;
-        const theresaAPI = window?.netease?.theresaAPI;
         const neteaseAPI = this.neteaseSetting.api;
         let totalPage = Math.ceil(limit / this.pageSize);
 
         try
         {
             let res: RecommendSongList | null = null
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                res = await this.neteaseSearch.getNeteaseRecommandPlayListFromBinaryify(limit, neteaseAPI, false);
+                res = await this.neteaseSearch.getNeteaseRecommandPlayListFromBinaryify(limit, false);
             } else
             {
                 res = await this.neteaseSearch.getNeteaseRecommandPlayList(limit)
@@ -143,7 +142,6 @@ export class NetEasePlatform
         let mediaCardData: PlatformData[] = [];
         const neteaseAPI = this.neteaseSetting.api
         const xcAPI = window.netease?.xcAPI
-        const theresaAPI = window.netease?.theresaAPI
         const offset = (page - 1) * 100;
         let searchType = 1;
 
@@ -169,9 +167,9 @@ export class NetEasePlatform
                 let songListDetail: SongList | null = null;
 
 
-                if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+                if (xcAPI && neteaseAPI !== 'default')
                 {
-                    songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id, neteaseAPI);
+                    songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
                 } else
                 {
                     songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
@@ -195,9 +193,9 @@ export class NetEasePlatform
             } else if (type === 'album')
             {
                 let albumDetail: AlbumData | null = null;
-                if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+                if (xcAPI && neteaseAPI !== 'default')
                 {
-                    albumDetail = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id, neteaseAPI);
+                    albumDetail = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
                 } else
                 {
                     albumDetail = await this.neteaseMusicApi.getAlbumDetail(id);
@@ -222,7 +220,7 @@ export class NetEasePlatform
             {
 
                 let mvDetail: MVDetail | null = null;
-                mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(id, 'xc');
+                mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(id);
 
                 if (!mvDetail || !mvDetail.data) return null;
 
@@ -242,9 +240,9 @@ export class NetEasePlatform
             }
         }
 
-        if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+        if (xcAPI && neteaseAPI !== 'default')
         {
-            searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, searchType, offset, neteaseAPI);
+            searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, searchType, offset);
         } else
         {
             searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, searchType, offset);
@@ -355,16 +353,15 @@ export class NetEasePlatform
     {
 
         const xcAPI = window.netease?.xcAPI
-        const theresaAPI = window.netease?.theresaAPI
         const neteaseAPI = this.neteaseSetting.api
         const PlatformData: PlatformData[] = []
 
         if (type === 'song')
         {
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(ids, neteaseAPI)
+                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(ids)
 
                 if (!songDetail) return null;
 
@@ -415,9 +412,9 @@ export class NetEasePlatform
         } else if (type === 'playlist')
         {
             let songListDetail: SongList | null = null;
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(ids[0], neteaseAPI);
+                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(ids[0]);
             } else
             {
                 songListDetail = await this.neteaseMusicApi.getSongListDetail(ids[0]);
@@ -442,9 +439,9 @@ export class NetEasePlatform
         } else if (type === 'album')
         {
             let albumDetails: AlbumData | null = null;
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(ids[0], neteaseAPI);
+                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(ids[0]);
             } else
             {
                 albumDetails = await this.neteaseMusicApi.getAlbumDetail(ids[0]);
@@ -468,7 +465,7 @@ export class NetEasePlatform
         } else if (type === 'mv')
         {
             let mvDetail: MVDetail | null = null;
-            mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(ids[0], 'xc');
+            mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(ids[0]);
 
             if (!mvDetail || !mvDetail.data) throw new Error('获取MV详情失败');
 
@@ -713,14 +710,14 @@ export class NetEasePlatform
             const offset = (page - 1) * 100;
 
             const xcAPI = window.netease?.xcAPI
-            const theresaAPI = window.netease?.theresaAPI
+
             const neteaseAPI = this.neteaseSetting.api
 
             let searchData: SearchData | null = null
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1009, offset, neteaseAPI);
+                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1009, offset);
             } else
             {
                 searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
@@ -801,7 +798,7 @@ export class NetEasePlatform
         try
         {
             const xcAPI = window.netease?.xcAPI;
-            const theresaAPI = window.netease?.theresaAPI;
+
 
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
 
@@ -811,9 +808,9 @@ export class NetEasePlatform
 
             const neteaseAPI = this.neteaseSetting.api;
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id, neteaseAPI);
+                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
             } else
             {
                 songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
@@ -822,7 +819,7 @@ export class NetEasePlatform
             if (!songListDetail) throw new Error('获取歌单详情失败');
             const ids = songListDetail.playlist.trackIds.map((item) => item.id)
 
-            return this.processSongPlatformData(ids, neteaseAPI, xcAPI, theresaAPI);
+            return this.processSongPlatformData(ids, neteaseAPI, xcAPI);
 
         } catch (error)
         {
@@ -837,7 +834,7 @@ export class NetEasePlatform
         try
         {
             const xcAPI = window.netease?.xcAPI;
-            const theresaAPI = window.netease?.theresaAPI;
+
 
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
 
@@ -848,9 +845,9 @@ export class NetEasePlatform
 
             const neteaseAPI = this.neteaseSetting.api;
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id, neteaseAPI);
+                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
             } else
             {
                 albumDetails = await this.neteaseMusicApi.getAlbumDetail(id);
@@ -860,7 +857,7 @@ export class NetEasePlatform
 
             const ids = albumDetails.songs.map((item) => item.id);
 
-            return this.processSongPlatformData(ids, neteaseAPI, xcAPI, theresaAPI);
+            return this.processSongPlatformData(ids, neteaseAPI, xcAPI);
 
         } catch (error)
         {
@@ -870,7 +867,7 @@ export class NetEasePlatform
         }
     }
 
-    async processSongPlatformData(trackID: number[], neteaseAPI: 'xc' | 'theresa' | 'default', xcAPI?: string, theresaAPI?: string)
+    async processSongPlatformData(trackID: number[], neteaseAPI: 'xc' | 'default', xcAPI?: string)
     {
         const platformData: PlatformData[] = [];
 
@@ -882,9 +879,9 @@ export class NetEasePlatform
 
         let count = 0;
 
-        if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+        if (xcAPI && neteaseAPI !== 'default')
         {
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(trackID, neteaseAPI);
+            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(trackID);
             if (!songDetail) throw new Error('获取歌曲详情失败');
 
             for (const item of songDetail)
@@ -1033,14 +1030,11 @@ export class NetEasePlatform
             const id = platformData.neteaseMusic.id;
             const neteaseAPI = this.neteaseSetting.api
             const xcAPI = window.netease?.xcAPI
-            const theresaAPI = window.netease?.theresaAPI
-
-
             let songListDetail: SongList | null = null;
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id, neteaseAPI);
+                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
             } else
             {
                 songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
@@ -1082,14 +1076,11 @@ export class NetEasePlatform
             const id = platformData.neteaseMusic.id;
             const neteaseAPI = this.neteaseSetting.api
             const xcAPI = window.netease?.xcAPI
-            const theresaAPI = window.netease?.theresaAPI
-
-
             let albumDetails: AlbumData | null = null;
 
-            if ((xcAPI || theresaAPI) && neteaseAPI !== 'default')
+            if (xcAPI && neteaseAPI !== 'default')
             {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id, neteaseAPI);
+                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
             } else
             {
                 albumDetails = await this.neteaseMusicApi.getAlbumDetail(id)
@@ -1191,13 +1182,13 @@ export class NetEasePlatform
     private async finalODSONG(songsID: number[])
     {
         const xcAPI = window.netease?.xcAPI;
-        const theresaAPI = window.netease?.theresaAPI;
+
         const neteaseAPI = this.neteaseSetting.api;
         const media = new Media();
         const socket = new Socket();
         if ((xcAPI) && neteaseAPI !== 'default')
         {
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID, neteaseAPI);
+            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID);
             if (!songDetail) throw new Error('获取歌曲详情失败');
             let count = 0;
             for (const item of songDetail)
@@ -1241,9 +1232,9 @@ export class NetEasePlatform
         {
             let songDetailSongs: SongDetailSong[] | null = null;
             let songDetailFromBinaryify: SongsFromBinaryify[] | null = null;
-            if (theresaAPI && neteaseAPI !== 'default')
+            if (neteaseAPI !== 'default')
             {
-                songDetailFromBinaryify = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID, neteaseAPI);
+                songDetailFromBinaryify = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID);
             } else
             {
                 songDetailSongs = await this.neteaseMusicApi.getNeteaseSongDetail(songsID);

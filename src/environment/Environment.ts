@@ -13,7 +13,6 @@ declare global
         }
         netease?: {
             xcAPI?: string;
-            theresaAPI?: string;
         }
     }
 }
@@ -106,40 +105,11 @@ export class Environment
         {
             const sendFetch = new SendFetch
             const xc = sendFetch.tryGetWhithXhr("https://xc.null.red:8043/meting-api/")
-            let theresa: Promise<boolean>
-            if (window.ClientLocation)
-            {
-                if (window.ClientLocation === 'CN')
-                {
-                    theresa = sendFetch.tryGetWhithXhr("https://ifs.imoe.xyz/163music/song/detail?ids=347230")
-                } else
-                {
-                    theresa = sendFetch.tryGetWhithXhr("https://global-ifs.imoe.xyz/163music/song/detail?ids=347230")
-                }
-            } else
-            {
-                theresa = sendFetch.tryGetWhithXhr("https://ifs.imoe.xyz/163music/song/detail?ids=347230")
-            }
             xc.then((res) =>
             {
                 if (!res) return
                 if (window.netease)
                     window.netease.xcAPI = "https://xc.null.red:8043/api/netease/";
-            })
-
-            theresa.then((res) =>
-            {
-                if (!res) return
-                if (window.netease)
-                    if (window.ClientLocation === 'Global')
-                    {
-                        window.netease.theresaAPI = "https://global-ifs.imoe.xyz/163music/";
-                        return
-                    } else
-                    {
-                        window.netease.theresaAPI = "https://ifs.imoe.xyz/163music/";
-                    }
-
             })
         } catch (error)
         {

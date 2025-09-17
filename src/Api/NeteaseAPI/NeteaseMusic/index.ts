@@ -56,15 +56,12 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getNeteaseAlbumDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
+    public async getNeteaseAlbumDetailFromBinaryify(id: number)
     {
         try
         {
-            const theresaAPI = window.netease?.theresaAPI;
             const xcAPI = window.netease?.xcAPI;
-
-            const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
-            const url = `${realAPI}album`;
+            const url = `${xcAPI}album`;
             const params = new URLSearchParams({
                 id: id.toString(),
             });
@@ -188,7 +185,7 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongDetailFromBinaryify(ids: number[], api: 'xc' | 'theresa')
+    public async getNeteaseSongDetailFromBinaryify(ids: number[])
     {
 
         const CHUNK_SIZE = 500;
@@ -196,17 +193,14 @@ export class NeteaseMusicAPI extends SendFetch
 
         // 将 ids 数组拆分为多个子数组
         const chunks = this.chunkArray(ids, CHUNK_SIZE);
-        const theresaAPI = window.netease?.theresaAPI;
         const xcAPI = window.netease?.xcAPI;
-
-        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
 
         try
         {
             // 逐个请求每个子数组
             for (const chunk of chunks)
             {
-                const url = new URL(`${realAPI}song/detail`);
+                const url = new URL(`${xcAPI}song/detail`);
                 const params = new URLSearchParams({
                     ids: chunk.toString()
                 });
@@ -245,13 +239,11 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id 
      * @returns 
      */
-    public async getNeteaseSongListDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
+    public async getNeteaseSongListDetailFromBinaryify(id: number)
     {
-        const theresaAPI = window.netease?.theresaAPI;
         const xcAPI = window.netease?.xcAPI;
 
-        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
-        const url = `${realAPI}playlist/detail`;
+        const url = `${xcAPI}playlist/detail`;
         const params = new URLSearchParams({
             id: id.toString(),
         });
@@ -268,14 +260,10 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getNeteaseMVDetailFromBinaryify(id: number, api: 'xc' | 'theresa')
+    public async getNeteaseMVDetailFromBinaryify(id: number)
     {
-
-        const theresaAPI = window.netease?.theresaAPI;
         const xcAPI = window.netease?.xcAPI;
-
-        const realAPI = this.getRealAPI(api, xcAPI, theresaAPI);
-        const url = `${realAPI}mv/detail`;
+        const url = `${xcAPI}mv/detail`;
         const params = new URLSearchParams({
             mvid: id.toString(),
         });
@@ -401,26 +389,4 @@ export class NeteaseMusicAPI extends SendFetch
         }
 
     }
-
-    private getRealAPI(api: 'xc' | 'theresa', xcAPI?: string, theresaAPI?: string)
-    {
-        let realAPI = null;
-
-        if (api === 'xc' && xcAPI)
-        {
-            realAPI = xcAPI;
-        } else if (api === 'theresa' && theresaAPI)
-        {
-            realAPI = theresaAPI;
-        } else if (theresaAPI)
-        {
-            realAPI = theresaAPI;
-        } else if (xcAPI)
-        {
-            realAPI = xcAPI;
-        }
-
-        return realAPI;
-    }
-
 }

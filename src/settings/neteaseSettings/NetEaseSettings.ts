@@ -91,7 +91,6 @@ export class NetEaseSettings
         const selectOption = [
             ['default', '网易云默认API（最快）'],
             ['xc', '小草的API（稳定）'],
-            ['theresa', '苏苏的API（最稳定）'],
         ];
 
         selectOption.forEach((item, index) =>
@@ -187,7 +186,6 @@ export class NetEaseSettings
         const selectOption = [
             ['default', '网易云默认API（最快）'],
             ['xc', '小草的API（稳定）'],
-            ['theresa', '苏苏的API（最稳定）']
         ];
 
         const optionInText = selectOption.find((option) => option[0] === api);

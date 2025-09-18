@@ -87,11 +87,23 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
     componentDidUpdate(prevProps: Readonly<MainAppContainerProps>, prevState: Readonly<MainAppContainerState>): void
     {
+
         const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
         const propsSearchKeyword = this.props.searchKeyword;
 
         const prevPropsSearchKeyword = prevProps.searchKeyword;
+
+        if (prevState.SubNavBarIndex !== this.state.SubNavBarIndex)
+        {
+            this.setState({ updating: false });
+        }
+
+        if (prevState.PlatformIndex !== this.state.PlatformIndex)
+        {
+            this.setState({ updating: false });
+        }
+
         if (prevPropsSearchKeyword !== propsSearchKeyword)
         {
             const { SubNavBarIndex } = this.state;

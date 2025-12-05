@@ -38,7 +38,7 @@ export class LocalStorageUtils
         {
             const neteaseSetting: NeteaseSetting = {
                 quality: 'lossless',
-                api: 'xc',
+                api: 'default',
                 lyricOption: 'both'
             }
             localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));

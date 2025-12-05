@@ -64,27 +64,20 @@ export class NetEasePlatform
 
     /**
      * 推荐歌单
-     * @returns 
+     * @returns
      */
     public async searchForRecommendPlayListBasicsData()
     {
         const platformData: PlatformData[] = [];
         const allPlatformData: PlatformData[] = [];
         const limit = 100;
-        const xcAPI = window?.netease?.xcAPI;
-        const neteaseAPI = this.neteaseSetting.api;
         let totalPage = Math.ceil(limit / this.pageSize);
 
         try
         {
             let res: RecommendSongList | null = null
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                res = await this.neteaseSearch.getNeteaseRecommandPlayListFromBinaryify(limit, false);
-            } else
-            {
-                res = await this.neteaseSearch.getNeteaseRecommandPlayList(limit)
-            }
+            res = await this.neteaseSearch.getNeteaseRecommandPlayList(limit)
+
             if (!res || !res.result)
             {
                 return { platformData: [], totalPage: 0 }
@@ -141,7 +134,6 @@ export class NetEasePlatform
         let totalPage = 0;
         let mediaCardData: PlatformData[] = [];
         const neteaseAPI = this.neteaseSetting.api
-        const xcAPI = window.netease?.xcAPI
         const offset = (page - 1) * 100;
         let searchType = 1;
 
@@ -167,13 +159,8 @@ export class NetEasePlatform
                 let songListDetail: SongList | null = null;
 
 
-                if (xcAPI && neteaseAPI !== 'default')
-                {
-                    songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
-                } else
-                {
-                    songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
-                }
+                songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
+
 
                 if (!songListDetail) return null;
                 const playList = songListDetail.playlist;
@@ -193,13 +180,8 @@ export class NetEasePlatform
             } else if (type === 'album')
             {
                 let albumDetail: AlbumData | null = null;
-                if (xcAPI && neteaseAPI !== 'default')
-                {
-                    albumDetail = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
-                } else
-                {
-                    albumDetail = await this.neteaseMusicApi.getAlbumDetail(id);
-                }
+                albumDetail = await this.neteaseMusicApi.getAlbumDetail(id);
+
 
                 if (!albumDetail) return null;
                 const album = albumDetail.album;
@@ -216,37 +198,11 @@ export class NetEasePlatform
                     }
                 }]
                 return { ids, totalPage: 1, mediaCardData }
-            } else if (type === 'mv')
-            {
-
-                let mvDetail: MVDetail | null = null;
-                mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(id);
-
-                if (!mvDetail || !mvDetail.data) return null;
-
-                const mv = mvDetail.data;
-
-                mediaCardData = [{
-                    title: mv.name,
-                    coverImg: mv.cover,
-                    author: mv.artistName || mv.artists[0].name,
-                    websiteUrl: `https://music.163.com/#/mv?id=${mv.id}`,
-                    neteaseMusic: {
-                        id: mv.id,
-                        isMV: true
-                    }
-                }]
-                return { ids, totalPage: 1, mediaCardData }
             }
         }
 
-        if (xcAPI && neteaseAPI !== 'default')
-        {
-            searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, searchType, offset);
-        } else
-        {
-            searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, searchType, offset);
-        }
+        searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, searchType, offset);
+
 
         if (!searchData || !searchData.result)
         {
@@ -352,73 +308,38 @@ export class NetEasePlatform
     public async getNeteasePlatformData(ids: number[], type: 'song' | 'playlist' | 'album' | 'mv' | 'radio')
     {
 
-        const xcAPI = window.netease?.xcAPI
         const neteaseAPI = this.neteaseSetting.api
         const PlatformData: PlatformData[] = []
 
         if (type === 'song')
         {
 
-            if (xcAPI && neteaseAPI !== 'default')
+            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(ids);
+
+            if (!songDetail) return null;
+
+            for (const item of songDetail)
             {
-                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(ids)
-
-                if (!songDetail) return null;
-
-                for (const item of songDetail)
-                {
-
-                    const data: PlatformData = {
-                        title: item.name,
-                        subtitle: item?.tns?.[0] || item.alia[0],
-                        coverImg: item.al.picUrl,
-                        author: item.ar[0].name,
-                        websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
-                        duration: Math.ceil((item.dt + 2000) / 1000),
-                        neteaseMusic: {
-                            id: item.id
-                        }
+                const data: PlatformData = {
+                    title: item.name,
+                    subtitle: item?.transNames?.[0] || item.alias[0],
+                    coverImg: item.album.picUrl || item.album.blurPicUrl,
+                    author: item.artists[0].name,
+                    websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
+                    duration: Math.ceil((item.duration) / 1000),
+                    neteaseMusic: {
+                        id: item.id
                     }
-                    PlatformData.push(data);
                 }
-
-                return PlatformData;
-
-            } else
-            {
-                const songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(ids);
-
-                if (!songDetail) return null;
-
-                for (const item of songDetail)
-                {
-                    const data: PlatformData = {
-                        title: item.name,
-                        subtitle: item?.transNames?.[0] || item.alias[0],
-                        coverImg: item.album.picUrl || item.album.blurPicUrl,
-                        author: item.artists[0].name,
-                        websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
-                        duration: Math.ceil((item.duration) / 1000),
-                        neteaseMusic: {
-                            id: item.id
-                        }
-                    }
-                    PlatformData.push(data);
-                }
-
-                return PlatformData;
-
+                PlatformData.push(data);
             }
+
+            return PlatformData;
         } else if (type === 'playlist')
         {
             let songListDetail: SongList | null = null;
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(ids[0]);
-            } else
-            {
-                songListDetail = await this.neteaseMusicApi.getSongListDetail(ids[0]);
-            }
+            songListDetail = await this.neteaseMusicApi.getSongListDetail(ids[0]);
+
 
             if (!songListDetail) throw new Error('获取歌单详情失败');
 
@@ -439,13 +360,8 @@ export class NetEasePlatform
         } else if (type === 'album')
         {
             let albumDetails: AlbumData | null = null;
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(ids[0]);
-            } else
-            {
-                albumDetails = await this.neteaseMusicApi.getAlbumDetail(ids[0]);
-            }
+            albumDetails = await this.neteaseMusicApi.getAlbumDetail(ids[0]);
+
 
             if (!albumDetails) throw new Error('获取专辑详情失败');
             const platformData: PlatformData = {
@@ -462,39 +378,14 @@ export class NetEasePlatform
 
             }
             return [platformData]
-        } else if (type === 'mv')
-        {
-            let mvDetail: MVDetail | null = null;
-            mvDetail = await this.neteaseMusicApi.getNeteaseMVDetailFromBinaryify(ids[0]);
-
-            if (!mvDetail || !mvDetail.data) throw new Error('获取MV详情失败');
-
-            const mv = mvDetail.data;
-
-            const platformData: PlatformData = {
-                title: mv.name,
-                coverImg: mv.cover,
-                author: mv.artistName || mv.artists[0].name,
-                websiteUrl: `https://music.163.com/#/mv?id=${mv.id}`,
-                neteaseMusic: {
-                    id: mv.id,
-                    isMV: true
-                },
-                duration: Math.ceil((mv.duration) / 1000)
-
-
-            }
-
-            return [platformData]
-
         }
     }
 
     /**
      * 搜索歌单
-     * @param keyword 
-     * @param page 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @returns
      */
     public async searchForMusicsBasicsData(keyword: string, page: number)
     {
@@ -542,9 +433,9 @@ export class NetEasePlatform
 
     /**
      * @description 搜索歌单
-     * @param keyword 
-     * @param page 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @returns
      */
     public async searchForMusicListBasicsData(keyword: string, page: number)
     {
@@ -597,9 +488,9 @@ export class NetEasePlatform
 
     /**
      * @description 搜索专辑
-     * @param keyword 
-     * @param page 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @returns
      */
     public async searchForAlbumBasicsData(keyword: string, page: number)
     {
@@ -646,9 +537,9 @@ export class NetEasePlatform
 
     /**
      * @description 搜索MV
-     * @param keyword 
-     * @param page 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @returns
      */
     public async searchForMVBasicsData(keyword: string, page: number)
     {
@@ -700,8 +591,8 @@ export class NetEasePlatform
 
     /**
      * @description 搜索电台
-     * @param keyword 
-     * @param page 
+     * @param keyword
+     * @param page
      */
     public async searchForRadioBasicsData(keyword: string, page: number)
     {
@@ -709,19 +600,12 @@ export class NetEasePlatform
         {
             const offset = (page - 1) * 100;
 
-            const xcAPI = window.netease?.xcAPI
-
             const neteaseAPI = this.neteaseSetting.api
 
             let searchData: SearchData | null = null
 
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                searchData = await this.neteaseSearch.getNeteaseSearchDataFromBinaryify(keyword, 1009, offset);
-            } else
-            {
-                searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
-            }
+            searchData = await this.neteaseSearch.getNeteaseMusicSearchData(keyword, 1009, offset);
+
 
             if (!searchData || !searchData.result || !searchData.result.mvs || !searchData.result.mvCount)
             {
@@ -797,8 +681,6 @@ export class NetEasePlatform
     {
         try
         {
-            const xcAPI = window.netease?.xcAPI;
-
 
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
 
@@ -808,18 +690,12 @@ export class NetEasePlatform
 
             const neteaseAPI = this.neteaseSetting.api;
 
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
-            } else
-            {
-                songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
-            }
+            songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
 
             if (!songListDetail) throw new Error('获取歌单详情失败');
             const ids = songListDetail.playlist.trackIds.map((item) => item.id)
 
-            return this.processSongPlatformData(ids, neteaseAPI, xcAPI);
+            return this.processSongPlatformData(ids);
 
         } catch (error)
         {
@@ -833,8 +709,6 @@ export class NetEasePlatform
     {
         try
         {
-            const xcAPI = window.netease?.xcAPI;
-
 
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
 
@@ -843,21 +717,14 @@ export class NetEasePlatform
 
             const id = platformData.neteaseMusic.id;
 
-            const neteaseAPI = this.neteaseSetting.api;
+            albumDetails = await this.neteaseMusicApi.getAlbumDetail(id);
 
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
-            } else
-            {
-                albumDetails = await this.neteaseMusicApi.getAlbumDetail(id);
-            }
 
             if (!albumDetails) throw new Error('获取专辑详情失败');
 
             const ids = albumDetails.songs.map((item) => item.id);
 
-            return this.processSongPlatformData(ids, neteaseAPI, xcAPI);
+            return this.processSongPlatformData(ids);
 
         } catch (error)
         {
@@ -867,7 +734,7 @@ export class NetEasePlatform
         }
     }
 
-    async processSongPlatformData(trackID: number[], neteaseAPI: 'xc' | 'default', xcAPI?: string)
+    async processSongPlatformData(trackID: number[])
     {
         const platformData: PlatformData[] = [];
 
@@ -879,66 +746,31 @@ export class NetEasePlatform
 
         let count = 0;
 
-        if (xcAPI && neteaseAPI !== 'default')
+        const songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(trackID);
+        if (!songDetail) throw new Error('获取歌单详情失败');
+
+        for (const item of songDetail)
         {
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(trackID);
-            if (!songDetail) throw new Error('获取歌曲详情失败');
-
-            for (const item of songDetail)
-            {
-
-                const data: PlatformData = {
-                    title: item.name,
-                    subtitle: item?.tns?.[0] || item.alia[0],
-                    coverImg: item.al.picUrl,
-                    author: item.ar[0].name,
-                    websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
-                    duration: Math.ceil((item.dt + 2000) / 1000),
-                    neteaseMusic: {
-                        id: item.id
-                    }
+            const data: PlatformData = {
+                title: item.name,
+                subtitle: item?.transNames?.[0] || item.alias[0],
+                coverImg: item.album.picUrl || item.album.blurPicUrl,
+                author: item.artists[0].name,
+                websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
+                duration: Math.ceil((item.duration) / 1000),
+                neteaseMusic: {
+                    id: item.id
                 }
-
-                if (count >= this.pageSize)
-                {
-                    allPlatformData.push(data);
-                } else
-                {
-                    allPlatformData.push(data);
-                    platformData.push(data);
-                }
-                count++;
             }
-
-        } else
-        {
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetail(trackID);
-            if (!songDetail) throw new Error('获取歌单详情失败');
-
-            for (const item of songDetail)
+            if (count >= this.pageSize)
             {
-                const data: PlatformData = {
-                    title: item.name,
-                    subtitle: item?.transNames?.[0] || item.alias[0],
-                    coverImg: item.album.picUrl || item.album.blurPicUrl,
-                    author: item.artists[0].name,
-                    websiteUrl: `https://music.163.com/#/song?id=${item.id}`,
-                    duration: Math.ceil((item.duration) / 1000),
-                    neteaseMusic: {
-                        id: item.id
-                    }
-                }
-                if (count >= this.pageSize)
-                {
-                    allPlatformData.push(data);
-                } else
-                {
-                    allPlatformData.push(data);
-                    platformData.push(data);
-                }
-                count++;
+                allPlatformData.push(data);
+            } else
+            {
+                allPlatformData.push(data);
+                platformData.push(data);
             }
-
+            count++;
         }
 
         return { platformData: platformData, totalPage, allPlatformData: allPlatformData }
@@ -946,9 +778,9 @@ export class NetEasePlatform
 
     /**
      * @description 合并歌词
-     * @param jpLyrics 
-     * @param cnLyrics 
-     * @returns 
+     * @param jpLyrics
+     * @param cnLyrics
+     * @returns
      */
     private mergeLyrics(jpLyrics: string, cnLyrics: string): string
     {
@@ -1019,7 +851,7 @@ export class NetEasePlatform
 
     /**
      * @description 点播歌单
-     * @param platformData 
+     * @param platformData
      */
     public async MLOD(platformData: PlatformData)
     {
@@ -1029,16 +861,9 @@ export class NetEasePlatform
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
             const id = platformData.neteaseMusic.id;
             const neteaseAPI = this.neteaseSetting.api
-            const xcAPI = window.netease?.xcAPI
             let songListDetail: SongList | null = null;
 
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                songListDetail = await this.neteaseMusicApi.getNeteaseSongListDetailFromBinaryify(id);
-            } else
-            {
-                songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
-            }
+            songListDetail = await this.neteaseMusicApi.getSongListDetail(id);
 
             if (!songListDetail) throw new Error('获取歌单详情失败');
 
@@ -1065,7 +890,7 @@ export class NetEasePlatform
 
     /**
      * @description 点播专辑
-     * @param platformData 
+     * @param platformData
      */
     public async AOD(platformData: PlatformData)
     {
@@ -1075,16 +900,9 @@ export class NetEasePlatform
             if (!platformData.neteaseMusic) throw new Error('没有网易云音乐数据');
             const id = platformData.neteaseMusic.id;
             const neteaseAPI = this.neteaseSetting.api
-            const xcAPI = window.netease?.xcAPI
             let albumDetails: AlbumData | null = null;
 
-            if (xcAPI && neteaseAPI !== 'default')
-            {
-                albumDetails = await this.neteaseMusicApi.getNeteaseAlbumDetailFromBinaryify(id);
-            } else
-            {
-                albumDetails = await this.neteaseMusicApi.getAlbumDetail(id)
-            }
+            albumDetails = await this.neteaseMusicApi.getAlbumDetail(id)
 
             if (!albumDetails) throw new Error('获取歌单详情失败');
 
@@ -1111,7 +929,7 @@ export class NetEasePlatform
 
     /**
      * @description 点播歌曲
-     * @param platformData 
+     * @param platformData
      */
     public async MOD(platformData: PlatformData)
     {
@@ -1181,41 +999,45 @@ export class NetEasePlatform
 
     private async finalODSONG(songsID: number[])
     {
-        const xcAPI = window.netease?.xcAPI;
 
         const neteaseAPI = this.neteaseSetting.api;
         const media = new Media();
         const socket = new Socket();
-        if ((xcAPI) && neteaseAPI !== 'default')
+
+        let songDetailSongs: SongDetailSong[] | null = null;
+        let songDetailFromBinaryify: SongsFromBinaryify[] | null = null;
+        songDetailSongs = await this.neteaseMusicApi.getNeteaseSongDetail(songsID);
+
+        if (!songDetailSongs && !songDetailFromBinaryify) throw new Error('获取歌单详情失败');
+
+        if (songDetailSongs)
         {
-            const songDetail = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID);
-            if (!songDetail) throw new Error('获取歌曲详情失败');
-            let count = 0;
-            for (const item of songDetail)
+            for (const item of songDetailSongs)
             {
-                const songResource = await this.neteaseMusicApi.getSongResource(songsID[count], this.neteaseSetting.quality);
+                const playUrl = `https://v.iarc.top/?server=netease&type=url&id=${item.id}#.mp3`
 
-                if (!songResource) throw new Error('获取歌曲资源失败');
+                const lyrdata = await this.neteaseMusicApi.getLyric(item.id);
 
-                const lyricOption = this.neteaseSetting.lyricOption;
                 let lyric = ``;
-                if (lyricOption === 'off') lyric = '';
 
-                if (lyricOption === 'original') lyric = songResource.lrc;
+                if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
+                {
+                    lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
+                } else if (lyrdata && lyrdata.lrc)
+                {
+                    lyric = lyrdata.lrc.lyric;
+                }
 
-                if (lyricOption === 'translated') lyric = songResource.lrc_translation;
-
-                if (lyricOption === 'both') lyric = songResource.lrc_control;
 
                 const mediaData: MediaData = {
                     type: 'music',
                     name: item.name,
-                    singer: item.ar[0].name,
-                    cover: item.al.picUrl,
+                    singer: item.artists[0].name,
+                    cover: item.album.picUrl,
                     link: `https://music.163.com/#/song?id=${item.id}`,
-                    url: songResource.url,
-                    duration: item.dt / 1000,
-                    bitRate: Math.floor(songResource.br / 1000),
+                    url: playUrl,
+                    duration: item.duration / 1000,
+                    bitRate: 320,
                     color: this.baseHex,
                     lyrics: lyric,
                     origin: 'netease'
@@ -1226,102 +1048,7 @@ export class NetEasePlatform
 
                 socket.send(mediacard);
                 socket.send(mediaEvent);
-                count++
             }
-        } else
-        {
-            let songDetailSongs: SongDetailSong[] | null = null;
-            let songDetailFromBinaryify: SongsFromBinaryify[] | null = null;
-            if (neteaseAPI !== 'default')
-            {
-                songDetailFromBinaryify = await this.neteaseMusicApi.getNeteaseSongDetailFromBinaryify(songsID);
-            } else
-            {
-                songDetailSongs = await this.neteaseMusicApi.getNeteaseSongDetail(songsID);
-            }
-            if (!songDetailSongs && !songDetailFromBinaryify) throw new Error('获取歌单详情失败');
-
-            if (songDetailSongs)
-            {
-                for (const item of songDetailSongs)
-                {
-                    const playUrl = `https://v.iarc.top/?server=netease&type=url&id=${item.id}#.mp3`
-
-                    const lyrdata = await this.neteaseMusicApi.getLyric(item.id);
-
-                    let lyric = ``;
-
-                    if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
-                    {
-                        lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
-                    } else if (lyrdata && lyrdata.lrc)
-                    {
-                        lyric = lyrdata.lrc.lyric;
-                    }
-
-
-                    const mediaData: MediaData = {
-                        type: 'music',
-                        name: item.name,
-                        singer: item.artists[0].name,
-                        cover: item.album.picUrl,
-                        link: `https://music.163.com/#/song?id=${item.id}`,
-                        url: playUrl,
-                        duration: item.duration / 1000,
-                        bitRate: 320,
-                        color: this.baseHex,
-                        lyrics: lyric,
-                        origin: 'netease'
-                    }
-
-                    const mediacard = media.mediaCard(mediaData);
-                    const mediaEvent = media.mediaEvent(mediaData);
-
-                    socket.send(mediacard);
-                    socket.send(mediaEvent);
-                }
-            } else if (songDetailFromBinaryify)
-            {
-                for (const item of songDetailFromBinaryify)
-                {
-                    const playUrl = `https://v.iarc.top//?server=netease&type=url&id=${item.id}#.mp3`
-
-                    const lyrdata = await this.neteaseMusicApi.getLyric(item.id);
-
-                    let lyric = ``;
-
-                    if (lyrdata && lyrdata.lrc && lyrdata.tlyric)
-                    {
-                        lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
-                    } else if (lyrdata && lyrdata.lrc)
-                    {
-                        lyric = lyrdata.lrc.lyric;
-                    }
-
-
-                    const mediaData: MediaData = {
-                        type: 'music',
-                        name: item.name,
-                        singer: item.ar[0].name,
-                        cover: item.al.picUrl,
-                        link: `https://music.163.com/#/song?id=${item.id}`,
-                        url: playUrl,
-                        duration: item.dt / 1000,
-                        bitRate: 320,
-                        color: this.baseHex,
-                        lyrics: lyric,
-                        origin: 'netease'
-                    }
-
-                    const mediacard = media.mediaCard(mediaData);
-                    const mediaEvent = media.mediaEvent(mediaData);
-
-                    socket.send(mediacard);
-                    socket.send(mediaEvent);
-                }
-            }
-
-
         }
     }
 

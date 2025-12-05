@@ -6,8 +6,8 @@ export class NeteaseMusicAPI extends SendFetch
 
     /**
      * 直接访问网易云音乐的接口获取歌单详情
-     * @param id 
-     * @returns 
+     * @param id
+     * @returns
      */
     public async getSongListDetail(id: number)
     {
@@ -56,38 +56,11 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getNeteaseAlbumDetailFromBinaryify(id: number)
-    {
-        try
-        {
-            const xcAPI = window.netease?.xcAPI;
-            const url = `${xcAPI}album`;
-            const params = new URLSearchParams({
-                id: id.toString(),
-            });
-
-            const response = await this.sendGet(url, params);
-
-            if (response && response.ok)
-            {
-                const data: AlbumData = await response.json();
-                return data;
-            } else
-            {
-                return null;
-            }
-        } catch (error)
-        {
-            return null;
-        }
-
-    }
-
     /**
      * 直接访问网易云音乐的接口获取歌曲详情
-     * @param id 
-     * @param corsnum 
-     * @returns 
+     * @param id
+     * @param corsnum
+     * @returns
      */
     public async getNeteaseSongDetail(ids: number[]): Promise<SongDetailSong[] | null>
     {
@@ -181,110 +154,10 @@ export class NeteaseMusicAPI extends SendFetch
     }
 
     /**
-     * 访问小草的网易云音乐接口获取歌曲详情
-     * @param id 
-     * @returns 
-     */
-    public async getNeteaseSongDetailFromBinaryify(ids: number[])
-    {
-
-        const CHUNK_SIZE = 500;
-        const allSongs: SongsFromBinaryify[] = []; // 用于存储所有的 songs
-
-        // 将 ids 数组拆分为多个子数组
-        const chunks = this.chunkArray(ids, CHUNK_SIZE);
-        const xcAPI = window.netease?.xcAPI;
-
-        try
-        {
-            // 逐个请求每个子数组
-            for (const chunk of chunks)
-            {
-                const url = new URL(`${xcAPI}song/detail`);
-                const params = new URLSearchParams({
-                    ids: chunk.toString()
-                });
-
-                const response = await this.sendGet(url.toString(), params, undefined, true);
-
-                if (response && response.ok)
-                {
-                    const data: SongDetailFromBinaryify = await response.json();
-                    if (data.songs)
-                    {
-                        allSongs.push(...data.songs);
-                    } else
-                    {
-                        console.error('获取歌曲详情失败');
-                        return null;
-                    }
-                } else
-                {
-                    console.error('Request failed', response);
-                    return null;
-                }
-            }
-
-            return allSongs;
-
-        } catch (error)
-        {
-            return null;
-        }
-
-    }
-
-    /**
-     * 访问小草的网易云音乐接口获取歌单详情
-     * @param id 
-     * @returns 
-     */
-    public async getNeteaseSongListDetailFromBinaryify(id: number)
-    {
-        const xcAPI = window.netease?.xcAPI;
-
-        const url = `${xcAPI}playlist/detail`;
-        const params = new URLSearchParams({
-            id: id.toString(),
-        });
-
-        const response = await this.sendGet(url, params, undefined);
-
-        if (response && response.ok)
-        {
-            const data: SongList = await response.json();
-            return data;
-        } else
-        {
-            return null;
-        }
-    }
-
-    public async getNeteaseMVDetailFromBinaryify(id: number)
-    {
-        const xcAPI = window.netease?.xcAPI;
-        const url = `${xcAPI}mv/detail`;
-        const params = new URLSearchParams({
-            mvid: id.toString(),
-        });
-
-        const response = await this.sendGet(url, params, undefined);
-
-        if (response && response.ok)
-        {
-            const data: MVDetail = await response.json();
-            return data;
-        } else
-        {
-            return null;
-        }
-    }
-
-    /**
      * 访问小草的网易云音乐接口获取歌曲链接等信息
-     * @param id 
+     * @param id
      * @param level standard 标准品质-128k higher 较高品质-192k exhigh 极高品质-320k lossless 无损品质 hires hires品质 jyeffect 高清环绕声 sky 沉浸环绕声 jymaster 超清母带
-     * @returns 
+     * @returns
      */
     public async getSongResource(
         id: number,

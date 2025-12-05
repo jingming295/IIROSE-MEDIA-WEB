@@ -41,10 +41,10 @@ export class NeteaseSearchAPI extends SendFetch
 
     /**
      * 获取网易云搜索数据
-     * @param keyWord 
+     * @param keyWord
      * @param type
-     * @param limit 
-     * @returns 
+     * @param limit
+     * @returns
      */
     public async getNeteaseMusicSearchData(keyWord: string, type: number, offset: number, limit: number = 100)
     {
@@ -62,50 +62,6 @@ export class NeteaseSearchAPI extends SendFetch
         }
         const encparams = new URLSearchParams(enc);
         const response = await this.sendPost(url, encparams);
-        if (response && response.ok)
-        {
-            const data: SearchData = await response.json();
-            return data;
-        } else
-        {
-            return null;
-        }
-
-    }
-
-    public async getNeteaseRecommandPlayListFromBinaryify(limit: number = 30, warn = true)
-    {
-
-        const xcAPI = window.netease?.xcAPI;
-        const url = `${xcAPI}/personalized`
-        const params = new URLSearchParams();
-        params.append('limit', limit.toString());
-        const response = await this.sendGet(url, params, undefined, warn);
-        if (response && response.ok)
-        {
-            const data: RecommendSongList = await response.json();
-            return data;
-        } else
-        {
-            return null;
-        }
-    }
-
-    public async getNeteaseSearchDataFromBinaryify(keyWord: string, type: number, offset: number, limit: number = 100)
-    {
-
-        const xcAPI = window.netease?.xcAPI;
-
-        const url = new URL(`${xcAPI}cloudsearch`);
-        const params = new URLSearchParams({
-            keywords: keyWord,
-            type: type.toString(),
-            limit: limit.toString(),
-            offset: offset.toString()
-        });
-
-        const response = await this.sendGet(url.toString(), params);
-
         if (response && response.ok)
         {
             const data: SearchData = await response.json();

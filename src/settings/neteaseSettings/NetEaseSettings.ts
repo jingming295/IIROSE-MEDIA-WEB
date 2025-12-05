@@ -3,7 +3,7 @@ import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 export interface NeteaseSetting
 {
     quality: 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster';
-    api: 'default' | 'xc';
+    api: 'default'
     lyricOption: 'off' | 'original' | 'translated' | 'both';
 }
 export class NetEaseSettings
@@ -70,7 +70,7 @@ export class NetEaseSettings
             if (neteaseSettings)
             {
                 const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
-                neteaseSetting.api = s as 'default' | 'xc';
+                neteaseSetting.api = s as 'default';
                 localStorage.setItem('neteaseSetting', JSON.stringify(neteaseSetting));
             }
 
@@ -90,7 +90,6 @@ export class NetEaseSettings
 
         const selectOption = [
             ['default', '网易云默认API（最快）'],
-            ['xc', '小草的API（稳定）'],
         ];
 
         selectOption.forEach((item, index) =>
@@ -185,7 +184,6 @@ export class NetEaseSettings
     {
         const selectOption = [
             ['default', '网易云默认API（最快）'],
-            ['xc', '小草的API（稳定）'],
         ];
 
         const optionInText = selectOption.find((option) => option[0] === api);

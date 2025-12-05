@@ -11,9 +11,6 @@ declare global
             cors?: string;
             // 其他属性...
         }
-        netease?: {
-            xcAPI?: string;
-        }
     }
 }
 export class Environment
@@ -21,7 +18,6 @@ export class Environment
     public async setEnv()
     {
         window.iirosemedia = {}
-        window.netease = {}
         await this.setCors();
         this.setNetease();
     }
@@ -108,8 +104,6 @@ export class Environment
             xc.then((res) =>
             {
                 if (!res) return
-                if (window.netease)
-                    window.netease.xcAPI = "https://xc.null.red:8043/api/netease/";
             })
         } catch (error)
         {

@@ -5,19 +5,18 @@ import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings"
 
 export class SendFetch
 {
-    public cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
-    public malaysiacors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
-    public beijingcors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
-    public devcors = `http://localhost:8080/`;
+    public static cors = `https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/`;
+    public static malaysiacors = `https://cors-anywhere-cwimzudkuk.cn-hongkong.fcapp.run/`;
+    public static cncors = `https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/`;
+    public static devcors = `http://localhost:8080/`;
 
-    constructor()
-    {
-        if (window.iirosemedia && window.iirosemedia.cors !== undefined)
+    static {
+        if (typeof window !== 'undefined' && window.iirosemedia && window.iirosemedia.cors !== undefined)
         {
             this.cors = window.iirosemedia.cors;
         }
     }
-    public async sendGet(url: string, params: URLSearchParams, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
+    public static async sendGet(url: string, params: URLSearchParams, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
     {
         const fullUrl = `${url}?${params.toString()}`;
         if (!headers) headers = new Headers();
@@ -34,8 +33,7 @@ export class SendFetch
 
             if (!response.ok && warn)
             {
-                const showmessage = new ShowMessage();
-                showmessage.show(`GET请求失败，url: ${fullUrl} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
+                ShowMessage.show(`GET请求失败，url: ${fullUrl} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
             }
 
             return response;
@@ -43,15 +41,14 @@ export class SendFetch
         {
             if (warn)
             {
-                const showmessage = new ShowMessage();
-                showmessage.show(`GET请求失败，url: ${fullUrl} 信息：${error}`);
+                ShowMessage.show(`GET请求失败，url: ${fullUrl} 信息：${error}`);
                 console.log(`GET请求失败，url: ${fullUrl} 信息：${error}`);
             }
             return null;
         }
     }
 
-    public async sendGetXHR(url: string, params: URLSearchParams, headers: Headers)
+    public static async sendGetXHR(url: string, params: URLSearchParams, headers: Headers)
     {
         const fullUrl = `${url}?${params.toString()}`;
 
@@ -85,7 +82,7 @@ export class SendFetch
         });
     }
 
-    public async sendPost(url: string, params: URLSearchParams | string, headers?: Headers)
+    public static async sendPost(url: string, params: URLSearchParams | string, headers?: Headers)
     {
 
         try
@@ -109,22 +106,20 @@ export class SendFetch
 
             if (!response.ok)
             {
-                const showmessage = new ShowMessage();
-                showmessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
+                ShowMessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
             }
 
             return response;
         } catch (error)
         {
-            const showmessage = new ShowMessage();
-            showmessage.show(`POST请求失败，url: ${url} 信息：${error}`);
+            ShowMessage.show(`POST请求失败，url: ${url} 信息：${error}`);
             return null;
         }
 
 
     }
 
-    public async sendHead(url: string, params: URLSearchParams, headers: Headers, followredirect: boolean = false, warn: boolean = true, signal?: AbortSignal)
+    public static async sendHead(url: string, params: URLSearchParams, headers: Headers, followredirect: boolean = false, warn: boolean = true, signal?: AbortSignal)
     {
         try
         {
@@ -148,8 +143,7 @@ export class SendFetch
 
             if (!response.ok && warn)
             {
-                const showmessage = new ShowMessage();
-                showmessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
+                ShowMessage.show(`GET请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, Cookie: ${headers.get('cookie-trans')}, params: ${params.toString()}`);
             }
 
             return response;
@@ -159,8 +153,7 @@ export class SendFetch
         {
             if (warn)
             {
-                const showmessage = new ShowMessage();
-                showmessage.show(`HEAD请求失败，url: ${url} 信息：${error}`);
+                ShowMessage.show(`HEAD请求失败，url: ${url} 信息：${error}`);
             }
             return null;
 
@@ -168,7 +161,7 @@ export class SendFetch
 
     }
 
-    public async tryGetWitchFetch(url: string)
+    public static async tryGetWitchFetch(url: string)
     {
         try
         {
@@ -190,7 +183,7 @@ export class SendFetch
         }
     }
 
-    public async tryGetWhithXhr(url: string): Promise<boolean>
+    public static async tryGetWhithXhr(url: string): Promise<boolean>
     {
         return new Promise((resolve) =>
         {
@@ -219,7 +212,7 @@ export class SendFetch
     }
 
 
-    protected returnBilibiliHeaders()
+    protected static returnBilibiliHeaders()
     {
         const headers = new Headers();
         headers.set('referer', 'https://www.bilibili.com');
@@ -243,7 +236,7 @@ export class SendFetch
         return headers;
     }
 
-    protected returnBilibiliHeadersParam()
+    protected static returnBilibiliHeadersParam()
     {
         const params = new URLSearchParams();
         const bilibiliAccount = localStorage.getItem('bilibiliAccount');
@@ -266,7 +259,7 @@ export class SendFetch
         return params;
     }
 
-    protected returnBiliBiliHeadersBuvidOnly()
+    protected static returnBiliBiliHeadersBuvidOnly()
     {
         const headers = new Headers();
         const bilibiliAccount = new GetBiliBiliAccount();
@@ -283,21 +276,21 @@ export class SendFetch
         return headers;
     }
 
-    protected returnCommonHeaders()
+    protected static returnCommonHeaders()
     {
 
         const headers = new Headers();
         return headers;
     }
 
-    protected getBilibiliCors()
+    protected static getBilibiliCors()
     {
         const bvSettings = new BiliBiliSettings().getBilibiliVideoSettings();
         const api = bvSettings.api;
-        if (api === 'Beijing')
+        if (api === 'Guangzhou')
         {
-            return this.beijingcors;
-        } else if (api === 'MY')
+            return this.cncors;
+        } else if (api === 'HK')
         {
             return this.malaysiacors;
         } else if (api === 'Dev')

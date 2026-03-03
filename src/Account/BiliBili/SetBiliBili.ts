@@ -14,20 +14,19 @@ export class BiliBiliAccount
 
     public async setBuvid()
     {
-        const bl = new BiliBiliLoginApi();
         const bilibiliaccount = localStorage.getItem('bilibiliAccount');
         if (bilibiliaccount)
         {
             const account: BilibiliACC = JSON.parse(bilibiliaccount);
             if (account.buvid3 && account.buvid4) return;
-            const buvid = await bl.getBuvid();
+            const buvid = await BiliBiliLoginApi.getBuvid();
             if (!buvid || !buvid.data) return;
             account.buvid3 = buvid.data.b_3;
             account.buvid4 = buvid.data.b_4;
             localStorage.setItem('bilibiliAccount', JSON.stringify(account));
         } else
         {
-            const buvid = await bl.getBuvid();
+            const buvid = await BiliBiliLoginApi.getBuvid();
             if (!buvid || !buvid.data) return;
             const account: BilibiliACC = {
                 buvid3: buvid.data.b_3,
@@ -47,9 +46,7 @@ export class BiliBiliAccount
         {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        const bilibiliLoginApi = new BiliBiliLoginApi();
-        let bilibiliQrcode = await bilibiliLoginApi.getQRCode();
-        const showMessage = new ShowMessage();
+        let bilibiliQrcode = await BiliBiliLoginApi.getQRCode();
         if (!bilibiliQrcode || !bilibiliQrcode.data) return null;
 
         let qrcode = await this.generateQRCodeBase64(bilibiliQrcode.data.url);
@@ -58,7 +55,7 @@ export class BiliBiliAccount
         const albumShowHolder = document.getElementById('albumShowHolder');
 
         if (!albumShowHolder) return null;
-        let qrLogin = await bilibiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
+        let qrLogin = await BiliBiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
         let noPerformAction = 0; // 记录扫码未登录的次数
         let shouldContinue = true; // 控制循环继续的变量
 
@@ -70,7 +67,7 @@ export class BiliBiliAccount
                 break;
             }
 
-            qrLogin = await bilibiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
+            qrLogin = await BiliBiliLoginApi.QRLogin(bilibiliQrcode.data.qrcode_key);
 
             if (albumShowHolder.style.display === 'none')
             {
@@ -94,7 +91,7 @@ export class BiliBiliAccount
             } else if (qrLogin.data.code === 86038)
             {
                 // 二维码失效，重新获取
-                bilibiliQrcode = await bilibiliLoginApi.getQRCode();
+                bilibiliQrcode = await BiliBiliLoginApi.getQRCode();
                 if (bilibiliQrcode && bilibiliQrcode.data)
                 {
                     console.log('重新获取二维码');
@@ -107,8 +104,8 @@ export class BiliBiliAccount
                 noPerformAction++;
                 if (noPerformAction > 10)
                 {
-                    bilibiliQrcode = await bilibiliLoginApi.getQRCode();
-                    showMessage.show('长时间扫码未登录，刷新了二维码');
+                    bilibiliQrcode = await BiliBiliLoginApi.getQRCode();
+                    ShowMessage.show('长时间扫码未登录，刷新了二维码');
                     if (bilibiliQrcode && bilibiliQrcode.data)
                     {
                         console.log('长时间扫码未登录，刷新了二维码');
@@ -160,7 +157,7 @@ export class BiliBiliAccount
             localStorage.setItem('bilibiliAccount', JSON.stringify(lsBilibiliAccountParsed));
 
         } else localStorage.setItem('bilibiliAccount', JSON.stringify(bilibiliaccount));
-        const navUserData = await bilibiliLoginApi.getNavUserData();
+        const navUserData = await BiliBiliLoginApi.getNavUserData();
         if (navUserData && navUserData.data)
         {
             lsBilibiliAccount = localStorage.getItem('bilibiliAccount');
@@ -171,8 +168,7 @@ export class BiliBiliAccount
                 lsBilibiliAccountParsed.face = navUserData.data.face;
                 localStorage.setItem('bilibiliAccount', JSON.stringify(lsBilibiliAccountParsed));
             }
-            const showmessage = new ShowMessage();
-            showmessage.show(`登录成功，用户名：${navUserData.data.uname}`);
+            ShowMessage.show(`登录成功，用户名：${navUserData.data.uname}`);
             showImage.hide();
             return navUserData.data.uname;
         }

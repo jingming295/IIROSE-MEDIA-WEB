@@ -5,11 +5,11 @@ export class BiliBiliSearchApi extends SendFetch
 {
     /**
      * 综合搜索（web端）
-     * @param keyword 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestAll(keyword: string)
+    public static async getSearchRequestAll(keyword: string)
     {
         const url = 'https://api.bilibili.com/x/web-interface/wbi/search/all/v2';
         const params = new URLSearchParams({
@@ -43,19 +43,19 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 分类搜索（web端）
-     * @param search_type 
-     * @param keyword 
-     * @param page 
-     * @param order 
-     * @param order_sort 
-     * @param user_type 
-     * @param duration 
-     * @param tids 
-     * @param category_id 
-     * @param ctx 
-     * @returns 
+     * @param search_type
+     * @param keyword
+     * @param page
+     * @param order
+     * @param order_sort
+     * @param user_type
+     * @param duration
+     * @param tids
+     * @param category_id
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByType
+    public static async getSearchRequestByType
         (
             search_type: string,
             keyword: string,
@@ -110,16 +110,16 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 视频搜索（web端）
-     * @param keyword 
-     * @param page 
+     * @param keyword
+     * @param page
      * @param page_size 返回多少内容，最大50
-     * @param order 
-     * @param duration 
-     * @param tids 
-     * @param ctx 
-     * @returns 
+     * @param order
+     * @param duration
+     * @param tids
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByTypeVideo(
+    public static async getSearchRequestByTypeVideo(
         keyword: string,
         page: number | null = null,
         page_size: number | null = null,
@@ -137,9 +137,9 @@ export class BiliBiliSearchApi extends SendFetch
      * @param keyword // 需要搜索的关键词
      * @param page // 页码
      * @param ctx
-     * @returns 
+     * @returns
      */
-    public async getSearchRequestByTypeMediaBangumi
+    public static async getSearchRequestByTypeMediaBangumi
         (
             keyword: string,
             page: number | null = null
@@ -151,12 +151,12 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 影视搜索（web端）
-     * @param keyword 
-     * @param page 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByTypeMediaFT
+    public static async getSearchRequestByTypeMediaFT
         (
             keyword: string,
             page: number | null = null
@@ -168,13 +168,13 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 直播间和主播搜索（web端）
-     * @param keyword 
-     * @param page 
-     * @param order 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param order
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByTypeLiveRoomAndLiveUser(
+    public static async getSearchRequestByTypeLiveRoomAndLiveUser(
         keyword: string,
         page: number | null = null,
         page_size: number | null = null,
@@ -187,13 +187,13 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 直播间搜索（web端）
-     * @param keyword 
-     * @param page 
-     * @param order 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param order
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByTypeLiveRoom(
+    public static async getSearchRequestByTypeLiveRoom(
         keyword: string,
         page: number | null = null,
         page_size: number | null = null,
@@ -206,12 +206,12 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 主播搜索（web端）
-     * @param keyword 
-     * @param page 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByTypeLiveUser(
+    public static async getSearchRequestByTypeLiveUser(
         keyword: string,
         page: number | null = null
     )
@@ -222,14 +222,14 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 专栏搜索（web端）
-     * @param keyword 
-     * @param page 
-     * @param order 
-     * @param category_id 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param order
+     * @param category_id
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByArticle(
+    public static async getSearchRequestByArticle(
         keyword: string,
         page: number | null = null,
         page_size: number | null = null,
@@ -243,14 +243,14 @@ export class BiliBiliSearchApi extends SendFetch
 
     /**
      * 相簿搜索（web端），他还存在，但是返回的result是空的
-     * @param keyword 
-     * @param page 
-     * @param order 
-     * @param category_id 
-     * @param ctx 
-     * @returns 
+     * @param keyword
+     * @param page
+     * @param order
+     * @param category_id
+     * @param ctx
+     * @returns
      */
-    public async getSearchRequestByPhoto(
+    public static async getSearchRequestByPhoto(
         keyword: string,
         page: number | null = null,
         page_size: number | null = null,

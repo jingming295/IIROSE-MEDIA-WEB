@@ -1,5 +1,4 @@
 import { BilibiliPlatform } from "../platforms/BilibiliPlatform";
-import { PlatformData } from "../platforms/interfaces";
 import { NetEasePlatform } from "../platforms/NetEasePlatform";
 
 export class InputPlatformAnalysis
@@ -67,36 +66,32 @@ export class InputPlatformAnalysis
 
         if (hash.includes('song'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'song');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'song');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MOD(data);
+            NetEasePlatform.MOD(data);
         } else if (hash.includes('playlist'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'playlist');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'playlist');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MLOD(data);
+            NetEasePlatform.MLOD(data);
         } else if (hash.includes('album'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'album');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'album');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.AOD(data);
+            NetEasePlatform.AOD(data);
         } else if (hash.includes('mv'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'mv');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'mv');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MVOD(data);
+            NetEasePlatform.MVOD(data);
         }
     }
 
@@ -109,36 +104,32 @@ export class InputPlatformAnalysis
         if (!id) return;
         if (pathname.includes('song'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'song');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'song');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MOD(data);
+            NetEasePlatform.MOD(data);
         } else if (pathname.includes('playlist'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'playlist');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'playlist');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MLOD(data);
+            NetEasePlatform.MLOD(data);
         } else if (pathname.includes('album'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'album');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'album');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.AOD(data);
+            NetEasePlatform.AOD(data);
         } else if (pathname.includes('mv'))
         {
-            const neteasePlatform = new NetEasePlatform()
             const ids = [parseInt(id)];
-            const platformData = await neteasePlatform.getNeteasePlatformData(ids, 'mv');
+            const platformData = await NetEasePlatform.getNeteasePlatformData(ids, 'mv');
             if (!platformData) return;
             const data = platformData[0];
-            neteasePlatform.MVOD(data);
+            NetEasePlatform.MVOD(data);
         }
     }
 

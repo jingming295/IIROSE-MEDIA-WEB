@@ -19,8 +19,7 @@ class APP
             return;
         }
 
-        const environment = new Environment();
-        environment.setEnv();
+        Environment.setEnv();
         LocalStorageUtils.Init();
         const bilibiliAcc = new BiliBiliAccount();
         bilibiliAcc.setBiliBiliAccountDefaultCookie();
@@ -72,7 +71,7 @@ class APP
         script.type = 'module'; // 使用模块类型
         script.textContent = `
             (() => {
-                
+
                 const app = new (${APP.toString()})();
                 app.init();
             })();

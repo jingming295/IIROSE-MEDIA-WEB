@@ -4,11 +4,11 @@ interface MainNavigationBarProps
 {
     switchCategories: (index: number) => void;
     ShowHideMainApp: () => void;
+    activeButtonIndex: number;
 }
 
 interface MainNavigationBarState
 {
-    activeButtonIndex: number;
 }
 
 export class MainNavigationBar extends Component<MainNavigationBarProps, MainNavigationBarState>
@@ -16,9 +16,6 @@ export class MainNavigationBar extends Component<MainNavigationBarProps, MainNav
     constructor(props: MainNavigationBarProps)
     {
         super(props);
-        this.state = {
-            activeButtonIndex: 0, // 默认活动按钮索引
-        }
     }
 
     quitFromMainApp = () =>
@@ -35,7 +32,7 @@ export class MainNavigationBar extends Component<MainNavigationBarProps, MainNav
 
     render()
     {
-        const { activeButtonIndex } = this.state;
+        const { activeButtonIndex } = this.props;
 
         return (
             <div className='IIroseMainNavigationBar'>
@@ -55,9 +52,9 @@ export class MainNavigationBar extends Component<MainNavigationBarProps, MainNav
 
                 <div className='RightComponent'>
                     <div
-                        className={`NavBarButton ${activeButtonIndex === 1 ? 'NavBarButtonActive' : ''}`}
+                        className={`NavBarButton ${activeButtonIndex === 0 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handleSwitchPage(1)}
+                        onClick={() => this.handleSwitchPage(0)}
                     >
                         <div className='NavBarButtonIcon' id='MusicIcon'>
                         </div>
@@ -65,9 +62,9 @@ export class MainNavigationBar extends Component<MainNavigationBarProps, MainNav
                     </div>
 
                     <div
-                        className={`NavBarButton ${activeButtonIndex === 0 ? 'NavBarButtonActive' : ''}`}
+                        className={`NavBarButton ${activeButtonIndex === 1 ? 'NavBarButtonActive' : ''}`}
                         id=''
-                        onClick={() => this.handleSwitchPage(0)}
+                        onClick={() => this.handleSwitchPage(1)}
                     >
                         <div className='NavBarButtonIcon' id='VideoIcon'>
                         </div>

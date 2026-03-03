@@ -1,14 +1,14 @@
-export interface PlatformData
+interface PlatformData
 {
     title: string;
     subtitle?: string;
-    coverImg: string;
+    coverImg: string | Promise<string>;
     author: string;
     websiteUrl: string;
     duration?: number;
     trackCount?: string;
-    multiPage?: Promise<boolean>;
-    multiAction?: boolean;
+    multiPage?: Promise<MultiPageData | undefined>;
+    playList?: PlayItem[];
     bilibili?: {
         aid?: number;
         bvid?: string;
@@ -24,5 +24,15 @@ export interface PlatformData
         isAlbum?: boolean;
         isMV?: boolean;
         isDjRadios?: boolean;
+        fee: number;
+    },
+    joox?: {
+        id: string;
+        isSong?: boolean;
     }
+}
+
+interface MultiPageData
+{
+    platform: 'video' | 'bilibili' | 'neteasemusic';
 }

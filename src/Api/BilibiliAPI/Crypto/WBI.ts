@@ -2,7 +2,7 @@ import md5 from 'md5';
 import { BiliBiliLoginApi } from '../LoginAPI';
 
 /**
- * 
+ *
  */
 export class WBI
 {
@@ -14,7 +14,7 @@ export class WBI
     private getMixinKey = (orig: string) => this.mixinKeyEncTab.map(n => orig[n]).join('').slice(0, 32);
 
     /**
-     * 
+     *
      * @see {@link https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/misc/sign/wbi.md#JavaScript}
      * @param Params 你的参数
      * @returns {string}
@@ -57,8 +57,7 @@ export class WBI
         // const bilibiliAccountDataD = await select.select() as unknown as BilibiliAccountData[];
         // if (bilibiliAccountDataD.length !== 1) return null
         // const bilibiliAccountData = bilibiliAccountDataD[0];
-        const bilibiliLoginApi = new BiliBiliLoginApi();
-        const NavUserData = await bilibiliLoginApi.getNavUserData();
+        const NavUserData = await BiliBiliLoginApi.getNavUserData();
         if (!NavUserData) return null;
         const img_url = NavUserData.data.wbi_img.img_url;
         const sub_url = NavUserData.data.wbi_img.sub_url;

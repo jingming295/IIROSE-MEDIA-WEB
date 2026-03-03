@@ -9,13 +9,11 @@ export interface BilibiliVideoSettings
     streamqn: number,
     streamSeconds: number,
     videoStreamFormat: number,
-    api: 'MY' | 'Beijing' | 'Dev'
+    api: 'HK' | 'Guangzhou' | 'Dev'
 }
 
 export class BiliBiliSettings
 {
-    iiroseUtils = new IIROSEUtils();
-    bilibiliLoginAPI = new BiliBiliLoginApi()
     public setAccount(changeActionTitleAction?: (actionTitle?: string) => void)
     {
         const login = (_t: HTMLElement, s: string) =>
@@ -26,7 +24,7 @@ export class BiliBiliSettings
                 const cookie = input;
 
                 const cookies = this.parseCookie(cookie);
-                const navData = await this.bilibiliLoginAPI.getNavUserData(cookies['SESSDATA']);
+                const navData = await BiliBiliLoginApi.getNavUserData(cookies['SESSDATA']);
 
                 // 从 localStorage 获取已有的 bilibiliAccount
                 const storedAccount = localStorage.getItem('bilibiliAccount');
@@ -73,7 +71,7 @@ export class BiliBiliSettings
 
             if (s === '1')
             {
-                this.iiroseUtils.sync(2, ['请输入B站Cookie', 'text', 100000], handleUserInputCookie)
+                IIROSEUtils.sync(2, ['请输入B站Cookie', 'text', 100000], handleUserInputCookie)
             }
         }
 
@@ -99,14 +97,14 @@ export class BiliBiliSettings
                 [0, bilibiliAccount.uname, `<div style="height:100px;width:100px;position:absolute;top:0;left:0;"><div class="bgImgBox"><img class="bgImg" loading="lazy" decoding="async" src="${bilibiliAccount.face}" onerror="this.style.display='none';"><div class="fullBox"></div></div></div>`],
                 [1, '登出账号', `<div class="mdi-logout" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`]
             ]
-            this.iiroseUtils.buildSelect2(null, selectOption, logOut, false, true, null, false, null, () => { })
+            IIROSEUtils.buildSelect2(null, selectOption, logOut, false, true, null, false, null, () => { })
         } else
         {
             const selectOption = [
                 [0, '扫码登录账号', `<div class="mdi-qrcode" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`],
                 [1, '输入B站Cookie', `<div class="mdi-cookie" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`]
             ]
-            this.iiroseUtils.buildSelect2(null, selectOption, login, false, true, null, false, null, () => { })
+            IIROSEUtils.buildSelect2(null, selectOption, login, false, true, null, false, null, () => { })
         }
 
     }
@@ -167,7 +165,7 @@ export class BiliBiliSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, setBilibiliVideoQuality, false, true, null, false, null, () => { });
+        IIROSEUtils.buildSelect2(null, selectOption, setBilibiliVideoQuality, false, true, null, false, null, () => { });
     }
 
     public setBilibiliLiveQuality(changeActionTitleAction?: (actionTitle?: string) => void)
@@ -208,7 +206,7 @@ export class BiliBiliSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
 
 
     }
@@ -235,7 +233,7 @@ export class BiliBiliSettings
 
         const t = [`请输入直播播放时长 (分钟)`, `number`, 8]
 
-        this.iiroseUtils.sync(2, t, set)
+        IIROSEUtils.sync(2, t, set)
 
     }
 
@@ -280,7 +278,7 @@ export class BiliBiliSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
     }
 
     public setBilibiliDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
@@ -288,7 +286,7 @@ export class BiliBiliSettings
 
         const set = (_t: HTMLElement, s: string) =>
         {
-            const api = s as 'MY' | 'Beijing' | 'Dev';
+            const api = s as 'HK' | 'Guangzhou' | 'Dev';
 
             const bilibiliSetting = localStorage.getItem('bilibiliSetting');
             if (bilibiliSetting)
@@ -308,8 +306,8 @@ export class BiliBiliSettings
         }
 
         const selectOption = [
-            ['MY', '马来西亚'],
-            ['Beijing', '中国 - 北京'],
+            ['HK', '香港-海外优化'],
+            ['Guangzhou', '广州-中国优化'],
             ['Dev', '开发者模式']
         ];
 
@@ -324,7 +322,7 @@ export class BiliBiliSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { })
 
 
     }
@@ -354,7 +352,7 @@ export class BiliBiliSettings
                 streamqn: 10000,
                 streamSeconds: 43200,
                 videoStreamFormat: 2,
-                api: 'Beijing'
+                api: 'Guangzhou'
             }
         }
     }
@@ -431,11 +429,11 @@ export class BiliBiliSettings
         }, {});
     }
 
-    public parseBilibiliApi(api: 'MY' | 'Beijing' | 'Dev')
+    public parseBilibiliApi(api: 'HK' | 'Guangzhou' | 'Dev')
     {
         const selectOption = [
-            ['MY', '马来西亚'],
-            ['Beijing', '中国 - 北京'],
+            ['HK', '香港-海外优化'],
+            ['Guangzhou', '广州-中国优化'],
             ['Dev', '开发者模式']
         ];
 

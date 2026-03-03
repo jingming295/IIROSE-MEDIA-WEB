@@ -8,8 +8,7 @@ export interface NeteaseSetting
 }
 export class NetEaseSettings
 {
-    iiroseUtils = new IIROSEUtils();
-    public setNeteaseMusicQuality(changeActionTitleAction?: (actionTitle?: string) => void)
+    public static setNeteaseMusicQuality(changeActionTitleAction?: (actionTitle?: string) => void)
     {
 
         const set = (_t: HTMLElement, s: string) =>
@@ -57,11 +56,11 @@ export class NetEaseSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
 
     }
 
-    public setNeteaseDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
+    public static setNeteaseDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
     {
         const set = (_t: HTMLElement, s: string) =>
         {
@@ -97,12 +96,12 @@ export class NetEaseSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
 
 
     }
 
-    public setNeteaseMusicLyric(changeActionTitleAction?: (actionTitle?: string) => void)
+    public static setNeteaseMusicLyric(changeActionTitleAction?: (actionTitle?: string) => void)
     {
         const set = (_t: HTMLElement, s: string) =>
         {
@@ -142,10 +141,10 @@ export class NetEaseSettings
             item.push(`<div class="${mdiClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`);
         });
 
-        this.iiroseUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
+        IIROSEUtils.buildSelect2(null, selectOption, set, false, true, null, false, null, () => { });
     }
 
-    public getNeteaseMusicSetting(): NeteaseSetting
+    public static getNeteaseMusicSetting(): NeteaseSetting
     {
         const neteaseSetting = localStorage.getItem('neteaseSetting');
         if (neteaseSetting)
@@ -161,7 +160,7 @@ export class NetEaseSettings
         }
     }
 
-    public parseNetEaseMusicQuality(quality: string)
+    public static parseNetEaseMusicQuality(quality: string)
     {
         const selectOption = [
             ['standard', '标准音质'],
@@ -180,7 +179,7 @@ export class NetEaseSettings
 
     }
 
-    public parseNetEaseMusicApi(api: string)
+    public static parseNetEaseMusicApi(api: string)
     {
         const selectOption = [
             ['default', '网易云默认API（最快）'],
@@ -191,7 +190,7 @@ export class NetEaseSettings
         return optionInText ? optionInText[1] : '网易云默认API（最快）';
     }
 
-    public parseNetEaseMusicLyricOption(lyricOption: string)
+    public static parseNetEaseMusicLyricOption(lyricOption: string)
     {
         const selectOption = [
             ['off', '关闭歌词'],

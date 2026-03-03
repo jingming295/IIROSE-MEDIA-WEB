@@ -15,14 +15,13 @@ declare global
 }
 export class Environment
 {
-    public async setEnv()
+    public static async setEnv()
     {
         window.iirosemedia = {}
         await this.setCors();
-        this.setNetease();
     }
 
-    private async setCors()
+    private static async setCors()
     {
         // const ua = navigator.userAgent;
         // const device = window.device;
@@ -40,8 +39,7 @@ export class Environment
         // } else {
         //     this.selectCorsBySpeed();
         // }
-        const sendFetch = new SendFetch();
-        const res = await sendFetch.sendGet(`https://ipinfo.io/json`, new URLSearchParams(), new Headers());
+        const res = await SendFetch.sendGet(`https://ipinfo.io/json`, new URLSearchParams(), new Headers());
 
         if (res)
         {
@@ -51,11 +49,11 @@ export class Environment
             if (data.country === 'CN')
             {
                 window.ClientLocation = 'CN';
-                window.iirosemedia.cors = `https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/`;
+                window.iirosemedia.cors = `https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/`;
             } else
             {
                 window.ClientLocation = 'Global';
-                window.iirosemedia.cors = `https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/`;
+                window.iirosemedia.cors = `https://cors-anywhere-cwimzudkuk.cn-hongkong.fcapp.run/`;
             }
 
         } else
@@ -64,11 +62,10 @@ export class Environment
         }
     }
 
-    private async selectCorsBySpeed()
+    private static async selectCorsBySpeed()
     {
         if (!window.iirosemedia) return
-        const corss = ['https://cors-anywhere-cors-dzgtzfcdbk.ap-southeast-3.fcapp.run/', 'https://cors-anywhere-iirose-uest-web-gjtxhfvear.cn-beijing.fcapp.run/'];
-        const sendFetch = new SendFetch();
+        const corss = ['https://cors-anywhere-cwimzudkuk.cn-hongkong.fcapp.run/', 'https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/'];
 
         // 存储每个请求的时间
         const requestTimes = [];
@@ -79,7 +76,7 @@ export class Environment
             try
             {
                 const startTime = performance.now(); // 获取当前时间戳
-                await sendFetch.sendGet(cors, new URLSearchParams(), new Headers());
+                await SendFetch.sendGet(cors, new URLSearchParams(), new Headers());
                 const endTime = performance.now(); // 获取请求结束时间戳
                 const elapsedTime = endTime - startTime; // 计算请求时间
                 requestTimes.push({ cors, time: elapsedTime }); // 存储请求时间
@@ -93,22 +90,6 @@ export class Environment
         // 最快的 CORS 代理
         const fastestCors = requestTimes[0].cors;
         window.iirosemedia.cors = fastestCors;
-    }
-
-    private async setNetease()
-    {
-        try
-        {
-            const sendFetch = new SendFetch
-            const xc = sendFetch.tryGetWhithXhr("https://xc.null.red:8043/meting-api/")
-            xc.then((res) =>
-            {
-                if (!res) return
-            })
-        } catch (error)
-        {
-
-        }
     }
 
 }

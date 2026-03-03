@@ -9,7 +9,7 @@ export class NeteaseMusicAPI extends SendFetch
      * @param id
      * @returns
      */
-    public async getSongListDetail(id: number)
+    public static async getSongListDetail(id: number)
     {
         const url = `${this.cors}https://music.163.com/api/v6/playlist/detail`;
         const params = new URLSearchParams({
@@ -29,7 +29,7 @@ export class NeteaseMusicAPI extends SendFetch
 
     }
 
-    public async getAlbumDetail(id: number)
+    public static async getAlbumDetail(id: number)
     {
         const url = `${this.cors}https://music.163.com/weapi/v1/album/${id}`
         const params = {
@@ -62,7 +62,7 @@ export class NeteaseMusicAPI extends SendFetch
      * @param corsnum
      * @returns
      */
-    public async getNeteaseSongDetail(ids: number[]): Promise<SongDetailSong[] | null>
+    public static async getNeteaseSongDetail(ids: number[]): Promise<SongDetailSong[] | null>
     {
         const CHUNK_SIZE = 100; // 每次最多 150 个 ids
         const allSongs: SongDetailSong[] = []; // 用于存储所有的 songs
@@ -110,7 +110,7 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getNeteaseMVDetail(id: number)
+    public static async getNeteaseMVDetail(id: number)
     {
         const url = `${this.cors}https://music.163.com/weapi/v1/mv/detail`
         const params = {
@@ -143,7 +143,7 @@ export class NeteaseMusicAPI extends SendFetch
     }
 
     // 拆分数组的辅助函数
-    private chunkArray(array: number[], size: number): number[][]
+    private static chunkArray(array: number[], size: number): number[][]
     {
         const result: number[][] = [];
         for (let i = 0; i < array.length; i += size)
@@ -153,46 +153,7 @@ export class NeteaseMusicAPI extends SendFetch
         return result;
     }
 
-    /**
-     * 访问小草的网易云音乐接口获取歌曲链接等信息
-     * @param id
-     * @param level standard 标准品质-128k higher 较高品质-192k exhigh 极高品质-320k lossless 无损品质 hires hires品质 jyeffect 高清环绕声 sky 沉浸环绕声 jymaster 超清母带
-     * @returns
-     */
-    public async getSongResource(
-        id: number,
-        level: 'standard' | 'higher' | 'exhigh' | 'lossless' | 'hires' | 'jyeffect' | 'sky' | 'jymaster' = 'exhigh',
-        type: number = 302
-    ): Promise<xcSongResource | null>
-    {
-        const url = new URL(`https://xc.null.red:8043/meting-api/`);
-        const params = new URLSearchParams({
-            id: id.toString(),
-        });
-        level && params.append('level', level);
-        type && params.append('type', type.toString());
-        const headers = new Headers();
-        headers.append('Referer', 'https://music.163.com/');
-        // 创建 AbortController 实例
-        const controller = new AbortController();
-        const signal = controller.signal;
-        // const timeout = 10000;
-        // setTimeout(() => controller.abort(), timeout);
-
-        const response = await this.sendGet(url.toString(), params, headers, false, signal);
-
-        if (response && response.ok)
-        {
-            const data: xcSongResource = await response.json();
-            console.log(data);
-            return data;
-        } else
-        {
-            return null;
-        }
-    }
-
-    public async getSongResourceFromIARC(url: string)
+    public static async getSongResourceFromIARC(url: string)
     {
         const response = await this.sendHead(url, new URLSearchParams(), new Headers(), false, false)
         if (response && response.ok)
@@ -205,7 +166,7 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getLyric(id: number)
+    public static async getLyric(id: number)
     {
         const url = `${this.cors}https://music.163.com/api/song/lyric`;
         const params = new URLSearchParams({
@@ -230,9 +191,9 @@ export class NeteaseMusicAPI extends SendFetch
         }
     }
 
-    public async getMVPlayURL(id: number)
+    public static async getMVPlayURL(id: number)
     {
-        const url = `${this.beijingcors}https://music.163.com/weapi/song/enhance/play/mv/url`;
+        const url = `${this.cncors}https://music.163.com/weapi/song/enhance/play/mv/url`;
         const params = {
             id: id,
             r: 1080,

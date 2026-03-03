@@ -3,12 +3,12 @@ import { SendFetch } from "../..";
 export class BiliBiliCourseApi extends SendFetch
 {
     /**
-     * 
+     *
      * @param season_id 课程ssid，与番剧ssid不互通
      * @param ps 每页项数，默认为50
      * @param pn 页码，默认为1
      */
-    public async getBilibiliCoursePagesData(season_id: number, ps?: number, pn?: number)
+    public static async getBilibiliCoursePagesData(season_id: number, ps?: number, pn?: number)
     {
         const url = `${this.cors}https://api.bilibili.com/pugv/view/web/ep/list`
         const params = new URLSearchParams()
@@ -31,7 +31,7 @@ export class BiliBiliCourseApi extends SendFetch
 
     }
 
-    public async getBilibiliCourseStream(
+    public static async getBilibiliCourseStream(
         aid: number | null = null,
         ep_id: number | null = null,
         cid: number,

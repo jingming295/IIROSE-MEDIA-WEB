@@ -1,5 +1,4 @@
 import { createContext } from 'preact';
-import { PlatformData } from '../../../platforms/interfaces';
 
 export const MediaContainerContext = createContext({
     color: '',

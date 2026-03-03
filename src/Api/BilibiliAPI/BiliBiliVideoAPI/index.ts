@@ -6,10 +6,10 @@ export class BiliBiliVideoApi extends SendFetch
     /**
      * 获取视频的各种信息
      * @param bvid bv号
-     * @param biliBiliSessData BiliBili SessData 
-     * @returns 
+     * @param biliBiliSessData BiliBili SessData
+     * @returns
      */
-    public async getBilibiliVideoData(aid: number | null = null, bvid: string | null = null): Promise<BVideoDetail | null>
+    public static async getBilibiliVideoData(aid: number | null = null, bvid: string | null = null): Promise<BVideoDetail | null>
     {
 
         const bcors = this.getBilibiliCors();
@@ -40,16 +40,16 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取视频流
-     * @param aid 
-     * @param bvid 
-     * @param cid 
-     * @param qn 
-     * @param platform 
-     * @param fnval 
-     * @param ctx 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param cid
+     * @param qn
+     * @param platform
+     * @param fnval
+     * @param ctx
+     * @returns
      */
-    public async getBilibiliVideoStream
+    public static async getBilibiliVideoStream
         (
             aid: number | null = null,
             bvid: string | null = null,
@@ -97,7 +97,7 @@ export class BiliBiliVideoApi extends SendFetch
         }
     }
 
-    public async getBilibiliVideoStreamFromFunctionCompute(avid: string, bvid: string, cid: string, biliBiliPlatform: string, biliBiliqn: number, remoteUrl: string)
+    public static async getBilibiliVideoStreamFromFunctionCompute(avid: string, bvid: string, cid: string, biliBiliPlatform: string, biliBiliqn: number, remoteUrl: string)
     {
         const url = remoteUrl + '/GetBiliBiliVideoStream';
         const params = new URLSearchParams({
@@ -128,10 +128,10 @@ export class BiliBiliVideoApi extends SendFetch
     /**
      * 获取视频状态数
      * @deprecated 这个接口疑似不再可用
-     * @param avid 
-     * @returns 
+     * @param avid
+     * @returns
      */
-    public async getBilibiliVideoStatus(avid: number)
+    public static async getBilibiliVideoStatus(avid: number)
     {
         const url = 'https://api.bilibili.com/archive_stat/stat';
         const params = new URLSearchParams({
@@ -154,13 +154,13 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取视频快照
-     * @param aid 
-     * @param bvid 
-     * @param cid 
-     * @param index 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param cid
+     * @param index
+     * @returns
      */
-    public async getBilibiliVideoSnapshot(aid: number | null = null, bvid: string | null = null, cid: string | null = null, index: 1 | 0 = 0)
+    public static async getBilibiliVideoSnapshot(aid: number | null = null, bvid: string | null = null, cid: string | null = null, index: 1 | 0 = 0)
     {
         const url = 'https://api.bilibili.com/x/player/videoshot';
         const params = new URLSearchParams();
@@ -187,12 +187,12 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 点赞视频
-     * @param aid 
-     * @param bvid 
+     * @param aid
+     * @param bvid
      * @param like 1: 点赞 2: 取消点赞, 3: 点踩, 4: 取消点踩
-     * @returns 
+     * @returns
      */
-    public async likeOrDislikeBilibiliVideo(aid: number | null = null, bvid: string | null = null, like: 1 | 2 | 3 | 4)
+    public static async likeOrDislikeBilibiliVideo(aid: number | null = null, bvid: string | null = null, like: 1 | 2 | 3 | 4)
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/like';
         const params = new URLSearchParams({
@@ -222,11 +222,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 检查是否已经点赞/点踩
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async checkIsLikedAndUnliked(aid: number | null = null, bvid: string | null = null): Promise<hasLiked | null>
+    public static async checkIsLikedAndUnliked(aid: number | null = null, bvid: string | null = null): Promise<hasLiked | null>
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/has/like';
         const params = new URLSearchParams();
@@ -249,13 +249,13 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 投币视频
-     * @param aid 
-     * @param bvid 
-     * @param multilpy 
-     * @param select_like 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param multilpy
+     * @param select_like
+     * @returns
      */
-    public async addCoin(aid: number | null = null, bvid: string | null = null, multilpy: 1 | 2, select_like: 0 | 1)
+    public static async addCoin(aid: number | null = null, bvid: string | null = null, multilpy: 1 | 2, select_like: 0 | 1)
     {
         const url = 'https://api.bilibili.com/x/web-interface/coin/add';
         const params = new URLSearchParams({
@@ -287,11 +287,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 检查是否已经投币
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async checkIsAddedCoin(aid: number | null = null, bvid: string | null = null)
+    public static async checkIsAddedCoin(aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/coins';
         const params = new URLSearchParams();
@@ -314,12 +314,12 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 收藏或者取消收藏视频
-     * @param aid 
-     * @param add_media_ids 
-     * @param del_media_ids 
-     * @returns 
+     * @param aid
+     * @param add_media_ids
+     * @param del_media_ids
+     * @returns
      */
-    public async addFavorite(aid: number, add_media_ids: number[] | null = null, del_media_ids: number[] | null = null)
+    public static async addFavorite(aid: number, add_media_ids: number[] | null = null, del_media_ids: number[] | null = null)
     {
         const url = 'https://api.bilibili.com/x/v3/fav/resource/deal';
         const params = new URLSearchParams({
@@ -349,10 +349,10 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 检查是否已经收藏
-     * @param aid 
-     * @returns 
+     * @param aid
+     * @returns
      */
-    public async checkIsFavorite(aid: number): Promise<isAddFavorited | null>
+    public static async checkIsFavorite(aid: number): Promise<isAddFavorited | null>
     {
         const url = 'https://api.bilibili.com/x/v2/fav/video/favoured';
         const params = new URLSearchParams({
@@ -375,11 +375,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 一键三连
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async archiveLikeTriple(aid: number | null = null, bvid: string | null = null)
+    public static async archiveLikeTriple(aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/like/triple';
         const params = new URLSearchParams({
@@ -407,11 +407,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 分享视频（仅仅为了增加那个分享数）
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async shareVideo(aid: number | null = null, bvid: string | null = null)
+    public static async shareVideo(aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://api.bilibili.com/x/web-interface/share/add';
         const params = new URLSearchParams({
@@ -439,11 +439,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取视频标签
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async getVideoTags(aid: number | null = null, bvid: string | null = null)
+    public static async getVideoTags(aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://api.bilibili.com/x/tag/archive/tags';
         const params = new URLSearchParams();
@@ -465,11 +465,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 点赞标签, 重复访问会取消点赞
-     * @param aid 
-     * @param tag_id 
-     * @returns 
+     * @param aid
+     * @param tag_id
+     * @returns
      */
-    public async likeTag(aid: number, tag_id: number)
+    public static async likeTag(aid: number, tag_id: number)
     {
         const url = 'https://api.bilibili.com/x/tag/archive/like2';
         const params = new URLSearchParams({
@@ -502,11 +502,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 点踩标签, 重复访问会取消点踩
-     * @param aid 
-     * @param tag_id 
-     * @returns 
+     * @param aid
+     * @param tag_id
+     * @returns
      */
-    public async dislikeTag(aid: number, tag_id: number)
+    public static async dislikeTag(aid: number, tag_id: number)
     {
         const url = 'https://api.bilibili.com/x/tag/archive/hate2';
         const params = new URLSearchParams({
@@ -533,11 +533,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 根据视频获取推荐视频
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async getRecommandVideoFromSingleVideo(aid: number | null = null, bvid: string | null = null)
+    public static async getRecommandVideoFromSingleVideo(aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/related';
         const params = new URLSearchParams();
@@ -562,14 +562,14 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取主页推荐视频
-     * @param fresh_type 
-     * @param version 
+     * @param fresh_type
+     * @param version
      * @param ps 获取多少，最多30
-     * @param fresh_idx 
-     * @param fresh_idx_1h 
-     * @returns 
+     * @param fresh_idx
+     * @param fresh_idx_1h
+     * @returns
      */
-    public async getRecommendVideoFromMainPage
+    public static async getRecommendVideoFromMainPage
         (
             fresh_type: number = 3,
             version: number = 1,
@@ -608,12 +608,12 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取推荐短视频
-     * @param fnval 
-     * @param force_host 
-     * @param fourk 
-     * @returns 
+     * @param fnval
+     * @param force_host
+     * @param fourk
+     * @returns
      */
-    public async getRecommendShortVideo(
+    public static async getRecommendShortVideo(
         fnval: number = 272,
         force_host: number = 2,
         fourk: number = 1
@@ -643,13 +643,13 @@ export class BiliBiliVideoApi extends SendFetch
     /**
      * 获取互动视频详情
      * @see{}
-     * @param aid 
-     * @param bvid 
-     * @param graph_version 
-     * @param edge_id 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param graph_version
+     * @param edge_id
+     * @returns
      */
-    public async getInteractiveVideoDetail
+    public static async getInteractiveVideoDetail
         (
             aid: number | null = null,
             bvid: string | null = null,
@@ -683,12 +683,12 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取弹幕趋势顶点列表
-     * @param cid 
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param cid
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async getHighEnergyBarList(cid: number, aid: number | null = null, bvid: string | null = null)
+    public static async getHighEnergyBarList(cid: number, aid: number | null = null, bvid: string | null = null)
     {
         const url = 'https://bvc.bilivideo.com/pbp/data';
         const params = new URLSearchParams({
@@ -714,13 +714,13 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 设置观看历史 (在视频的哪一秒)
-     * @param aid 
-     * @param cid 
-     * @param progress 
-     * @param platform 
-     * @returns 
+     * @param aid
+     * @param cid
+     * @param progress
+     * @param platform
+     * @returns
      */
-    public async setViewHistory(aid: number, cid: number, progress: number = 0, platform: string = ''): Promise<reportResult | null>
+    public static async setViewHistory(aid: number, cid: number, progress: number = 0, platform: string = ''): Promise<reportResult | null>
     {
         const url = 'https://api.bilibili.com/x/v2/history/report';
         const params = new URLSearchParams({
@@ -748,22 +748,22 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 上报心跳
-     * @param aid 
-     * @param bvid 
-     * @param cid 
-     * @param epid 
-     * @param sid 
-     * @param mid 
-     * @param played_time 
-     * @param realtime 
-     * @param start_ts 
-     * @param type 
-     * @param sub_type 
-     * @param dt 
-     * @param play_type 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param cid
+     * @param epid
+     * @param sid
+     * @param mid
+     * @param played_time
+     * @param realtime
+     * @param start_ts
+     * @param type
+     * @param sub_type
+     * @param dt
+     * @param play_type
+     * @returns
      */
-    public async postHeartbeat
+    public static async postHeartbeat
         (
             aid: number | null = null,
             bvid: string | null = null,
@@ -814,11 +814,11 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取当前在线观看人数
-     * @param aid 
-     * @param bvid 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @returns
      */
-    public async getCurrentOnlineViewers(aid: number | null = null, bvid: string | null = null, cid: number)
+    public static async getCurrentOnlineViewers(aid: number | null = null, bvid: string | null = null, cid: number)
     {
         const url = 'https://api.bilibili.com/x/player/online/total';
         const params = new URLSearchParams({
@@ -843,14 +843,14 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取AI总结内容
-     * @param aid 
-     * @param bvid 
-     * @param cid 
-     * @param up_mid 
-     * @param ctx 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param cid
+     * @param up_mid
+     * @param ctx
+     * @returns
      */
-    public async getAIConclusionAboutVideo(
+    public static async getAIConclusionAboutVideo(
         aid: number | null = null,
         bvid: string | null = null,
         cid: number,
@@ -886,16 +886,16 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 点赞或者取消点赞AI总结
-     * @param aid 
-     * @param bvid 
-     * @param cid 
-     * @param up_mid 
-     * @param stid 
-     * @param like_state 
-     * @param ctx 
-     * @returns 
+     * @param aid
+     * @param bvid
+     * @param cid
+     * @param up_mid
+     * @param stid
+     * @param like_state
+     * @param ctx
+     * @returns
      */
-    public async likeAndDislikeAIConclusion
+    public static async likeAndDislikeAIConclusion
         (
             aid: number | null = null,
             bvid: string | null = null,
@@ -935,9 +935,9 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取投诉类型
-     * @returns 
+     * @returns
      */
-    public async getAppealType()
+    public static async getAppealType()
     {
         const url = 'https://api.bilibili.com/x/web-interface/archive/appeal/tags';
         const headers = this.returnBilibiliHeaders();
@@ -955,13 +955,13 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 投诉稿件
-     * @param aid 
-     * @param tid 
-     * @param desc 
-     * @param attach 
-     * @returns 
+     * @param aid
+     * @param tid
+     * @param desc
+     * @param attach
+     * @returns
      */
-    public async makeAppeal
+    public static async makeAppeal
         (
             aid: number,
             tid: number,
@@ -992,14 +992,14 @@ export class BiliBiliVideoApi extends SendFetch
 
     /**
      * 获取视频合集信息
-     * @param mid 
-     * @param season_id 
-     * @param sort_reverse 
-     * @param page_num 
-     * @param page_size 
-     * @returns 
+     * @param mid
+     * @param season_id
+     * @param sort_reverse
+     * @param page_num
+     * @param page_size
+     * @returns
      */
-    public async getSeasonArchivesList
+    public static async getSeasonArchivesList
         (
             mid: number,
             season_id: number,
@@ -1029,7 +1029,7 @@ export class BiliBiliVideoApi extends SendFetch
         }
     }
 
-    public async getBilibiliPagesAndCids(aid: number | null = null, bvid: string | null = null)
+    public static async getBilibiliPagesAndCids(aid: number | null = null, bvid: string | null = null)
     {
         const bcors = this.getBilibiliCors();
         const url = `${bcors}https://api.bilibili.com/x/player/pagelist`

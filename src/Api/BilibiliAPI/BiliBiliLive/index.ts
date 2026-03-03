@@ -3,11 +3,11 @@ import { SendFetch } from "../..";
 export class BiliBiliLiveApi extends SendFetch
 {
     /**
-     * 
-     * @param roomId 
-     * @returns 
+     *
+     * @param roomId
+     * @returns
      */
-    public async getLiveRoomDetail(roomId: number)
+    public static async getLiveRoomDetail(roomId: number)
     {
         const bcors = this.getBilibiliCors()
         const url = `${bcors}https://api.live.bilibili.com/room/v1/Room/get_info`;
@@ -36,10 +36,10 @@ export class BiliBiliLiveApi extends SendFetch
     /**
      * 获取用户对应的直播间状态 (根据用户mid)
      * @see {@link https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/live/info.md}
-     * @param mid 
-     * @returns 
+     * @param mid
+     * @returns
      */
-    public async getLiveRoomStatusByMid(mid: number)
+    public static async getLiveRoomStatusByMid(mid: number)
     {
         const url = 'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld';
         const params = new URLSearchParams({
@@ -59,10 +59,10 @@ export class BiliBiliLiveApi extends SendFetch
 
     /**
      * 获取房间页初始化信息
-     * @param id 
-     * @returns 
+     * @param id
+     * @returns
      */
-    public async getLiveRoomInitDetail(id: number)
+    public static async getLiveRoomInitDetail(id: number)
     {
         const url = 'https://api.live.bilibili.com/room/v1/Room/room_init';
         const params = new URLSearchParams({
@@ -82,10 +82,10 @@ export class BiliBiliLiveApi extends SendFetch
 
     /**
      * 获取主播信息
-     * @param uid 
-     * @returns 
+     * @param uid
+     * @returns
      */
-    public async getLiveUserDetail(uid: number)
+    public static async getLiveUserDetail(uid: number)
     {
         const url = 'https://api.live.bilibili.com/live_user/v1/Master/info';
         const params = new URLSearchParams({
@@ -105,18 +105,18 @@ export class BiliBiliLiveApi extends SendFetch
 
     /**
      * 获取直播间信息
-     * @param room_id 
-     * @param protocol 
-     * @param format 
-     * @param codec 
-     * @param qn 
-     * @param platform 
-     * @param ptype 
-     * @param dolby 
-     * @param panorama 
-     * @returns 
+     * @param room_id
+     * @param protocol
+     * @param format
+     * @param codec
+     * @param qn
+     * @param platform
+     * @param ptype
+     * @param dolby
+     * @param panorama
+     * @returns
      */
-    public async getLiveRoomPlayInfo
+    public static async getLiveRoomPlayInfo
         (
             room_id: number,
             protocol: string,
@@ -153,7 +153,7 @@ export class BiliBiliLiveApi extends SendFetch
         }
     }
 
-    public async getLiveStream
+    public static async getLiveStream
         (
             cid: number,
             platform: string | null = null,

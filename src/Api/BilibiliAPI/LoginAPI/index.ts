@@ -2,7 +2,7 @@ import { SendFetch } from '../..';
 
 export class BiliBiliLoginApi extends SendFetch
 {
-    public async QRLogin(qrcode_key: string)
+    public static async QRLogin(qrcode_key: string)
     {
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/poll`;
         const headers = this.returnBilibiliHeaders();
@@ -29,7 +29,7 @@ export class BiliBiliLoginApi extends SendFetch
         }
     }
 
-    async getQRCode()
+    public static async getQRCode()
     {
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/generate`;
         const headers = this.returnBilibiliHeaders();
@@ -45,7 +45,7 @@ export class BiliBiliLoginApi extends SendFetch
         }
     }
 
-    public async accountStatusAPI(csrf: string)
+    public static async accountStatusAPI(csrf: string)
     {
         const url = 'https://passport.bilibili.com/x/passport-login/web/cookie/info';
         const params = new URLSearchParams({
@@ -74,9 +74,9 @@ export class BiliBiliLoginApi extends SendFetch
 
     /**
      * 获取buvid (游览器指纹?)
-     * @returns 
+     * @returns
      */
-    public async getBuvid()
+    public static async getBuvid()
     {
         const url = `${this.cors}https://api.bilibili.com/x/frontend/finger/spi`;
         const bParams = this.returnBilibiliHeadersParam();
@@ -96,9 +96,9 @@ export class BiliBiliLoginApi extends SendFetch
      * 还没做好，不清楚是什么问题
      * @see {@link https://github.com/SocialSisterYi/bilibili-API-collect/issues/686}
      * @see {@link https://github.com/SocialSisterYi/bilibili-API-collect/issues/933}
-     * @returns 
+     * @returns
      */
-    public async activateCookie()
+    public static async activateCookie()
     {
         const url = 'https://api.bilibili.com/x/internal/gaia-gateway/ExClimbWuzhi';
         const headers = this.returnBilibiliHeaders();
@@ -383,7 +383,7 @@ export class BiliBiliLoginApi extends SendFetch
     //     return encrypted.reduce((str, c) => str + c.toString(16).padStart(2, "0"), "");
     // }
 
-    // public async getrefresh_csfr(correspondPath: string, biliBiliSessData: string)
+    // public static async getrefresh_csfr(correspondPath: string, biliBiliSessData: string)
     // {
     //     const url = `https://www.bilibili.com/correspond/1/${correspondPath}`;
     //     const headers = this.returnBilibiliHeaders(biliBiliSessData);
@@ -409,9 +409,9 @@ export class BiliBiliLoginApi extends SendFetch
      * @param refresh_csrf 实时刷新口令，通过getrefresh_csfr 获得
      * @param refresh_token 持久化刷新口令，在localStorage 中的ac_time_value字段
      * @param biliBiliSessData SESSDATA
-     * @returns 
+     * @returns
      */
-    // public async refreshCookie(csrf: string, refresh_csrf: string, refresh_token: string, biliBiliSessData: string)
+    // public static async refreshCookie(csrf: string, refresh_csrf: string, refresh_token: string, biliBiliSessData: string)
     // {
     //     const url = 'https://passport.bilibili.com/x/passport-login/web/cookie/refresh';
     //     const data = new URLSearchParams({
@@ -453,7 +453,7 @@ export class BiliBiliLoginApi extends SendFetch
     //     }
     // }
 
-    // public async confirmRefreshCookie(csrf: string, refresh_token: string, biliBiliSessData: string)
+    // public static async confirmRefreshCookie(csrf: string, refresh_token: string, biliBiliSessData: string)
     // {
 
     //     const url = 'https://passport.bilibili.com/x/passport-login/web/confirm/refresh';
@@ -480,7 +480,7 @@ export class BiliBiliLoginApi extends SendFetch
     //     }
     // }
 
-    public async getNavUserData(sessdata?: string)
+    public static async getNavUserData(sessdata?: string)
     {
         const url = `${this.cors}https://api.bilibili.com/x/web-interface/nav`;
         const params = new URLSearchParams

@@ -3,7 +3,7 @@ import { SendFetch } from "../..";
 
 export class BiliBiliMovieApi extends SendFetch
 {
-    public async getMovieDetailMDID(media_id: string)
+    public static async getMovieDetailMDID(media_id: string)
     {
         const url = 'https://api.bilibili.com/pgc/review/user';
         const params = new URLSearchParams({
@@ -25,9 +25,9 @@ export class BiliBiliMovieApi extends SendFetch
      * 获取Bangumi的各种信息
      * @param season_id bilibili season_id
      * @param ep_id bilibili ep_id
-     * @returns 
+     * @returns
      */
-    public async getMovieDetailEPSS
+    public static async getMovieDetailEPSS
         (
             season_id: number | null = null,
             ep_id: number | null = null,
@@ -53,7 +53,7 @@ export class BiliBiliMovieApi extends SendFetch
         }
     }
 
-    public async getMovieSeasonSection(season_id: number)
+    public static async getMovieSeasonSection(season_id: number)
     {
         const url = 'https://api.bilibili.com/pgc/web/season/section';
         const params = new URLSearchParams({
@@ -76,9 +76,9 @@ export class BiliBiliMovieApi extends SendFetch
      * @param ep bilibili ep
      * @param biliBiliSessData BiliBili SessData
      * @param biliBiliqn BiliBiliqn
-     * @returns 
+     * @returns
      */
-    public async getMovieStream
+    public static async getMovieStream
         (
             avid: number | null = null,
             bvid: number | null = null,
@@ -124,13 +124,13 @@ export class BiliBiliMovieApi extends SendFetch
 
     /**
      * fc
-     * @param ep 
-     * @param biliBiliSessData 
-     * @param biliBiliqn 
-     * @param remoteUrl 
-     * @returns 
+     * @param ep
+     * @param biliBiliSessData
+     * @param biliBiliqn
+     * @param remoteUrl
+     * @returns
      */
-    public async getMovieStreamFromFunctionCompute(ep: number, biliBiliqn: number, remoteUrl: string)
+    public static async getMovieStreamFromFunctionCompute(ep: number, biliBiliqn: number, remoteUrl: string)
     {
         const url = remoteUrl + '/GetBiliBiliBangumiStream';
         const params = new URLSearchParams({
@@ -157,12 +157,12 @@ export class BiliBiliMovieApi extends SendFetch
 
     /**
      * 获取番剧时间线
-     * @param types 
-     * @param before 
-     * @param after 
-     * @returns 
+     * @param types
+     * @param before
+     * @param after
+     * @returns
      */
-    public async getMovieTimeLine(
+    public static async getMovieTimeLine(
         types: string,
         before: number,
         after: number,
@@ -190,7 +190,7 @@ export class BiliBiliMovieApi extends SendFetch
 
     }
 
-    public async followMovie(season_id: number)
+    public static async followMovie(season_id: number)
     {
         const url = 'https://api.bilibili.com/pgc/web/follow/add';
         const params = new URLSearchParams({
@@ -214,7 +214,7 @@ export class BiliBiliMovieApi extends SendFetch
         }
     }
 
-    public async unfollowMovie(season_id: number)
+    public static async unfollowMovie(season_id: number)
     {
         const url = 'https://api.bilibili.com/pgc/web/follow/del';
         const params = new URLSearchParams({

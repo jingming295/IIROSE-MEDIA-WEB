@@ -1,5 +1,4 @@
 import { Component } from 'preact';
-import { PlatformData } from "../../../platforms/interfaces";
 
 interface MediaCardInfoProps
 {

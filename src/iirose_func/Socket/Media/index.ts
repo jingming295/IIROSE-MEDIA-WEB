@@ -1,4 +1,3 @@
-import { MediaData } from "./MediaCardInterface";
 export class Media
 {
     public mediaCard(media: MediaData)

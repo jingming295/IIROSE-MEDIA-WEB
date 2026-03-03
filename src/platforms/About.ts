@@ -2,10 +2,9 @@ import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 
 export class About
 {
-    iiroseUtils = new IIROSEUtils();
     async aboutCreator()
     {
-        this.iiroseUtils.getUserCard('61f7881cd4538')
+        IIROSEUtils.getUserCard('61f7881cd4538')
     }
 
     async aboutDonate()
@@ -28,7 +27,7 @@ export class About
             [0, `爱发电`, `${this.generatePic(`https://static.afdiancdn.com/static/img/logo/logo.png`)}`],
             [1, `Github Sponsor`, `${this.generatePic(`http://r.iirose.com/i/24/9/28/19/3436-QA.png`)}`],
         ]
-        this.iiroseUtils.buildSelect2(null, selectOption, DonatePlatform, false, true, null, false, null, () => { })
+        IIROSEUtils.buildSelect2(null, selectOption, DonatePlatform, false, true, null, false, null, () => { })
 
 
     }
@@ -45,10 +44,10 @@ export class About
         const DonatePerson = async (_t: HTMLElement, s: string) =>
         {
             await ShowOrHideIMC()
-            this.iiroseUtils.getUserCard(s)
+            IIROSEUtils.getUserCard(s)
         }
 
-        this.iiroseUtils.buildSelect2(null, selectOption, DonatePerson, false, true, null, false, null, () => { })
+        IIROSEUtils.buildSelect2(null, selectOption, DonatePerson, false, true, null, false, null, () => { })
 
 
     }

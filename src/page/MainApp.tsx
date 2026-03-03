@@ -1,6 +1,8 @@
 import { Component } from 'preact';
 import { MainNavigationBar } from './components/navigationBar/main/MainNavigationBar';
 import { MainAppContainer } from './MainAppContainer';
+import { LocalStorageUtils } from '../settings/localStorageUtils/LocalStorageUtils';
+import { PluginSettings } from '../settings/pluginSettings/PluginSettings';
 
 interface MainAppState
 {
@@ -20,10 +22,16 @@ interface MainAppProps
 
 export class MainApp extends Component<MainAppProps, MainAppState>
 {
-    state = {
-        CategoriesIndex: 0,
-        needOutFromMultiPage: false,
-        needOutFromSettings: false,
+
+    constructor(props: MainAppProps)
+    {
+        super(props);
+        LocalStorageUtils.Init();
+        this.state = {
+            CategoriesIndex: PluginSettings.getPluginSetting().defaultPage,
+            needOutFromMultiPage: false,
+            needOutFromSettings: false,
+        }
     }
 
     itemsPerPage = 10;
@@ -50,6 +58,7 @@ export class MainApp extends Component<MainAppProps, MainAppState>
                 <MainNavigationBar
                     switchCategories={this.switchCategories}
                     ShowHideMainApp={this.props.ShowHideMainApp}
+                    activeButtonIndex={CategoriesIndex}
                 />
                 <MainAppContainer
                     CategoriesIndex={CategoriesIndex}
@@ -65,7 +74,7 @@ export class MainApp extends Component<MainAppProps, MainAppState>
     }
 
     /**
-     * 
+     *
      * @param index 0: 视频 1: 音乐 2: 设置 3: 关于
      */
     protected switchCategories = async (index: number) =>

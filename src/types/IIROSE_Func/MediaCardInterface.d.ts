@@ -1,4 +1,4 @@
-export interface MediaData
+interface MediaData
 {
     type: 'music' | 'video';
     name: string;
@@ -10,5 +10,5 @@ export interface MediaData
     bitRate: number;
     color: string;
     lyrics?: string;
-    origin?: 'netease' | 'bilibili' | 'bilibililive' | 'video' | 'netEaseMV' | 'null' | 'undefined' | null;
+    origin?: 'netease' | 'bilibili' | 'bilibililive' | 'video' | 'netEaseMV' | 'null' | 'undefined' | 'qqmusic' | null;
 }

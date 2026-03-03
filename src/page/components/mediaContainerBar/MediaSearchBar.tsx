@@ -21,9 +21,8 @@ export class MediaSearchBar extends Component<MediaSearchBarProps>
 {
     public searchInput()
     {
-        const iiroseUtils = new IIROSEUtils();
         const changeSearchKeyWord = this.props.mediaSearchBarActions.changeSearchKeyword;
-        iiroseUtils.sync(2, ['搜索', '', 100], changeSearchKeyWord)
+        IIROSEUtils.sync(2, ['搜索', '', 100], changeSearchKeyWord)
     }
 
     public async nextPage(currentPage: number, totalPage: number)
@@ -48,7 +47,6 @@ export class MediaSearchBar extends Component<MediaSearchBarProps>
     {
         const { searchKeyword, currentPage, totalPage, isCurrentInMultiPage, mediaSearchBarActions } = this.props;
         let pages = '-/-';
-
         if (totalPage)
         {
             pages = `${currentPage}/${totalPage}`;
@@ -82,7 +80,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps>
 
                         {
                             isCurrentInMultiPage &&
-                            <div className='returnButtonWrapper PaginationControllerButtonWrapper' onClick={() => mediaSearchBarActions.switchToOutFromMultiPage}>
+                            <div className='returnButtonWrapper PaginationControllerButtonWrapper' onClick={mediaSearchBarActions.switchToOutFromMultiPage}>
                                 <div className='returnIcon'></div>
                                 <div className='PaginationControllerButton'>返回</div>
                             </div>

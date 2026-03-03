@@ -2,57 +2,48 @@ import { Component } from 'preact';
 import { MediaSearchBar } from './components/mediaContainerBar/MediaSearchBar';
 import { PlatformSelector } from './components/mediaContainerBar/PlatformSelector';
 import { MediaContainerSubNavBar } from './components/mediaContainerBar/MediaContainerSubNavBar';
-import { MediaCard } from '../iirose-media-component/media-container/media-card-container/MediaCard';
-import { PlatformData } from '../platforms/interfaces';
-import { MediaContainerContext, Provider } from '../iirose-media-component/media-container/media-container-context/MediaContainerContext';
+import { MediaCard } from './components/media-card-container/MediaCard';
 import { BilibiliPlatform } from '../platforms/BilibiliPlatform';
 import { NetEasePlatform } from '../platforms/NetEasePlatform';
-import { GetBiliBiliAccount } from '../Account/BiliBili/GetBiliBili';
-import { BiliBiliSettings } from '../settings/bilibiliSettings/BiliBiliSettings';
-import { NetEaseSettings } from '../settings/neteaseSettings/NetEaseSettings';
-import { About } from '../platforms/About';
-import { PluginSettings } from '../settings/pluginSettings/PluginSettings';
+import { AllVideosPlatform } from '../platforms/AllVideosPlatform';
+import { SendFetch } from '../Api';
+import { MediaContainerContext, Provider } from './components/media-container-context/MediaContainerContext';
+import { BilibiliService } from './MainAppContainerServices/BilibiliService';
+import { AllVideosService } from './MainAppContainerServices/AllVideoService';
+import { AboutService } from './MainAppContainerServices/AboutService';
+import { SettingsService } from './MainAppContainerServices/SettingsService';
+import { NetEaseService } from './MainAppContainerServices/NetEaseService';
+import { MediaContainerGesture } from './MainAppContainerServices/MediaContainerGesture';
+import { JOOXService } from './MainAppContainerServices/JOOXService';
 
-interface MainAppContainerProps
-{
-    CategoriesIndex: number;
-    needOutFromMultiPage: boolean;
-    needOutFromSettings: boolean;
-    searchKeyword: string;
-    active: boolean;
-    changeSearchKeyword: (keyword: string | null) => void
-    ShowOrHideIMC: () => Promise<void>;
-}
 
-interface MainAppContainerState
-{
-    PlatformIndex: number;
-    searchKeyword: string;
-    SubNavBarIndex: number;
-    mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null;
-    allMediaData: PlatformData[];
-    currentPage: number;
-    updating: boolean;
-    totalPage: number;
-    oldItems: OldItems | null;
-    settingsData: SettingData[] | null;
-    isCurrentInMultiPage: boolean;
-    requestToken: number;
-    onlineCount: number;
-    currentSubNavBarAction: () => void;
-    currentOnDemandPlay: (platformData: PlatformData) => void;
-}
 
 export class MainAppContainer extends Component<MainAppContainerProps, MainAppContainerState>
 {
     static contextType = MediaContainerContext;
     private itemsPerPage = 10
+    bilibiliRefreshCount = 1
     mediaContainerGesture = new MediaContainerGesture(this.props.ShowOrHideIMC);
-    private intervalId: NodeJS.Timeout | null = null;
 
     constructor(props: MainAppContainerProps)
     {
         super(props);
+        this.state = {
+            searchKeyword: '',
+            SubNavBarIndex: 0,
+            currentPage: 1,
+            updating: false,
+            totalPage: 0,
+            PlatformIndex: 0,
+            isCurrentInMultiPage: false,
+            mediaData: null as Promise<{ platformData: PlatformData[], totalPage: number }> | null,
+            allMediaData: [] as PlatformData[],
+            oldItems: null as OldItems | null,
+            settingsData: null as SettingData[] | null,
+            requestToken: 0,
+            currentSubNavBarAction: () => { },
+            currentOnDemandPlay: () => { },
+        }
     }
 
     sleep(ms: number): Promise<void>
@@ -60,38 +51,12 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // 定义 API 调用的类型
-    callAPI = async (): Promise<void> =>
-    {
-        try
-        {
-            const { settingsData } = this.state;
-            await fetch(`https://xc.null.red:8043/api/online/heartbeat?t=mingmedia&_=${Date.now()}`);
-            await this.sleep(200);
-            const response = await fetch(`https://xc.null.red:8043/api/online/list?t=mingmedia&_=${Date.now()}`);
-            const data: { online: number } = await response.json();
-            this.setState({ onlineCount: data.online });
-            if (settingsData)
-            {
-                if (settingsData[0].title === '作者')
-                {
-                    this.AboutAction.about()
-                }
-            }
-
-        } catch (error)
-        {
-            console.error(error);
-        }
-    };
-
     componentDidUpdate(prevProps: Readonly<MainAppContainerProps>, prevState: Readonly<MainAppContainerState>): void
     {
 
         const { needOutFromMultiPage, needOutFromSettings } = this.props;
         const { settingsData, isCurrentInMultiPage, oldItems, mediaData, allMediaData, totalPage } = this.state;
         const propsSearchKeyword = this.props.searchKeyword;
-
         const prevPropsSearchKeyword = prevProps.searchKeyword;
 
         if (prevState.SubNavBarIndex !== this.state.SubNavBarIndex)
@@ -165,22 +130,6 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
             this.setState({ totalPage: 0, currentPage: 1, allMediaData: [], mediaData: null });
         }
 
-        // 设置定时器
-        if (!this.intervalId)
-        {
-            this.callAPI();
-            this.intervalId = setInterval(this.callAPI, 2 * 60 * 1000);
-        }
-
-    }
-
-    componentWillUnmount(): void
-    {
-        // 组件卸载时清除定时器
-        if (this.intervalId)
-        {
-            clearInterval(this.intervalId);
-        }
     }
 
     render()
@@ -207,7 +156,6 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
             updateCurrentInMultiPageStatus,
             ShowOrHideIMC
         }
-
         return (
             <Provider value={providerValue}>
                 <div
@@ -268,29 +216,11 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
         );
     }
 
-    state = {
-        searchKeyword: '',
-        SubNavBarIndex: 0,
-        currentPage: 1,
-        updating: false,
-        totalPage: 0,
-        PlatformIndex: 0,
-        isCurrentInMultiPage: false,
-        mediaData: null as Promise<{ platformData: PlatformData[], totalPage: number }> | null,
-        allMediaData: [] as PlatformData[],
-        oldItems: null as OldItems | null,
-        settingsData: null as SettingData[] | null,
-        requestToken: 0,
-        onlineCount: 0,
-        currentSubNavBarAction: () => { },
-        currentOnDemandPlay: () => { },
-    }
-
     private controller = {
         /**
          * @description 更新目前的页面
-         * @param page 
-         * @returns 
+         * @param page
+         * @returns
          */
         changecurrentPage: async (page: number) =>
         {
@@ -302,8 +232,8 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
         /**
          * @description 更新平台的子选项
-         * @param current 
-         * @param prev 
+         * @param current
+         * @param prev
          */
         updateSubNavBarIndex: async (current: number) =>
         {
@@ -313,7 +243,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
         /**
          * @description 更新平台的子选项点下去之后会发生什么
-         * @param action 
+         * @param action
          */
         updateCurrentSubNavBarAction: (action: () => void) =>
         {
@@ -322,7 +252,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
         /**
          * @description 更新目前是否在多集页面里面
-         * @param status 
+         * @param status
          */
         updateCurrentInMultiPageStatus: (status: boolean) =>
         {
@@ -331,7 +261,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
         /**
          * 更新平台
-         * @param index 
+         * @param index
          */
         switchPlatform: (index: number) =>
         {
@@ -340,10 +270,10 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
         /**
          * @description 切换到多集页面
-         * @param platformData 
-         * @param isCurrentInMultiPage 
+         * @param platformData
+         * @param isCurrentInMultiPage
          */
-        switchToMultiPage: (platformData: PlatformData, isCurrentInMultiPage?: boolean) =>
+        switchToMultiPage: async (platformData: PlatformData, isCurrentInMultiPage?: boolean) =>
         {
             if (platformData.bilibili)
             {
@@ -366,13 +296,10 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
 
             } else if (platformData.neteaseMusic?.isSongList)
             {
-                const netEase = new NetEasePlatform()
-                const data = netEase.getSongListMultiPageData(platformData);
-
-                const MOD = netEase.MOD.bind(netEase);
+                const data = NetEasePlatform.getSongListMultiPageData(platformData);
                 this.setState({ currentPage: 1, totalPage: 0 });
                 this.setState({ mediaData: data });
-                this.setState({ currentOnDemandPlay: MOD });
+                this.setState({ currentOnDemandPlay: NetEasePlatform.MOD });
 
                 data.then((res) =>
                 {
@@ -386,13 +313,11 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                 })
             } else if (platformData.neteaseMusic?.isAlbum)
             {
-                const netEase = new NetEasePlatform()
-                const data = netEase.getAlbumMultiPageData(platformData);
+                const data = NetEasePlatform.getAlbumMultiPageData(platformData);
 
-                const MOD = netEase.MOD.bind(netEase);
                 this.setState({ currentPage: 1, totalPage: 0 });
                 this.setState({ mediaData: data });
-                this.setState({ currentOnDemandPlay: MOD });
+                this.setState({ currentOnDemandPlay: NetEasePlatform.MOD });
 
                 data.then((res) =>
                 {
@@ -405,13 +330,54 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                     }
                 })
 
+            } else
+            {
+                const multipage = await platformData.multiPage;
+                if (!multipage) return;
+                if (multipage.platform === 'video')
+                {
+                    // 1. 获取当前点击资源对应的完整数据（从 state 或直接从传入的 platformData）
+                    // 注意：你提供的 JSON 结构显示 playList 已经存在于 platformData 中
+                    const playList = platformData.playList || [];
+
+                    // 2. 将 playList 转换为 PlatformData 数组
+                    const multiPageDatas: PlatformData[] = playList.map((item) => ({
+                        title: `${platformData.title}`, // "第01集"
+                        coverImg: platformData.coverImg,
+                        author: item.episode,
+                        websiteUrl: item.url, // 视频流地址或详情页
+                        multiPage: Promise.resolve(undefined), // 标记为单页
+                        playList: [item] // 包含单个播放项
+                    }));
+
+                    // 3. 计算总页数（假设 itemPerPage 是 10）
+                    const itemsPerPage = 10;
+                    const totalPage = Math.ceil(multiPageDatas.length / itemsPerPage);
+
+                    // 4. 更新 State
+                    const VOD = new AllVideosPlatform().VOD.bind(new AllVideosPlatform());
+
+                    this.setState({
+                        currentPage: 1,
+                        totalPage: totalPage,
+                        // 将数据包装成 Promise 格式以兼容 MediaCard 的 props
+                        mediaData: Promise.resolve({
+                            platformData: multiPageDatas.slice(0, itemsPerPage),
+                            totalPage: totalPage
+                        }),
+                        allMediaData: multiPageDatas, // 存储完整列表供翻页使用
+                        currentOnDemandPlay: VOD
+                    });
+
+                    console.log("Video MultiPage 构建完成，总集数:", multiPageDatas.length);
+                }
             }
 
         },
 
         /**
          * @description 退出多集页面
-         * @returns 
+         * @returns
          */
         switchToOutFromMultiPage: () =>
         {
@@ -443,602 +409,72 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
             }
         }
     }
-
-    private bilibiliAction = {
-        bilibiliRefreshCount: 1,
-        /**
-         * @description 哔哩哔哩首页推荐
-         */
-        snbclick_bilibiliRecommand: () =>
-        {
-            const bilibiliPlatform = new BilibiliPlatform();
-            const data = bilibiliPlatform.getRecommendVideosBasicsData(
-                this.bilibiliAction.bilibiliRefreshCount
-            );
-            const vod = bilibiliPlatform.VOD.bind(bilibiliPlatform);
-            this.setState({
-                mediaData: data,
-                currentOnDemandPlay: vod,
-                currentPage: 1,
-                totalPage: 1,
-                requestToken: +1
-            });
-            this.bilibiliAction.bilibiliRefreshCount++;
-        },
-        /**
-         * @description 哔哩哔哩搜索视频
-         * @returns 
-         */
-        snbclick_bilibiliSearchVideoByKeyword: () =>
-        {
-            const {
-                searchKeyword,
-                allMediaData,
-                currentPage,
-                updating,
-                totalPage
-            } = this.state;
-            const { pushAllData } = this.controller;
-            if (!allMediaData.length) this.setState({ totalPage: 0 });
-
-            // 如果search的时候，keyword是空的
-            if (searchKeyword === '')
-            {
-                this.setState({ mediaData: null, totalPage: 0 });
-                return;
-            }
-
-            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
-
-
-            // 如果有全部MediaData
-            if (currentPage <= maxPage) 
-            {
-                const vod = new BilibiliPlatform().VOD.bind(new BilibiliPlatform());
-                // 计算起始和结束索引
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-                this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: vod });
-            }
-            // 如果正在没有在更新数据
-            else if (!updating)
-            {
-                const currentRequestToken = this.state.requestToken + 1; // 新的请求标识符
-                this.setState({ updating: true, requestToken: currentRequestToken });
-                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 50) + 1 : 1;
-                const bilibili = new BilibiliPlatform();
-                const data = bilibili.searchForVideosBasicsData(searchKeyword, page);
-                const vod = bilibili.VOD.bind(bilibili);
-
-                this.setState({ mediaData: data, currentOnDemandPlay: vod.bind(bilibili) });
-
-                data.then((res) =>
-                {
-                    pushAllData(currentRequestToken, res.allPlatformData, res.totalPage);
-                });
-
-            }
-        },
-        /**
-         * @description 哔哩哔哩搜索直播
-         * @returns 
-         */
-        snbclick_bilibiliSearchLiveByKeyword: () =>
-        {
-            const { searchKeyword, currentPage } = this.state;
-
-            const currentRequestToken = this.state.requestToken + 1;
-            if (searchKeyword === '')
-            {
-                this.setState({ mediaData: null, totalPage: 0 });
-                return;
-            }
-
-            const page = currentPage;
-            const bilibili = new BilibiliPlatform();
-            const data = bilibili.searchForLiveBasicsData(searchKeyword, page);
-            const lod = bilibili.LOD.bind(bilibili);
-            this.setState({ mediaData: data, currentOnDemandPlay: lod, requestToken: currentRequestToken });
-            data.then((res) =>
-            {
-
-                if (this.state.requestToken !== currentRequestToken)
-                {
-                    return;
-                }
-
-                this.setState({ totalPage: res.totalPage });
-            });
-
-        }
-    }
-
-    private netEaseAction = {
-
-        netEaseRecommendPlayList: () =>
-        {
-            const { allMediaData, totalPage, currentPage, isCurrentInMultiPage } = this.state;
-            const currentRequestToken = this.state.requestToken + 1;
-            const netease = new NetEasePlatform();
-            if (allMediaData.length > 0)
-            {
-                if (!isCurrentInMultiPage)
-                {
-                    const mlod = netease.MLOD.bind(netease);
-                    this.setState({ currentOnDemandPlay: mlod });
-                } else if (isCurrentInMultiPage)
-                {
-                    const MOD = netease.MOD.bind(netease);
-                    this.setState({ currentOnDemandPlay: MOD });
-                }
-
-                // 计算起始和结束索引
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-
-            } else
-            {
-                const data = netease.searchForRecommendPlayListBasicsData();
-                const mlod = netease.MLOD.bind(netease);
-
-                this.setState({
-                    mediaData: data,
-                    currentOnDemandPlay: mlod,
-                    requestToken: currentRequestToken,
-                    currentPage: 1,
-                    totalPage: 0
-                });
-
-                data.then((res) =>
-                {
-                    if (this.state.requestToken !== currentRequestToken)
-                    {
-                        return;
-                    }
-                    this.setState({ totalPage: res.totalPage });
-                    if (res.allPlatformData)
-                    {
-                        this.setState({ allMediaData: res.allPlatformData });
-                    }
-                })
-            }
-
-        },
-        netEaseSearchMusicByKeyword: () =>
-        {
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
-            const { pushAllData } = this.controller;
-            const netease = new NetEasePlatform();
-            const currentRequestToken = this.state.requestToken + 1;
-            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
-            if (!allMediaData.length) this.setState({ totalPage: 0 });
-            if (currentPage <= maxPage)
-            {
-                const MOD = netease.MOD.bind(netease);
-
-                // 计算起始和结束索引
-
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-                this.setState({ currentOnDemandPlay: MOD });
-
-            } else if (!updating) 
-            {
-                if (searchKeyword === '')
-                {
-                    this.setState({ mediaData: null, totalPage: 0 });
-                    return;
-                }
-
-                this.setState({ updating: true });
-                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
-                const data = netease.searchForMusicsBasicsData(searchKeyword, page);
-                const MOD = netease.MOD.bind(netease);
-
-                this.setState({
-                    mediaData: data,
-                    currentOnDemandPlay: MOD,
-                    requestToken: currentRequestToken
-                });
-
-                data.then((res) =>
-                {
-                    pushAllData(currentRequestToken, res.allPlatformData, res.totalPage);
-                });
-            }
-        },
-        netEaseSearchSongListByKeyword: () =>
-        {
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating, isCurrentInMultiPage } = this.state;
-            const { pushAllData } = this.controller;
-            const netease = new NetEasePlatform();
-            const currentRequestToken = this.state.requestToken + 1;
-            const MLOD = netease.MLOD.bind(netease);
-
-            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
-            if (currentPage <= maxPage)
-            {
-                if (!isCurrentInMultiPage)
-                {
-                    this.setState({ currentOnDemandPlay: MLOD });
-                } else if (isCurrentInMultiPage)
-                {
-                    const MOD = netease.MOD.bind(netease);
-                    this.setState({ currentOnDemandPlay: MOD });
-                }
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-
-            } else if (!updating)
-            {
-                if (searchKeyword === '')
-                {
-                    this.setState({ mediaData: null, totalPage: 0 });
-                    return;
-                }
-                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
-
-                const data = netease.searchForMusicListBasicsData(searchKeyword, page);
-
-                this.setState({
-                    mediaData: data,
-                    currentOnDemandPlay: MLOD,
-                    requestToken: currentRequestToken,
-                    updating: true
-                });
-
-
-
-                data.then((res) =>
-                {
-                    pushAllData(currentRequestToken, res.allPlatformData, res.totalPage);
-                })
-            }
-        },
-        netEaseSearchAlbumByKeyword: () =>
-        {
-
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating, isCurrentInMultiPage } = this.state;
-            const { pushAllData } = this.controller;
-            const netease = new NetEasePlatform();
-            const currentRequestToken = this.state.requestToken + 1;
-            const AOD = netease.AOD.bind(netease);
-            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
-            if (!allMediaData.length) this.setState({ totalPage: 0 });
-
-            if (currentPage <= maxPage)
-            {
-
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-                if (!isCurrentInMultiPage)
-                {
-                    this.setState({ currentOnDemandPlay: AOD });
-                } else if (isCurrentInMultiPage)
-                {
-                    const MOD = netease.MOD.bind(netease);
-                    this.setState({ currentOnDemandPlay: MOD });
-                }
-
-            } else if (!updating)
-            {
-                if (searchKeyword === '')
-                {
-                    this.setState({ mediaData: null, totalPage: 0 });
-                    return;
-                }
-                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
-                console.log(page)
-                const data = netease.searchForAlbumBasicsData(searchKeyword, page);
-
-                this.setState({
-                    mediaData: data,
-                    currentOnDemandPlay: AOD,
-                    requestToken: currentRequestToken,
-                    updating: true
-                });
-
-                data.then((res) =>
-                {
-                    pushAllData(currentRequestToken, res.allPlatformData, res.totalPage);
-                })
-            }
-
-        },
-        netEaseSearchMVByKeyword: () =>
-        {
-            const { searchKeyword, allMediaData, currentPage, totalPage, updating } = this.state;
-            const { pushAllData } = this.controller;
-            const netease = new NetEasePlatform();
-            const currentRequestToken = this.state.requestToken + 1;
-            const MVOD = netease.MVOD.bind(netease);
-            this.setState({ currentOnDemandPlay: MVOD });
-            if (!allMediaData.length) this.setState({ totalPage: 0 });
-
-            const maxPage = Math.ceil(allMediaData.length / this.itemsPerPage); // 最大页数
-
-
-            if (currentPage <= maxPage)
-            {
-
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-
-            } else if (!updating)
-            {
-                if (searchKeyword === '')
-                {
-                    this.setState({ mediaData: null, totalPage: 0 });
-                    return;
-                }
-
-                const page = currentPage !== 1 ? Math.floor(allMediaData.length / 100) + 1 : 1;
-
-                const data = netease.searchForMVBasicsData(searchKeyword, page);
-
-                this.setState({
-                    mediaData: data,
-                    requestToken: currentRequestToken,
-                    updating: true
-                });
-
-                data.then((res) =>
-                {
-                    pushAllData(currentRequestToken, res.allPlatformData, res.totalPage);
-                })
-            }
-
-        },
-        netEaseSearchRadioByKeyword: () =>
-        {
-            const { searchKeyword, allMediaData, currentPage, totalPage } = this.state;
-            const netease = new NetEasePlatform();
-            const currentRequestToken = this.state.requestToken + 1;
-            if (!allMediaData.length) this.setState({ totalPage: 0 });
-
-            if (allMediaData.length > 0)
-            {
-
-                const startIndex = (currentPage - 1) * this.itemsPerPage;
-                const endIndex = Math.min(startIndex + this.itemsPerPage, allMediaData.length);
-
-                const currentPageData = allMediaData.slice(startIndex, endIndex);
-
-                const mediaData = new Promise<{ platformData: PlatformData[], totalPage: number }>((resolve) => { resolve({ platformData: currentPageData, totalPage: totalPage }) });
-
-                this.setState({ mediaData: mediaData });
-
-            } else
-            {
-                if (searchKeyword === '')
-                {
-                    this.setState({ mediaData: null, totalPage: 0 });
-                    return;
-                }
-
-                const data = netease.searchForRadioBasicsData(searchKeyword, currentPage);
-
-                this.setState({
-                    mediaData: data,
-                    requestToken: currentRequestToken
-                });
-
-                data.then((res) =>
-                {
-                    if (this.state.requestToken !== currentRequestToken)
-                    {
-                        return;
-                    }
-
-                    this.setState({ allMediaData: res.allPlatformData, totalPage: res.totalPage });
-                })
-            }
-        }
-    }
-
-    private settingsAction = {
-
-        bilibili: {
-            bilibiliAccountSetting: () =>
-            {
-                const getBilibiliAcc = new GetBiliBiliAccount()
-                const bilibiliAccountData = getBilibiliAcc.getBiliBiliAccount();
-                const bilibiliSettings = new BiliBiliSettings();
-                const settingData: SettingData[] = [{
-                    title: '账号',
-                    actionTitle: bilibiliAccountData?.uname || '未登录',
-                    icon: 'mdi-account-child-circle',
-                    action: bilibiliSettings.setAccount.bind(bilibiliSettings)
-                }]
-
-                this.setState({ settingsData: settingData });
-            },
-            bilibiliVideoSetting: () =>
-            {
-                const bilibiliSettings = new BiliBiliSettings();
-                const bilibiliVIdeoSettings = bilibiliSettings.getBilibiliVideoSettings();
-                const quaity = bilibiliVIdeoSettings.qn;
-                const liveQuality = bilibiliVIdeoSettings.streamqn;
-
-                const qualityInText = bilibiliSettings.parseBilibiliVideoQn(quaity);
-                const liveQualityInText = bilibiliSettings.parseBilibiliLiveQn(liveQuality);
-                const streamMinutes = (bilibiliVIdeoSettings.streamSeconds / 60);
-                const getVideoFormatInText = bilibiliSettings.parseGetVideoFormat(bilibiliVIdeoSettings.videoStreamFormat);
-
-                const settingData: SettingData[] = [{
-                    title: '点播的视频画质',
-                    actionTitle: qualityInText,
-                    icon: 'mdi-video',
-                    action: bilibiliSettings.setBilibiliVideoQuality.bind(bilibiliSettings)
-                }, {
-                    title: '点播的直播画质',
-                    actionTitle: liveQualityInText,
-                    icon: 'mdi-video-wireless',
-                    action: bilibiliSettings.setBilibiliLiveQuality.bind(bilibiliSettings)
-                }, {
-                    title: '点播的直播播放时长',
-                    actionTitle: `${streamMinutes} 分钟`,
-                    icon: 'mdi-clock-outline',
-                    action: bilibiliSettings.setBilibiliStreamSeconds.bind(bilibiliSettings)
-                }, {
-                    title: '点播视频的获取格式',
-                    actionTitle: getVideoFormatInText,
-                    icon: 'mdi-hammer-wrench',
-                    action: bilibiliSettings.setGetVideoFormat.bind(bilibiliSettings)
-
-                }, {
-                    title: "默认API",
-                    actionTitle: bilibiliSettings.parseBilibiliApi(bilibiliVIdeoSettings.api),
-                    icon: 'mdi-code-braces',
-                    action: bilibiliSettings.setBilibiliDefaultApi.bind(bilibiliSettings)
-                }]
-                this.setState({ settingsData: settingData });
-            },
-        },
-        netEase: {
-            neteaseMusicSetting: () =>
-            {
-                const neteaseSettings = new NetEaseSettings();
-
-                const neteaseMusicSettings = neteaseSettings.getNeteaseMusicSetting();
-
-                const quality = neteaseMusicSettings.quality;
-
-                const qualityInText = neteaseSettings.parseNetEaseMusicQuality(quality);
-
-                const apiInText = neteaseSettings.parseNetEaseMusicApi(neteaseMusicSettings.api);
-
-                const lyricOptionInText = neteaseSettings.parseNetEaseMusicLyricOption(neteaseMusicSettings.lyricOption);
-
-                const settingData: SettingData[] = [{
-                    title: '音乐的音质',
-                    actionTitle: qualityInText,
-                    icon: 'mdi-music',
-                    action: neteaseSettings.setNeteaseMusicQuality.bind(neteaseSettings)
-                },
-                {
-                    title: '歌词',
-                    actionTitle: lyricOptionInText,
-                    icon: 'mdi-card-bulleted',
-                    action: neteaseSettings.setNeteaseMusicLyric.bind(neteaseSettings)
-                },
-                {
-                    title: '默认API',
-                    actionTitle: apiInText,
-                    icon: 'mdi-code-braces',
-                    action: neteaseSettings.setNeteaseDefaultApi.bind(neteaseSettings)
-                }]
-
-                this.setState({ settingsData: settingData });
-            }
-        },
-        plugin: {
-            chatBox: () =>
-            {
-                const pluginSetting = new PluginSettings()
-
-                const ps = pluginSetting.getPluginSetting();
-
-                const isProxyAtInputInText = ps.chatBox.isProxyAtInput ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off-outline';
-
-                const plugin: SettingData[] = [{
-                    title: '代理蔷薇@输入',
-                    actionTitle: isProxyAtInputInText,
-                    icon: 'mdi-at',
-                    action: pluginSetting.isProxyAtInputSetting.bind(pluginSetting)
-                }]
-
-                this.setState({ settingsData: plugin });
-            }
-        }
-    }
-
-    private AboutAction = {
-        about: () =>
-        {
-            const aboutData: SettingData[] = [{
-                title: '作者',
-                actionTitle: '铭',
-                icon: 'mdi-account-tie',
-                action: async () =>
-                {
-                    await this.props.ShowOrHideIMC();
-                    const about = new About()
-                    about.aboutCreator()
-                }
-            }, {
-                title: '项目源代码地址',
-                actionTitle: 'GitHub 🔗',
-                icon: 'mdi-github',
-                action: () =>
-                {
-                    window.open('https://github.com/jingming295/IIROSE-MEDIA-WEB')
-                }
-            }, {
-                title: '投喂我',
-                actionTitle: '投喂',
-                icon: 'mdi-coffee-outline',
-                action: () =>
-                {
-                    const about = new About()
-                    about.aboutDonate()
-
-                }
-            }, {
-                title: '赞助列表',
-                actionTitle: '感谢名单',
-                icon: 'mdi-account-group',
-                action: () =>
-                {
-                    const about = new About()
-                    about.aboutSponsorList(this.props.ShowOrHideIMC)
-                }
-            }, {
-                title: '在线人数',
-                actionTitle: this.state.onlineCount.toString(),
-                icon: 'mdi-account-group',
-                action: () =>
-                {
-                }
-            }]
-            this.setState({ settingsData: aboutData });
-        }
+    private getActionContext(): MainAppContainerActionContext
+    {
+        return {
+            getState: () => this.state,
+            setState: (state) => this.setState(state as MainAppContainerState),
+            pushAllData: this.controller.pushAllData // 直接引用已有的 controller 方法
+        };
     }
 
     private categories: Categories[] = [
+        {
+            platform: [
+                {
+                    title: '网易云音乐',
+                    iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
+                    color: 'rgb(221, 28, 4)',
+                    subNavBarItems: [
+                        {
+                            title: '搜索音乐',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                NetEaseService.searchMusic(this.getActionContext(), this.itemsPerPage);
+                            }
+                        }, {
+                            title: '搜索专辑',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                NetEaseService.searchAlbum(this.getActionContext(), this.itemsPerPage);
+                            }
+                        }, {
+                            title: '搜索MV',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                NetEaseService.searchMV(this.getActionContext(), this.itemsPerPage);
+                            }
+                        },
+                        {
+                            title: '搜索歌单',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                NetEaseService.searchPlaylist(this.getActionContext(), this.itemsPerPage);
+                            }
+                        }
+                    ]
+                },
+                {
+                    title: 'JOOX',
+                    iconsrc: 'http://r.iirose.com/i/26/3/4/1/4905-KM.png',
+                    color: 'rgb(24, 209, 106)',
+                    subNavBarItems: [
+                        {
+                            title: '搜索音乐',
+                            class: 'search',
+                            searchAction: () =>
+                            {
+                                JOOXService.searchMusic(this.getActionContext(), this.itemsPerPage);
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
         {
             platform: [
                 {
@@ -1050,7 +486,13 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '首页推荐',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.snbclick_bilibiliRecommand()
+                                const ctx: BilibiliActionContext = {
+                                    ...this.getActionContext(),
+                                    getRefreshCount: () => this.bilibiliRefreshCount,
+                                    incrementRefreshCount: () => { this.bilibiliRefreshCount++; }
+                                };
+                                // 直接通过静态类调用
+                                BilibiliService.snbclickRecommand(ctx);
                             }
                         },
                         {
@@ -1058,7 +500,7 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.snbclick_bilibiliSearchVideoByKeyword();
+                                BilibiliService.snbclickSearchVideo(this.getActionContext(), this.itemsPerPage);
                             }
                         },
                         {
@@ -1066,57 +508,34 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.bilibiliAction.snbclick_bilibiliSearchLiveByKeyword();
+                                BilibiliService.snbclickSearchLive(this.getActionContext());
                             }
                         }
                     ]
-                }
-            ]
-        },
-        {
-            platform: [
+                },
                 {
-                    title: '网易云音乐',
-                    iconsrc: 'https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png',
-                    color: 'rgb(221, 28, 4)',
+                    title: '多源剧集检索',
+                    iconsrc: 'http://r.iirose.com/i/26/1/10/8/2516-PN.png',
+                    color: 'rgb(1, 77, 103)',
                     subNavBarItems: [
                         {
-                            title: '推荐歌单',
+                            title: '茅台资源',
+                            class: 'search',
                             searchAction: () =>
                             {
-                                this.netEaseAction.netEaseRecommendPlayList();
+                                const baseUrl = `https://caiji.maotaizy.cc`;
+                                AllVideosService.searchAllVideos(this.getActionContext(), baseUrl, this.itemsPerPage);
                             }
                         },
                         {
-                            title: '搜索音乐',
+                            title: '非凡资源',
                             class: 'search',
                             searchAction: () =>
                             {
-                                this.netEaseAction.netEaseSearchMusicByKeyword();
-                            }
-                        }, {
-                            title: '搜索专辑',
-                            class: 'search',
-                            searchAction: () =>
-                            {
-                                this.netEaseAction.netEaseSearchAlbumByKeyword();
-                            }
-                        }, {
-                            title: '搜索MV',
-                            class: 'search',
-                            searchAction: () =>
-                            {
-                                this.netEaseAction.netEaseSearchMVByKeyword();
+                                const baseUrl = `${SendFetch.cors}https://ffzy.tv`;
+                                AllVideosService.searchAllVideos(this.getActionContext(), baseUrl, this.itemsPerPage);
                             }
                         },
-                        {
-                            title: '搜索歌单',
-                            class: 'search',
-                            searchAction: () =>
-                            {
-                                this.netEaseAction.netEaseSearchSongListByKeyword();
-                            }
-                        }
                     ]
                 }
             ]
@@ -1132,14 +551,14 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '账号',
                             searchAction: () =>
                             {
-                                this.settingsAction.bilibili.bilibiliAccountSetting();
+                                SettingsService.showBilibiliAccount(this.getActionContext());
                             }
                         },
                         {
                             title: '视频设置',
                             searchAction: () =>
                             {
-                                this.settingsAction.bilibili.bilibiliVideoSetting();
+                                SettingsService.showBilibiliVideo(this.getActionContext());
                             }
                         }
                     ]
@@ -1152,9 +571,23 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '音乐设置',
                             searchAction: () =>
                             {
-                                this.settingsAction.netEase.neteaseMusicSetting();
+                                SettingsService.showNetEaseMusic(this.getActionContext());
                             }
                         }
+                    ]
+                }, {
+                    title: 'JOOX',
+                    iconsrc: 'http://r.iirose.com/i/26/3/4/1/4905-KM.png',
+                    color: 'rgb(24, 209, 106)',
+                    subNavBarItems: [
+                        {
+                            title: 'JOOX设置',
+                            searchAction: () =>
+                            {
+                                SettingsService.showJOOXMusic(this.getActionContext());
+                            }
+                        }
+
                     ]
                 }, {
                     title: '插件设置',
@@ -1165,7 +598,11 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '聊天框',
                             searchAction: () =>
                             {
-                                this.settingsAction.plugin.chatBox();
+                                SettingsService.showPluginSettings(
+                                    this.getActionContext(),
+                                    this.props.changeSearchKeyword,
+                                    this.props.ShowOrHideIMC
+                                );
                             }
                         }
                     ]
@@ -1182,7 +619,10 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
                             title: '关于',
                             searchAction: () =>
                             {
-                                this.AboutAction.about();
+                                AboutService.showAbout(
+                                    this.getActionContext(),
+                                    this.props.ShowOrHideIMC
+                                );
                             }
                         }
                     ]
@@ -1191,106 +631,3 @@ export class MainAppContainer extends Component<MainAppContainerProps, MainAppCo
         }
     ];
 }
-
-class MediaContainerGesture
-{
-    constructor(private ShowOrHideIMC: () => Promise<void>) { }
-
-    startX = 0;
-    startY = 0;
-    currentPage = 1;
-    totalPage = 1;
-    changecurrentPage = (page: number) => { page }
-
-    handleStart(e: TouchEvent | MouseEvent, currentPage: number, totalPage: number, changecurrentPage: (page: number) => void)
-    {
-        this.currentPage = currentPage;
-        this.totalPage = totalPage;
-        this.changecurrentPage = changecurrentPage;
-
-        if (e instanceof TouchEvent)
-        {
-            this.startX = e.touches[0].clientX;
-            this.startY = e.touches[0].clientY;
-            window.addEventListener("touchmove", this.handleMove);
-            window.addEventListener("touchend", this.handleEnd);
-        }
-        else if (e instanceof MouseEvent)
-        {
-            this.startX = e.clientX;
-            this.startY = e.clientY;
-            window.addEventListener("mousemove", this.handleMove);
-            window.addEventListener("mouseup", this.handleEnd);
-        }
-    }
-
-    handleMove = (e: TouchEvent | MouseEvent) =>
-    {
-        let currentX = 0;
-        let currentY = 0;
-
-        if (e instanceof TouchEvent)
-        {
-            currentX = e.touches[0].clientX;
-            currentY = e.touches[0].clientY;
-        }
-        else if (e instanceof MouseEvent)
-        {
-            currentX = e.clientX;
-            currentY = e.clientY;
-        }
-
-        const diffX = currentX - this.startX;
-        const diffY = currentY - this.startY;
-
-        // 检查垂直位移是否超过水平位移的 1/3
-        if (Math.abs(diffY) > Math.abs(diffX) / 3)
-        {
-            this.handleEnd(); // 取消事件监听，避免触发翻页
-            return;
-        }
-
-        // 判断滑动是否超过 100 像素
-        if (Math.abs(diffX) > 50)
-        {
-            if (diffX > 0)
-            {
-                // 右滑动（从左向右）
-                if (this.currentPage > 1)
-                {
-                    this.changecurrentPage(this.currentPage - 1);
-                }
-                else
-                {
-                    this.ShowOrHideIMC();
-                }
-            }
-            else
-            {
-                // 左滑动（从右向左）
-                if (this.currentPage < this.totalPage)
-                {
-                    this.changecurrentPage(this.currentPage + 1);
-                }
-            }
-
-            // 触发后立即解绑
-            this.handleEnd();
-        }
-    }
-
-    handleEnd = () =>
-    {
-        // 移除 touchmove 和 touchend 事件监听器
-        window.removeEventListener("touchmove", this.handleMove);
-        window.removeEventListener("touchend", this.handleEnd);
-
-        // 移除 mousemove 和 mouseup 事件监听器
-        window.removeEventListener("mousemove", this.handleMove);
-        window.removeEventListener("mouseup", this.handleEnd);
-    }
-}
-
-
-
-

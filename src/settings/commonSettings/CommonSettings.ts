@@ -14,7 +14,6 @@ export interface CommonSettingsInterface
 
 export class CommonSettings
 {
-    iiroseUtils = new IIROSEUtils();
 
     public setAgree(tosVersion: string, privacyVersion: string)
     {
@@ -51,7 +50,7 @@ export class CommonSettings
             content += `4. 您可以随时删除或停用本插件，且无需担心任何用户数据泄露风险。\n\n`;
             content += `如有任何疑问或建议，请联系我。感谢您的信任与支持！\n`
             const title = [content];
-            this.iiroseUtils.sync(0, title, setPrivacy)
+            IIROSEUtils.sync(0, title, setPrivacy)
         }
 
         const setPrivacy = () =>
@@ -86,7 +85,7 @@ export class CommonSettings
         content += `3. 我将不断改进，期待您的宝贵意见与建议。\n\n`;
         content += `感谢您的支持！\n`;
         const title = [content];
-        this.iiroseUtils.sync(0, title, setTOS)
+        IIROSEUtils.sync(0, title, setTOS)
     }
 
 }

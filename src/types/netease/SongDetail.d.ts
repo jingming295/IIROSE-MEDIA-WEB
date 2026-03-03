@@ -131,7 +131,7 @@ interface SongDetailSong
   originCoverType: number;
   originSongSimpleData: null; // 根据实际情况定义
   single: number;
-  noCopyrightRcmd: null; // 根据实际情况定义
+  noCopyrightRcmd: null | NoCopyrightRcmd; // 根据实际情况定义
   rtype: number;
   rurl: null; // 根据实际情况定义
   mvid: number;
@@ -143,6 +143,14 @@ interface SongDetailSong
   transNames: string[];
 }
 
+interface NoCopyrightRcmd
+{
+  type: number;
+  typeDesc: string;
+  songId: number | null;
+  thirdPartySong: any | null;
+  expInfo: any | null;
+}
 interface MusicDetailArtists
 {
   name: string;

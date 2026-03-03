@@ -75,33 +75,58 @@ export class MainAppControlLayer extends Component<object, MainAppControlLayerSt
         window.removeEventListener("touchend", this.gasture.touchEnd);
     }
 
-    componentDidUpdate(_previousProps: Readonly<object>, previousState: Readonly<MainAppControlLayerState>): void
+    shouldComponentUpdate(_nextProps: object, nextState: MainAppControlLayerState)
     {
-        const { mainAppDisplay } = this.state;
+        // 1. 初始化检查：第一次加载组件必须 render
+        if (!this.state.init && nextState.init) return true;
 
-        if (this.mainHolder)
+        // 2. 业务逻辑检查：搜索词改变必须 render
+        if (this.state.searchKeyword !== nextState.searchKeyword) return true;
+
+        // 3. 核心显示逻辑切换
+        if (this.state.mainAppDisplay !== nextState.mainAppDisplay)
         {
-            if (mainAppDisplay && !previousState.mainAppDisplay)
+            const isShowing = nextState.mainAppDisplay;
+
+            // --- 原本 render 负责的容器样式切换 ---
+            const el = document.getElementById('IIROSE_MEDIA_CONTAINER');
+            if (el)
             {
-                this.mainHolder.classList.add('hidemainHolder');
-                document.body.addEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                document.body.addEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                closeSidebar()
-            } else if (!mainAppDisplay && previousState.mainAppDisplay)
-            {
-                this.mainHolder.classList.remove('hidemainHolder');
-                document.body.removeEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                document.body.removeEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                closeSidebar()
+                isShowing ?
+                    el.classList.add('ShowIIROSE_MEDIA_CONTAINER') :
+                    el.classList.remove('ShowIIROSE_MEDIA_CONTAINER');
             }
+
+            // --- 原本 componentDidUpdate 负责的副作用融入 ---
+            if (this.mainHolder)
+            {
+                if (isShowing)
+                {
+                    // 打开面板
+                    this.mainHolder.classList.add('hidemainHolder');
+                    document.body.addEventListener('mousedown', this.gasture.IMCActiveEventHandler);
+                    document.body.addEventListener('touchstart', this.gasture.IMCActiveEventHandler);
+                } else
+                {
+                    // 关闭面板
+                    this.mainHolder.classList.remove('hidemainHolder');
+                    document.body.removeEventListener('mousedown', this.gasture.IMCActiveEventHandler);
+                    document.body.removeEventListener('touchstart', this.gasture.IMCActiveEventHandler);
+                }
+                closeSidebar(); // 无论开关都执行的逻辑
+            }
+
+            return false; // 拦截！不让 Preact 去跑 render 和子组件 Diff
         }
+
+        return true;
     }
 
     controller = {
         /**
          * @description 更新搜索词
-         * @param keyword 
-         * @returns 
+         * @param keyword
+         * @returns
          */
         changeSearchKeyword: (keyword: string | null) =>
         {

@@ -3,22 +3,16 @@ import { BiliBiliCourseApi } from "../Api/BilibiliAPI/bilibili-course/BiliBiliCo
 import { BiliBiliLiveApi } from "../Api/BilibiliAPI/BiliBiliLive";
 import { BiliBiliSearchApi } from "../Api/BilibiliAPI/BiliBiliSearch";
 import { BiliBiliVideoApi } from "../Api/BilibiliAPI/BiliBiliVideoAPI";
+import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
 import { Media } from "../iirose_func/Socket/Media";
-import { MediaData } from "../iirose_func/Socket/Media/MediaCardInterface";
 import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
-import { PlatformData } from "./interfaces";
 
 
 
 export class BilibiliPlatform
 {
-    bilibiliSearchApi = new BiliBiliSearchApi();
-    bilibiliVideoApi = new BiliBiliVideoApi();
-    bilibiliLiveApi = new BiliBiliLiveApi();
-    bilibiliCourseApi = new BiliBiliCourseApi();
-    showmessage = new ShowMessage();
     itemPerPage = 10;
     baseHex = '000000';
     private timeToSeconds(timeString: string)
@@ -41,7 +35,7 @@ export class BilibiliPlatform
         try
         {
             // 等待异步请求完成
-            const res = await this.bilibiliVideoApi.getRecommendVideoFromMainPage(3, 1, 10, refresh, refresh, 0);
+            const res = await BiliBiliVideoApi.getRecommendVideoFromMainPage(3, 1, 10, refresh, refresh, 0);
 
             // 初始化 platformData 数组
             const platformData: PlatformData[] = [];
@@ -74,7 +68,7 @@ export class BilibiliPlatform
 
         } catch (error)
         {
-            this.showmessage.show((error as Error).message);
+            ShowMessage.show((error as Error).message);
             return { platformData: [], totalPage: 0 }
         }
     }
@@ -86,7 +80,7 @@ export class BilibiliPlatform
             let totalPage = 0;
             let count = 0;
             const pageSize = 50;
-            const res = await this.bilibiliSearchApi.getSearchRequestByTypeVideo(keyword, page, pageSize)
+            const res = await BiliBiliSearchApi.getSearchRequestByTypeVideo(keyword, page, pageSize)
 
             const platformData: PlatformData[] = [];
             const allPlatformData: PlatformData[] = [];
@@ -111,22 +105,22 @@ export class BilibiliPlatform
                             bvid: item.type === 'video' ? item.bvid : undefined,
                             course_id: item.type === 'ketang' ? item.aid : undefined,
                         },
-                        multiPage: new Promise(async (resolve) =>
+                        multiPage: (async () =>
                         {
-                            if (item.type === 'ketang') resolve(true);
-                            const res = await this.bilibiliVideoApi.getBilibiliPagesAndCids(item.aid, item.bvid);
-                            if (res && res.data)
+                            if (item.type === 'ketang') return { platform: 'bilibili' };
+                            try
                             {
-                                if (res.data.length > 1)
+                                const res = await BiliBiliVideoApi.getBilibiliPagesAndCids(item.aid, item.bvid);
+                                if (res?.data?.length && res.data.length > 1)
                                 {
-                                    resolve(true);
+                                    return { platform: 'bilibili' };
                                 }
-                                resolve(false);
-                            } else
+                            } catch (e)
                             {
-                                resolve(false);
+                                console.error('Check multipage failed', e);
                             }
-                        })
+                            return undefined;
+                        })()
                     }
 
                     if (count >= this.itemPerPage)
@@ -147,7 +141,7 @@ export class BilibiliPlatform
 
         } catch (error)
         {
-            this.showmessage.show((error as Error).message);
+            ShowMessage.show((error as Error).message);
             return { platformData: [], totalPage: 0 }
         }
     }
@@ -156,7 +150,7 @@ export class BilibiliPlatform
     {
         try
         {
-            const res = await this.bilibiliSearchApi.getSearchRequestByTypeLiveRoom(keyword, page, this.itemPerPage);
+            const res = await BiliBiliSearchApi.getSearchRequestByTypeLiveRoom(keyword, page, this.itemPerPage);
 
             const platformData: PlatformData[] = [];
 
@@ -186,7 +180,7 @@ export class BilibiliPlatform
 
         } catch (error)
         {
-            this.showmessage.show((error as Error).message);
+            ShowMessage.show((error as Error).message);
             return { platformData: [], totalPage: 0 }
         }
     }
@@ -203,7 +197,7 @@ export class BilibiliPlatform
 
             if (pd.bilibili.course_id)
             {
-                const res = await this.bilibiliCourseApi.getBilibiliCoursePagesData(pd.bilibili.course_id, 1000);
+                const res = await BiliBiliCourseApi.getBilibiliCoursePagesData(pd.bilibili.course_id, 1000);
                 if (res?.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
                 if (res && res.code === 0 && res.data)
                 {
@@ -240,7 +234,7 @@ export class BilibiliPlatform
                 }
             }
 
-            const bilibiliVideoDetail = await this.bilibiliVideoApi.getBilibiliVideoData(null, pd.bilibili.bvid);
+            const bilibiliVideoDetail = await BiliBiliVideoApi.getBilibiliVideoData(null, pd.bilibili.bvid);
             if (bilibiliVideoDetail?.data?.v_voucher) throw new Error('搜索失败，接口被风控，如果出现这种情况，请联系铭');
 
             if (bilibiliVideoDetail && bilibiliVideoDetail.data && bilibiliVideoDetail.data.pages)
@@ -277,7 +271,7 @@ export class BilibiliPlatform
 
         } catch (error)
         {
-            this.showmessage.show((error as Error).message);
+            ShowMessage.show((error as Error).message);
             return { platformData: [], allPlatformData: [], totalPage: 0 }
         }
 
@@ -287,134 +281,231 @@ export class BilibiliPlatform
     {
         try
         {
-            const res = await this.bilibiliVideoApi.getBilibiliVideoData(null, bvid);
+            const res = await BiliBiliVideoApi.getBilibiliVideoData(null, bvid);
             if (res && res.code === 0 && res.data)
             {
                 return res.data;
             } else throw new Error('获取视频信息失败');
         } catch (error)
         {
-            this.showmessage.show((error as Error).message);
+            ShowMessage.show((error as Error).message);
             return null;
         }
     }
 
+    /**
+         * Bilibili 点播逻辑
+         * 逻辑：检测多集 -> 弹出选择框 -> 执行点播
+         */
     public async VOD(platformData: PlatformData)
     {
-        const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+        // 封装核心播放动作，供 buildSelect 回调使用
+        const VOD_ACTION = async (select: number) =>
+        {
+            if (select === 0)
+            {
+                const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+                try
+                {
+                    if (!platformData.bilibili) throw new Error('没有 bilibili 数据');
+                    const { aid, bvid, course_id } = platformData.bilibili;
+                    let cid = platformData.bilibili.cid;
+
+                    // 1. 补全 CID（如果是搜索结果进入且没有 cid）
+                    if (!course_id && !cid)
+                    {
+                        const res = await BiliBiliVideoApi.getBilibiliVideoData(aid || null, bvid);
+                        if (res && res.code === 0 && res.data && res.data.pages)
+                        {
+                            cid = res.data.pages[0].cid;
+                        } else throw new Error('获取视频信息失败');
+                    }
+
+                    // 2. 课程流处理
+                    if (course_id && cid)
+                    {
+                        const res = await BiliBiliCourseApi.getBilibiliCourseStream(aid, course_id, cid, bvSetting.qn);
+                        if (res?.data?.dash)
+                        {
+                            const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
+                            await this.prepareAndSendMedia(platformData, playurl, res.data.timelength || 0, qn);
+                            return;
+                        } else throw new Error('获取课程播放流失败');
+                    }
+
+                    // 3. 普通视频流处理 (严格类型检查)
+                    if (typeof cid !== 'number') throw new Error('无法确定有效的 CID');
+
+                    let streamFormat = this.getStreamPlatform(bvSetting.videoStreamFormat, bvSetting.qn);
+                    const res = await BiliBiliVideoApi.getBilibiliVideoStream(aid, bvid, cid, bvSetting.qn, streamFormat);
+
+                    if (res && res.code === 0 && res.data)
+                    {
+                        let videoUrl = '';
+                        let actuallyQn = res.data.quality || bvSetting.qn;
+
+                        if (res.data.durl && res.data.durl.length > 0)
+                        {
+                            videoUrl = res.data.durl[0].url;
+                        } else if (res.data.dash)
+                        {
+                            const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
+                            videoUrl = playurl;
+                            actuallyQn = qn;
+                        }
+
+                        if (!videoUrl) throw new Error('解析播放地址失败');
+                        await this.prepareAndSendMedia(platformData, videoUrl, res.data.timelength || 0, actuallyQn);
+                    } else throw new Error('获取播放流失败');
+
+                } catch (error)
+                {
+                    console.error('[VOD Action Error]:', error);
+                    ShowMessage.show((error as Error).message);
+                }
+            } else if (select === 1)
+            {
+
+                const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
+                try
+                {
+                    if (!platformData.bilibili) throw new Error('没有 bilibili 数据');
+                    const { aid, bvid, course_id } = platformData.bilibili;
+                    const res = await BiliBiliVideoApi.getBilibiliVideoData(aid || null, bvid);
+
+                    const pages = res?.data?.pages;
+                    if (!pages) throw new Error('获取视频信息失败');
+
+                    for (const item of pages)
+                    {
+                        platformData.title = `P${item.page} ${item.part}`;
+                        platformData.duration = item.duration;
+
+                        const cid = item.cid;
+                        // 普通视频流处理
+                        if (typeof cid !== 'number') throw new Error('无法确定有效的 CID');
+                        let streamFormat = this.getStreamPlatform(bvSetting.videoStreamFormat, bvSetting.qn);
+                        const res = await BiliBiliVideoApi.getBilibiliVideoStream(aid, bvid, cid, bvSetting.qn, streamFormat);
+                        if (res && res.code === 0 && res.data)
+                        {
+                            let videoUrl = '';
+                            let actuallyQn = res.data.quality || bvSetting.qn;
+                            if (res.data.durl && res.data.durl.length > 0)
+                            {
+                                videoUrl = res.data.durl[0].url;
+                            }
+                            else if (res.data.dash)
+                            {
+                                const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
+                                videoUrl = playurl;
+                                actuallyQn = qn;
+                            }
+                            if (!videoUrl) throw new Error('解析播放地址失败');
+                            await this.prepareAndSendMedia(platformData, videoUrl, res.data.timelength || 0, actuallyQn);
+                        } else throw new Error('获取播放流失败');
+                    }
+
+                } catch (error)
+                {
+                    console.error('[VOD Action Error]:', error);
+                    ShowMessage.show((error as Error).message);
+                }
+
+            }
+
+        };
+
         try
         {
-            if (!platformData.bilibili) throw new Error('没有 bilibili 数据');
-            const { aid, bvid, course_id } = platformData.bilibili;
-            let cid = platformData.bilibili.cid;
-            // 如果是课程
-            if (course_id && cid)
+            // --- MultiPage 智能拦截逻辑 ---
+            const multipagePromise = platformData.multiPage;
+            if (multipagePromise)
             {
-                const res = await this.bilibiliCourseApi.getBilibiliCourseStream(aid, course_id, cid, bvSetting.qn);
+                const result = await multipagePromise;
 
-                if (res && res.code === 0 && res.data)
+                if (result !== undefined)
                 {
+                    // --- [检测到多集资源：弹出选择框] ---
+                    console.log("[VOD] 检测到多集资源，触发选择框");
 
-                    if (res.data.dash)
-                    {
-
-                        if (!res.data.timelength || !res.data.quality) throw new Error('No video duration');
-
-                        // const imageTools = new ImageTools();
-
-                        const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
-
-                        // const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
-                        const mediaData: MediaData = {
-                            type: 'video',
-                            name: platformData.title,
-                            singer: platformData.author,
-                            cover: platformData.coverImg,
-                            link: platformData.websiteUrl,
-                            url: playurl,
-                            duration: res.data.timelength / 1000,
-                            bitRate: qn,
-                            color: this.baseHex,
-                            origin: 'bilibili'
-                        }
-                        const media = new Media();
-                        const mediacard = media.mediaCard(mediaData);
-                        const mediaEvent = media.mediaEvent(mediaData);
-
-                        const socket = new Socket();
-                        socket.send(mediacard);
-                        socket.send(mediaEvent);
-                        return;
-                    } else throw new Error('获取课程播放流失败, 没有 durl');
-
-                } else throw new Error('获取课程播放流失败');
-            }
-
-            // 如果是视频, 但是没有 cid，这种情况发生在搜索
-            if (!cid)
-            {
-                const res = await this.bilibiliVideoApi.getBilibiliVideoData(null, bvid);
-                if (res && res.code === 0 && res.data && res.data.pages)
-                {
-                    cid = res.data.pages[0].cid;
-                } else throw new Error('获取视频信息失败');
-            }
-
-            // 如果是视频
-            let streamFormat = bvSetting.videoStreamFormat
-
-            streamFormat = this.getStreamPlatform(streamFormat, bvSetting.qn);
-
-            const res = await this.bilibiliVideoApi.getBilibiliVideoStream(aid, bvid, cid, bvSetting.qn, streamFormat);
-            if (res && res.code === 0 && res.data)
-            {
-                let videoUrl = ``;
-                let actuallyQn = res.data.quality || bvSetting.qn;
-                if (res.data.durl && res.data.durl.length > 0)
-                {
-                    videoUrl = res.data.durl[0].url;
-                } else if (res.data.dash)
-                {
-                    const { playurl, qn } = await this.getDashUrlAndQn(res.data.dash);
-                    videoUrl = playurl;
-                    actuallyQn = qn;
+                    // 调用选择器，并在回调中执行 VOD_ACTION
+                    await this.buildBiliSelect(VOD_ACTION);
+                    return; // 拦截，等待选择框回调
                 }
-
-                if (!res.data.timelength) throw new Error('No video duration');
-
-                // const imageTools = new ImageTools();
-
-                // 会需要一点时间
-                // const hex = await imageTools.getAverageColorFromImageUrl(platformData.coverImg);
-
-                const mediaData: MediaData = {
-                    type: 'video',
-                    name: platformData.title,
-                    singer: platformData.author,
-                    cover: platformData.coverImg,
-                    link: platformData.websiteUrl,
-                    url: videoUrl,
-                    duration: res.data.timelength / 1000,
-                    bitRate: actuallyQn,
-                    color: this.baseHex,
-                    origin: 'bilibili'
-                }
-                const media = new Media();
-                const mediacard = media.mediaCard(mediaData);
-                const mediaEvent = media.mediaEvent(mediaData);
-                console.log(`send`)
-                const socket = new Socket();
-                socket.send(mediacard);
-                socket.send(mediaEvent);
             }
 
+            // --- 单集资源：直接执行播放 ---
+            await VOD_ACTION(0);
 
         } catch (error)
         {
-            console.error(error);
-            this.showmessage.show((error as Error).message);
+            console.error('[VOD Error]:', error);
+            ShowMessage.show((error as Error).message);
         }
+    }
 
+    /**
+     * 构建 Bilibili 专用选择器 (目前仅支持正序)
+     */
+    private async buildBiliSelect(action: (select: number) => Promise<void>)
+    {
+        const select = [
+            [1, '正序点播', `<div class="mdi-sort-alphabetical-variant" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`],
+        ];
+
+
+        IIROSEUtils.buildSelect2(
+            null,       // startElement
+            select,     // 选项列表
+            (_t: HTMLElement, s: string) =>
+            {
+                const selectNumber = parseInt(s);
+                action(selectNumber);
+            },          // cb 回调
+            false,      // allowClear
+            true,       // showIcon
+            null,       // top
+            false,      // multiSelect
+            null,       // bottom
+            () => { }    // enterCB
+        );
+    }
+
+
+    /**
+     * 辅助：构建并发送媒体卡片
+     */
+    private async prepareAndSendMedia(
+        platformData: PlatformData,
+        url: string,
+        durationMs: number,
+        qn: number
+    )
+    {
+        const cover = typeof platformData.coverImg === 'string'
+            ? platformData.coverImg
+            : await platformData.coverImg;
+
+        const mediaData: MediaData = {
+            type: 'video',
+            name: platformData.title,
+            singer: platformData.author,
+            cover: cover,
+            link: platformData.websiteUrl,
+            url: url,
+            duration: durationMs / 1000,
+            bitRate: qn,
+            color: this.baseHex,
+            origin: 'bilibili'
+        };
+
+        const media = new Media();
+        const socket = new Socket();
+
+        socket.send(media.mediaCard(mediaData));
+        socket.send(media.mediaEvent(mediaData));
+
+        console.log(`[VOD] 播放指令已下发: ${mediaData.name}`);
     }
 
     public async LOD(platformData: PlatformData)
@@ -423,7 +514,7 @@ export class BilibiliPlatform
         try
         {
             if (!platformData.bilibiliLive) throw new Error('没有 bilibiliLive 数据');
-            const res = await this.bilibiliLiveApi.getLiveStream(platformData.bilibiliLive.roomid, 'web', bvSetting.streamqn);
+            const res = await BiliBiliLiveApi.getLiveStream(platformData.bilibiliLive.roomid, 'web', bvSetting.streamqn);
 
             if (res && res.code === 0 && res.data && res.data.durl)
             {
@@ -435,8 +526,7 @@ export class BilibiliPlatform
 
                 for (const item of durl)
                 {
-                    const sendfetch = new SendFetch();
-                    const res = await sendfetch.tryGetWhithXhr(item.url);
+                    const res = await SendFetch.tryGetWhithXhr(item.url);
                     if (res)
                     {
                         videoUrl = item.url;
@@ -457,7 +547,7 @@ export class BilibiliPlatform
                     type: 'video',
                     name: platformData.title,
                     singer: platformData.author,
-                    cover: platformData.coverImg,
+                    cover: await platformData.coverImg,
                     link: platformData.websiteUrl,
                     url: videoUrl,
                     duration: bvSetting.streamSeconds,
@@ -476,7 +566,7 @@ export class BilibiliPlatform
             }
         } catch (error)
         {
-            this.showmessage.show((error as Error).message)
+            ShowMessage.show((error as Error).message)
         }
 
 
@@ -486,7 +576,6 @@ export class BilibiliPlatform
     {
 
         const bvSetting = new BiliBiliSettings().getBilibiliVideoSettings();
-        const sendfetch = new SendFetch()
         let playurl: string | null = null;
         let audiourl: string | null = null;
         let qn: number | null = null;
@@ -496,7 +585,7 @@ export class BilibiliPlatform
         {
             if (video.id === bvSetting.qn && video.codecid === 13)
             {
-                const res = await sendfetch.tryGetWhithXhr(video.baseUrl || video.base_url);
+                const res = await SendFetch.tryGetWhithXhr(video.baseUrl || video.base_url);
                 if (res)
                 {
                     playurl = video.base_url || video.baseUrl;
@@ -513,7 +602,7 @@ export class BilibiliPlatform
             {
                 if (video.codecid === 13 || video.codecid === 7)
                 {
-                    const res = await sendfetch.tryGetWhithXhr(video.baseUrl || video.base_url);
+                    const res = await SendFetch.tryGetWhithXhr(video.baseUrl || video.base_url);
                     if (res)
                     {
                         playurl = video.base_url || video.baseUrl;
@@ -532,7 +621,7 @@ export class BilibiliPlatform
         console.log(`try get audio`)
         for (const audio of audioArray)
         {
-            const res = await sendfetch.tryGetWhithXhr(audio.baseUrl || audio.base_url);
+            const res = await SendFetch.tryGetWhithXhr(audio.baseUrl || audio.base_url);
             if (res)
             {
                 audiourl = audio.base_url || audio.baseUrl;

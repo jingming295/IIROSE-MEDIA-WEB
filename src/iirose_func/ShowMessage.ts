@@ -1,7 +1,7 @@
 export class ShowMessage
 {
 
-    public show(message: string)
+    public static show(message: string)
     {
         if (!window._alert) return
         window._alert(message)

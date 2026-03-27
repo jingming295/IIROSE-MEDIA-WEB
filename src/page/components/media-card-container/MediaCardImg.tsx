@@ -94,8 +94,10 @@ export class MediaCardImg extends Component<MediaCardImgProps, MediaCardImgState
         } else if (platformData.joox?.isSong)
         {
             type = '音乐';
-        }
-        else if (platformData.subtitle)
+        } else if (platformData.radio?.isradio)
+        {
+            type = '电台';
+        } else if (platformData.subtitle)
         {
             // 兼容你之前的“茅台资源”副标题作为类型展示
             type = platformData.subtitle;

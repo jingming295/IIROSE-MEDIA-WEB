@@ -13,18 +13,10 @@ interface MainAppControlLayerState
 
 export class MainAppControlLayer extends Component<object, MainAppControlLayerState>
 {
-    private ShowHideMainApp = async () =>
-    {
-        const { mainAppDisplay, init } = this.state;
-        if (!init) await this.setState({ init: true });
-        await this.setState({ mainAppDisplay: !mainAppDisplay });
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
+
+
 
     private mainHolder: HTMLElement | null = null;
-
-    gasture = new Gesture(this.ShowHideMainApp);
-
     constructor(props: undefined)
     {
         super(props);
@@ -58,68 +50,95 @@ export class MainAppControlLayer extends Component<object, MainAppControlLayerSt
 
     componentDidMount(): void
     {
-        const { changeSearchKeyword } = this.controller;
-        const { ShowHideMainApp } = this;
-        this.mainHolder = document.getElementById('mainHolder');
-        Input_Behavior_Module.init(changeSearchKeyword, ShowHideMainApp);
+        // 1. 核心绑定：让手势类知道触发后该跑哪个函数
+        Gesture.ShowHideMainApp = this.ShowHideMainApp;
 
+        this.mainHolder = document.getElementById('mainHolder');
+
+        // 2. 初始化其他模块
+        const { changeSearchKeyword } = this.controller;
+        Input_Behavior_Module.init(changeSearchKeyword, this.ShowHideMainApp);
+
+        // 3. 注册全局事件
         window.addEventListener("keydown", this.hotkeyControlApp);
-        window.addEventListener("touchstart", this.gasture.handleTouchStart);
-        window.addEventListener("touchend", this.gasture.touchEnd);
+        window.addEventListener("touchstart", Gesture.handleTouchStart);
+        window.addEventListener("touchend", Gesture.touchEnd);
     }
 
     componentWillUnmount(): void
     {
+        // 1. 基础清理
         window.removeEventListener("keydown", this.hotkeyControlApp);
-        window.removeEventListener("touchstart", this.gasture.handleTouchStart);
-        window.removeEventListener("touchend", this.gasture.touchEnd);
+        window.removeEventListener("touchstart", Gesture.handleTouchStart);
+        window.removeEventListener("touchend", Gesture.touchEnd);
+
+        // 2. 强力清理 Body 上的拦截器（防止组件销毁后拦截失效）
+        document.body.removeEventListener('mousedown', Gesture.IMCActiveEventHandler);
+        document.body.removeEventListener('touchstart', Gesture.IMCActiveEventHandler);
+
+        // 3. 引用清理
+        Gesture.ShowHideMainApp = undefined;
+    }
+
+    // 将副作用逻辑提取成一个独立方法
+    private applyDisplaySideEffects(isShowing: boolean)
+    {
+        const el = document.getElementById('IIROSE_MEDIA_CONTAINER');
+        if (el)
+        {
+            isShowing ? el.classList.add('ShowIIROSE_MEDIA_CONTAINER') : el.classList.remove('ShowIIROSE_MEDIA_CONTAINER');
+        }
+
+        if (this.mainHolder)
+        {
+            if (isShowing)
+            {
+                this.mainHolder.classList.add('hidemainHolder');
+                document.body.addEventListener('mousedown', Gesture.IMCActiveEventHandler);
+                document.body.addEventListener('touchstart', Gesture.IMCActiveEventHandler);
+            } else
+            {
+                this.mainHolder.classList.remove('hidemainHolder');
+                document.body.removeEventListener('mousedown', Gesture.IMCActiveEventHandler);
+                document.body.removeEventListener('touchstart', Gesture.IMCActiveEventHandler);
+            }
+            closeSidebar();
+        }
     }
 
     shouldComponentUpdate(_nextProps: object, nextState: MainAppControlLayerState)
     {
-        // 1. 初始化检查：第一次加载组件必须 render
+        // 1. 初始化检查
         if (!this.state.init && nextState.init) return true;
 
-        // 2. 业务逻辑检查：搜索词改变必须 render
-        if (this.state.searchKeyword !== nextState.searchKeyword) return true;
-
-        // 3. 核心显示逻辑切换
+        // 2. 核心：只要显示状态发生了变化，就执行副作用
         if (this.state.mainAppDisplay !== nextState.mainAppDisplay)
         {
-            const isShowing = nextState.mainAppDisplay;
-
-            // --- 原本 render 负责的容器样式切换 ---
-            const el = document.getElementById('IIROSE_MEDIA_CONTAINER');
-            if (el)
+            this.applyDisplaySideEffects(nextState.mainAppDisplay);
+            // 注意：如果 searchKeyword 没变，我们可以拦截 render
+            if (this.state.searchKeyword === nextState.searchKeyword)
             {
-                isShowing ?
-                    el.classList.add('ShowIIROSE_MEDIA_CONTAINER') :
-                    el.classList.remove('ShowIIROSE_MEDIA_CONTAINER');
+                return false;
             }
+        }
 
-            // --- 原本 componentDidUpdate 负责的副作用融入 ---
-            if (this.mainHolder)
-            {
-                if (isShowing)
-                {
-                    // 打开面板
-                    this.mainHolder.classList.add('hidemainHolder');
-                    document.body.addEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                    document.body.addEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                } else
-                {
-                    // 关闭面板
-                    this.mainHolder.classList.remove('hidemainHolder');
-                    document.body.removeEventListener('mousedown', this.gasture.IMCActiveEventHandler);
-                    document.body.removeEventListener('touchstart', this.gasture.IMCActiveEventHandler);
-                }
-                closeSidebar(); // 无论开关都执行的逻辑
-            }
-
-            return false; // 拦截！不让 Preact 去跑 render 和子组件 Diff
+        // 3. 业务逻辑检查：如果搜索词变了，必须允许 render 以更新子组件列表
+        if (this.state.searchKeyword !== nextState.searchKeyword)
+        {
+            // 额外保险：确保在 render 前，容器样式是正确的
+            this.applyDisplaySideEffects(nextState.mainAppDisplay);
+            return true;
         }
 
         return true;
+    }
+
+    // ShowHideMainApp 就只需要专注处理状态
+    private ShowHideMainApp = async () =>
+    {
+        const { mainAppDisplay, init } = this.state;
+        if (!init) await this.setState({ init: true });
+        this.setState({ mainAppDisplay: !mainAppDisplay }); // 这里触发 SCU
     }
 
     controller = {

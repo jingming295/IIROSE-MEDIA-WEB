@@ -9,7 +9,11 @@ export class NetEaseService
     private static handleSearch(
         ctx: MainAppContainerActionContext,
         itemsPerPage: number,
-        searchFn: (k: string, p: number) => Promise<any>,
+        searchFn: (k: string, p: number) => Promise<{
+            platformData: PlatformData[];
+            totalPage: number;
+            allPlatformData: PlatformData[];
+        }>,
         getOnDemandPlay: (platform: NetEasePlatform) => (data: PlatformData) => void
     )
     {

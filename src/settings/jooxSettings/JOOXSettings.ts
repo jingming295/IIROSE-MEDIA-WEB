@@ -5,7 +5,7 @@ export interface JOOXSetting
 }
 export class JOOXSettings
 {
-    public static setNeteaseDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
+    public static setJooxDefaultApi(changeActionTitleAction?: (actionTitle?: string) => void)
     {
         const set = (_t: HTMLElement, s: string) =>
         {

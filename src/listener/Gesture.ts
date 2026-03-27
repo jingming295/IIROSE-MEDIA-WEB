@@ -1,57 +1,61 @@
-/**
- * @description 他的功能是向windows 注册一个event listener，以监听触屏
- */
 export class Gesture
 {
-    startY: number = 0;
-
-    ShowHideMainApp: () => void;
-
-    constructor(ShowHideMainApp: () => void)
+    static startY: number = 0;
+    // 重命名为通用的回调
+    static onTrigger?: () => void;
+    static ShowHideMainApp?: () => void;
+    constructor(callback: () => void)
     {
-        this.ShowHideMainApp = ShowHideMainApp;
+        Gesture.onTrigger = callback;
     }
-
-    public IMCActiveEventHandler = (event: MouseEvent | TouchEvent): void =>
+    public static IMCActiveEventHandler = (event: MouseEvent | TouchEvent): void =>
     {
         event.stopImmediatePropagation();
         if (event instanceof TouchEvent)
         {
-            this.handleTouchStart(event);
+            this.handleTouchStart(event); // 这里的 this 指向 Gesture 类
         }
     }
 
-    public touchEnd = (): void =>
-    {
-        this.startY = 0;
-        window.removeEventListener("touchmove", this.handleTouchMove.bind(this));
-    }
-
-    public handleTouchStart = (event: TouchEvent) =>
-    {
-        if (event.touches.length === 2)
-        {
-            this.startY = event.touches[0].clientY;
-            window.addEventListener("touchmove", this.handleTouchMove.bind(this));
-        }
-    }
-
-    private handleTouchMove = (event: TouchEvent) =>
+    private static handleTouchMove = (event: TouchEvent) =>
     {
         if (event.touches.length === 2)
         {
             if (this.startY === 0) return;
             const deltaY = event.touches[0].clientY - this.startY;
-            const screenHeight = window.innerHeight;
-            const threshold = screenHeight / 5;
+            const threshold = window.innerHeight / 5;
+
             if (deltaY > threshold)
             {
                 this.startY = 0;
                 event.preventDefault();
                 event.stopPropagation();
-                event.stopImmediatePropagation();
-                this.ShowHideMainApp();
+
+                // 执行 Preact 组件传过来的方法
+                if (this.ShowHideMainApp)
+                {
+                    this.ShowHideMainApp();
+                }
+
+                // 触发后移除监听，防止单次滑动重复触发
+                this.touchEnd();
             }
+        }
+    }
+
+    public static touchEnd = (): void =>
+    {
+        this.startY = 0;
+        // 注意：因为 handleTouchMove 是箭头函数，不需要 .bind(this)
+        window.removeEventListener("touchmove", this.handleTouchMove);
+    }
+
+    public static handleTouchStart = (event: TouchEvent) =>
+    {
+        if (event.touches.length === 2)
+        {
+            this.startY = event.touches[0].clientY;
+            window.addEventListener("touchmove", this.handleTouchMove);
         }
     }
 }

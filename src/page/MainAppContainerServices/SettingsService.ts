@@ -5,6 +5,7 @@ import { BiliBiliSettings } from "../../settings/bilibiliSettings/BiliBiliSettin
 import { JOOXSettings } from "../../settings/jooxSettings/JOOXSettings";
 import { NetEaseSettings } from "../../settings/neteaseSettings/NetEaseSettings";
 import { PluginSettings } from "../../settings/pluginSettings/PluginSettings";
+import { RadioSettings } from "../../settings/radioSettings/RadioSettings";
 
 export class SettingsService
 {
@@ -113,7 +114,23 @@ export class SettingsService
                 title: '默认API',
                 actionTitle: JOOXSettings.parseJOOXApi(s.api),
                 icon: 'mdi-code-braces',
-                action: JOOXSettings.setNeteaseDefaultApi.bind(JOOXSettings)
+                action: JOOXSettings.setJooxDefaultApi.bind(JOOXSettings)
+            }
+        ];
+
+        this.setState(ctx, data);
+    }
+
+    static showRadio(ctx: MainAppContainerActionContext)
+    {
+        const s = RadioSettings.getRadioSettings();
+
+        const data: SettingData[] = [
+            {
+                title: '默认播放时长',
+                actionTitle: `${s.duration / 60} 分钟`,
+                icon: 'mdi-clock-outline',
+                action: RadioSettings.setRadioStreamSeconds.bind(RadioSettings)
             }
         ];
 

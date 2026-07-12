@@ -2,31 +2,34 @@ import { SendFetch } from '../..';
 
 export class BiliBiliLoginApi extends SendFetch
 {
-    public static async QRLogin(qrcode_key: string)
+    public static async QRLogin(qrcode_key: string): Promise<qrLogin | null>
     {
+
         const url = `${this.cors}https://passport.bilibili.com/x/passport-login/web/qrcode/poll`;
-        const headers = this.returnBilibiliHeaders();
-        // headers.set('cookie', `bili_ticket_expires=${CookieData['bili_ticket_expires']?.value} bili_ticket=${CookieData['bili_ticket']?.value}bmg_af_switch=${CookieData['bmg_af_switch']?.value}FEED_LIVE_VERSION=${CookieData['FEED_LIVE_VERSION']?.value}browser_resolution=${CookieData['browser_resolution']?.value}header_theme_version=${CookieData['header_theme_version']?.value}home_feed_column=${CookieData['home_feed_column']?.value}bmg_src_def_domain=${CookieData['bmg_src_def_domain']?.value}enable_web_push=${CookieData['enable_web_push']?.value}_uuid=${CookieData['_uuid']?.value}b_lsid=${CookieData['b_lsid']?.value}buvid3=${CookieData['buvid3']?.value}b_ut=${CookieData['b_ut']?.value}buvid_fp=${CookieData['buvid_fp']?.value}b_nut=${CookieData['b_nut']?.value}buvid4=${CookieData['buvid4']?.value}`);
+
+        // ===== query 参数（只放业务参数）=====
         const params = new URLSearchParams({
             qrcode_key: qrcode_key
         });
 
-        const bParams = this.returnBilibiliHeadersParam();
-        for (const [key, value] of bParams)
+        // ===== cookie（关键修复）=====
+        const cookie = this.buildCookieString();
+
+        const headers = this.returnBilibiliHeaders();
+
+        if (cookie)
         {
-            params.set(key, value);
+            headers.set('Cookie', cookie);
         }
 
         const response = await this.sendGet(url, params, headers);
 
         if (response && response.ok)
         {
-            const responseData: qrLogin = await response.json();
-            return responseData;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
     public static async getQRCode()
@@ -76,19 +79,31 @@ export class BiliBiliLoginApi extends SendFetch
      * 获取buvid (游览器指纹?)
      * @returns
      */
-    public static async getBuvid()
+    public static async getBuvid(): Promise<buvid | null>
     {
+
         const url = `${this.cors}https://api.bilibili.com/x/frontend/finger/spi`;
-        const bParams = this.returnBilibiliHeadersParam();
-        const response = await this.sendGet(url, bParams);
+
+        const params = new URLSearchParams();
+
+        // ⚠️ 这个接口本身不需要 cookie，但可以带（可选）
+        const cookie = this.buildCookieString();
+
+        const headers = this.returnBilibiliHeaders();
+
+        if (cookie)
+        {
+            headers.set('Cookie', cookie);
+        }
+
+        const response = await this.sendGet(url, params, headers);
+
         if (response && response.ok)
         {
-            const data: buvid = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
     /**
@@ -480,30 +495,31 @@ export class BiliBiliLoginApi extends SendFetch
     //     }
     // }
 
+
     public static async getNavUserData(sessdata?: string)
     {
+
         const url = `${this.cors}https://api.bilibili.com/x/web-interface/nav`;
-        const params = new URLSearchParams
-        if (!sessdata)
+
+        const params = new URLSearchParams();
+
+        const cookieString = sessdata
+            ? `SESSDATA=${sessdata}`
+            : this.buildCookieString();
+
+        if (cookieString)
         {
-            const bParams = this.returnBilibiliHeadersParam();
-            for (const [key, value] of bParams)
-            {
-                params.set(key, value);
-            }
-        } else
-        {
-            params.append('cookie', `SESSDATA=${sessdata}`);
+            params.set('cookie', cookieString);
         }
+
         const response = await this.sendGet(url, params);
+
         if (response && response.ok)
         {
-            const data: NavUserInfo = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
 

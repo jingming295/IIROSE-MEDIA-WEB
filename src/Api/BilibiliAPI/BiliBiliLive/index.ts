@@ -9,28 +9,30 @@ export class BiliBiliLiveApi extends SendFetch
      */
     public static async getLiveRoomDetail(roomId: number)
     {
-        const bcors = this.getBilibiliCors()
+        const bcors = this.getBilibiliCors();
+
         const url = `${bcors}https://api.live.bilibili.com/room/v1/Room/get_info`;
+
         const params = new URLSearchParams({
             room_id: roomId.toString()
         });
 
-        const bParams = this.returnBilibiliHeadersParam();
+        // ✔ 单独处理 cookie
+        const cookie = this.buildCookieString();
 
-        bParams.forEach((value, key) =>
+        if (cookie)
         {
-            params.append(key, value);
-        })
+            params.append('cookie', encodeURIComponent(cookie));
+        }
 
         const response = await this.sendGet(url, params);
+
         if (response && response.ok)
         {
-            const data: LiveRoomDetail = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
     /**
@@ -153,39 +155,53 @@ export class BiliBiliLiveApi extends SendFetch
         }
     }
 
-    public static async getLiveStream
-        (
-            cid: number,
-            platform: string | null = null,
-            quality: number | null = null,
-            qn: number | null = null,
-        )
+    public static async getLiveStream(
+        cid: number,
+        platform: string | null = null,
+        quality: number | null = null,
+        qn: number | null = null,
+    )
     {
-        const bcors = this.getBilibiliCors()
+        const bcors = this.getBilibiliCors();
+
         const url = `${bcors}https://api.live.bilibili.com/room/v1/Room/playUrl`;
-        const params = new URLSearchParams({
-            cid: cid.toString()
-        });
-        platform && params.append('platform', platform);
-        quality && params.append('quality', quality.toString());
-        qn && params.append('qn', qn.toString());
 
-        const bParams = this.returnBilibiliHeadersParam();
+        const params = new URLSearchParams();
 
-        bParams.forEach((value, key) =>
+        // ✔ 强制参数
+        params.set('cid', cid.toString());
+
+        // ✔ 可选参数（更安全写法）
+        if (platform !== null)
         {
-            params.append(key, value);
-        })
+            params.set('platform', platform);
+        }
+
+        if (quality !== null)
+        {
+            params.set('quality', quality.toString());
+        }
+
+        if (qn !== null)
+        {
+            params.set('qn', qn.toString());
+        }
+
+        // ✔ cookie 单独处理（关键）
+        const cookie = this.buildCookieString();
+
+        if (cookie)
+        {
+            params.set('cookie', encodeURIComponent(cookie));
+        }
 
         const response = await this.sendGet(url, params);
 
         if (response && response.ok)
         {
-            const data: LiveStream = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 }

@@ -5,10 +5,12 @@ import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings"
 
 export class SendFetch
 {
-    public static cors = `https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/`;
-    public static malaysiacors = `https://cors-anywhere-cwimzudkuk.cn-hongkong.fcapp.run/`;
-    public static cncors = `https://cors-anywhere-cwimzudkuk.cn-shenzhen.fcapp.run/`;
-    public static devcors = `http://localhost:8080/`;
+    // public static cors = `http://localhost:9000/proxy?url=`;
+
+    public static cors = `https://1309510434-0ia3djbhr3.ap-guangzhou.tencentscf.com/proxy?url=`;
+    public static malaysiacors = `https://1309510434-j7rmgztk8t.ap-hongkong.tencentscf.com/proxy?url=`;
+    public static cncors = `https://1309510434-0ia3djbhr3.ap-guangzhou.tencentscf.com/proxy?url=`;
+    public static devcors = `http://localhost:9000/proxy?url=`;
 
     static {
         if (typeof window !== 'undefined' && window.iirosemedia && window.iirosemedia.cors !== undefined)
@@ -18,7 +20,8 @@ export class SendFetch
     }
     public static async sendGet(url: string, params: URLSearchParams, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
     {
-        const fullUrl = `${url}?${params.toString()}`;
+        const symbol = url.includes('?') ? '&' : '?';
+        const fullUrl = `${url}${symbol}${params.toString()}`;
         if (!headers) headers = new Headers();
         try
         {
@@ -84,7 +87,6 @@ export class SendFetch
 
     public static async sendPost(url: string, params: URLSearchParams | string, headers?: Headers)
     {
-
         try
         {
             if (!headers) headers = new Headers();
@@ -236,27 +238,30 @@ export class SendFetch
         return headers;
     }
 
-    protected static returnBilibiliHeadersParam()
+
+    protected static buildCookieString(): string | undefined
     {
-        const params = new URLSearchParams();
         const bilibiliAccount = localStorage.getItem('bilibiliAccount');
-        // params.append('rfr', 'https://www.bilibili.com');
-        if (bilibiliAccount)
+        if (!bilibiliAccount) return undefined;
+
+        const account = JSON.parse(bilibiliAccount);
+
+        if (!account.SESSDATA)
         {
-            const account: BilibiliACC = JSON.parse(bilibiliAccount);
-            const excludedKeys = ['face', 'uname'];
-            const cookieString = Object.entries(account)
-                .filter(([key, value]) =>
-                    value !== undefined &&
-                    value !== null &&
-                    value !== '' &&
-                    key !== 'id' &&
-                    !excludedKeys.includes(key))
-                .map(([key, value]) => `${key}=${value}`)
-                .join(';');
-            params.append('cookie', cookieString);
+            return undefined;
         }
-        return params;
+
+        const excludedKeys = ['face', 'uname', 'id'];
+
+        return Object.entries(account)
+            .filter(([key, value]) =>
+                value !== undefined &&
+                value !== null &&
+                value !== '' &&
+                !excludedKeys.includes(key)
+            )
+            .map(([key, value]) => `${key}=${value}`)
+            .join(';');
     }
 
     protected static returnBiliBiliHeadersBuvidOnly()

@@ -55,57 +55,60 @@ export class BiliBiliSearchApi extends SendFetch
      * @param ctx
      * @returns
      */
-    public static async getSearchRequestByType
-        (
-            search_type: string,
-            keyword: string,
-            page: number | null = null,
-            page_size: number | null = null,
-            order: string | null = null,
-            order_sort: string | null = null,
-            user_type: number | null = null,
-            duration: number | null = null,
-            tids: number | null = null,
-            category_id: number | null = null
-        )
+    public static async getSearchRequestByType(
+        search_type: string,
+        keyword: string,
+        page: number | null = null,
+        page_size: number | null = null,
+        order: string | null = null,
+        order_sort: string | null = null,
+        user_type: number | null = null,
+        duration: number | null = null,
+        tids: number | null = null,
+        category_id: number | null = null
+    )
     {
         const bcors = this.getBilibiliCors();
+
         const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
+
         const params = new URLSearchParams({
-            search_type: search_type,
-            keyword: keyword
+            search_type,
+            keyword
         });
-        page_size && params.append('page_size', page_size.toString());
-        page && params.append('page', page.toString());
-        order && params.append('order', order);
-        order_sort && params.append('order_sort', order_sort);
-        user_type && params.append('user_type', user_type.toString());
-        duration && params.append('duration', duration.toString());
-        tids && params.append('tids', tids.toString());
-        category_id && params.append('category_id', category_id.toString());
+
+        if (page_size !== null) params.set('page_size', page_size.toString());
+        if (page !== null) params.set('page', page.toString());
+        if (order) params.set('order', order);
+        if (order_sort) params.set('order_sort', order_sort);
+        if (user_type !== null) params.set('user_type', user_type.toString());
+        if (duration !== null) params.set('duration', duration.toString());
+        if (tids !== null) params.set('tids', tids.toString());
+        if (category_id !== null) params.set('category_id', category_id.toString());
+
+        // ===== WBI =====
         const wbi = new WBI();
         const wbidata = await wbi.main(params);
-        wbidata.w_rid && params.append('w_rid', wbidata.w_rid);
-        wbidata.wts && params.append('wts', wbidata.wts.toString());
 
-        const bParams = this.returnBilibiliHeadersParam()
+        if (wbidata.w_rid) params.set('w_rid', wbidata.w_rid);
+        if (wbidata.wts) params.set('wts', wbidata.wts.toString());
 
-        for (const [key, value] of bParams.entries())
+        // ===== COOKIE（关键修复点）=====
+        const cookie = this.buildCookieString();
+
+        if (cookie)
         {
-            params.append(key, value);
+            params.set('cookie', encodeURIComponent(cookie));
         }
 
         const response = await this.sendGet(url, params);
+
         if (response && response.ok)
         {
-            const data = await response.json();
-            return data;
-
-        } else
-        {
-            return null;
+            return await response.json();
         }
 
+        return null;
     }
 
     /**

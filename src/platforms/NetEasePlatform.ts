@@ -861,8 +861,8 @@ export class NetEasePlatform
                     continue;
                 }
                 let playUrl = '';
-                playUrl = `https://v.iarc.top/?type=url&id=${item.id}#.mp3`;
-                // playUrl = `https://1309510434-k3dderqeb9.ap-guangzhou.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
+                // playUrl = `https://v.iarc.top/?type=url&id=${item.id}#.mp3`;
+                playUrl = `https://1309510434-k3dderqeb9.ap-guangzhou.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
                 const lyrdata = await NeteaseMusicAPI.getLyric(item.id);
 
                 let lyric = ``;

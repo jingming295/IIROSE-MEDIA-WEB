@@ -9,33 +9,37 @@ export class BiliBiliVideoApi extends SendFetch
      * @param biliBiliSessData BiliBili SessData
      * @returns
      */
-    public static async getBilibiliVideoData(aid: number | null = null, bvid: string | null = null): Promise<BVideoDetail | null>
+    public static async getBilibiliVideoData(
+        aid: number | null = null,
+        bvid: string | null = null
+    ): Promise<BVideoDetail | null>
     {
 
         const bcors = this.getBilibiliCors();
 
         const url = `${bcors}https://api.bilibili.com/x/web-interface/view`;
-        const params = new URLSearchParams();
-        aid && params.set('aid', aid.toString());
-        bvid && params.set('bvid', bvid);
 
-        const bParams = this.returnBilibiliHeadersParam();
-        for (const [key, value] of bParams)
+        const params = new URLSearchParams();
+
+        if (aid !== null) params.set('aid', aid.toString());
+        if (bvid !== null) params.set('bvid', bvid);
+
+        // ===== cookie 单独处理 =====
+        const cookie = this.buildCookieString();
+
+        if (cookie)
         {
-            params.set(key, value);
+            params.set('cookie', encodeURIComponent(cookie));
         }
 
         const response = await this.sendGet(url, params);
 
         if (response && response.ok)
         {
-            const data: BVideoDetail = await response.json();
-            return data;
-
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
     /**
@@ -49,52 +53,71 @@ export class BiliBiliVideoApi extends SendFetch
      * @param ctx
      * @returns
      */
-    public static async getBilibiliVideoStream
-        (
-            aid: number | null = null,
-            bvid: string | null = null,
-            cid: number,
-            qn: number,
-            fnval: number = 16,
-            platform: string = 'html5',
-        )
+    public static async getBilibiliVideoStream(
+        aid: number | null = null,
+        bvid: string | null = null,
+        cid: number,
+        qn: number,
+        fnval: number = 16,
+        platform: string = 'html5',
+    ): Promise<BVideoStream | null>
     {
+
         const bcors = this.getBilibiliCors();
+
         const url = `${bcors}https://api.bilibili.com/x/player/wbi/playurl`;
 
-        const params = new URLSearchParams({
-            cid: cid.toString(),
-            qn: qn.toString(),
-            high_quality: '1',
-            platform: platform,
-            fnver: '0',
-            fourk: '1',
-            fnval: fnval.toString()
-        });
+        const params = new URLSearchParams();
 
-        aid && params.set('avid', aid.toString());
-        bvid && params.set('bvid', bvid);
+        // ===== 基础参数 =====
+        params.set('cid', cid.toString());
+        params.set('qn', qn.toString());
+        params.set('high_quality', '1');
+        params.set('platform', platform);
+        params.set('fnver', '0');
+        params.set('fourk', '1');
+        params.set('fnval', fnval.toString());
+
+        if (aid !== null)
+        {
+            params.set('avid', aid.toString());
+        }
+
+        if (bvid !== null)
+        {
+            params.set('bvid', bvid);
+        }
+
+        // ===== WBI 签名（必须在 query 完整后执行）=====
         const wbi = new WBI();
         const wbidata = await wbi.main(params);
-        wbidata.w_rid && params.set('w_rid', wbidata.w_rid);
-        wbidata.wts && params.set('wts', wbidata.wts.toString());
 
-        const bParams = this.returnBilibiliHeadersParam();
-
-        for (const [key, value] of bParams)
+        if (wbidata.w_rid)
         {
-            params.set(key, value);
+            params.set('w_rid', wbidata.w_rid);
+        }
+
+        if (wbidata.wts)
+        {
+            params.set('wts', wbidata.wts.toString());
+        }
+
+        // ===== cookie（关键修复点）=====
+        const cookie = this.buildCookieString();
+
+        if (cookie)
+        {
+            params.set('cookie', encodeURIComponent(cookie));
         }
 
         const response = await this.sendGet(url, params);
+
         if (response && response.ok)
         {
-            const data: BVideoStream = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
+
+        return null;
     }
 
     public static async getBilibiliVideoStreamFromFunctionCompute(avid: string, bvid: string, cid: string, biliBiliPlatform: string, biliBiliqn: number, remoteUrl: string)
@@ -569,43 +592,47 @@ export class BiliBiliVideoApi extends SendFetch
      * @param fresh_idx_1h
      * @returns
      */
-    public static async getRecommendVideoFromMainPage
-        (
-            fresh_type: number = 3,
-            version: number = 1,
-            ps: number = 8,
-            fresh_idx: number = 1,
-            fresh_idx_1h: number = 1,
-            brush: number = 0
-        ): Promise<RecommendVideoFromMainPage | null>
+    public static async getRecommendVideoFromMainPage(
+        fresh_type: number = 3,
+        version: number = 1,
+        ps: number = 8,
+        fresh_idx: number = 1,
+        fresh_idx_1h: number = 1,
+        brush: number = 0
+    ): Promise<RecommendVideoFromMainPage | null>
     {
-        const bcors = this.getBilibiliCors();
-        const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/index/top/feed/rcmd`;
-        const params = new URLSearchParams({
-            fresh_type: fresh_type.toString(),
-            version: version.toString(),
-            ps: ps.toString(),
-            fresh_idx: fresh_idx.toString(),
-            fresh_idx_1h: fresh_idx_1h.toString(),
-            brush: brush.toString()
-        });
 
-        const bParams = this.returnBilibiliHeadersParam()
-        for (const [key, value] of bParams)
+        const bcors = this.getBilibiliCors();
+
+        const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/index/top/feed/rcmd`;
+
+        const params = new URLSearchParams();
+
+        // ===== query 参数（只放业务参数）=====
+        params.set('fresh_type', fresh_type.toString());
+        params.set('version', version.toString());
+        params.set('ps', ps.toString());
+        params.set('fresh_idx', fresh_idx.toString());
+        params.set('fresh_idx_1h', fresh_idx_1h.toString());
+        params.set('brush', brush.toString());
+
+        // ===== cookie（关键修复）=====
+        const cookie = this.buildCookieString();
+
+        if (cookie)
         {
-            params.set(key, value);
+            params.set('cookie', encodeURIComponent(cookie));
         }
+
         const response = await this.sendGet(url, params);
+
         if (response && response.ok)
         {
-            const data: RecommendVideoFromMainPage = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
-    }
 
+        return null;
+    }
     /**
      * 获取推荐短视频
      * @param fnval
@@ -1029,31 +1056,45 @@ export class BiliBiliVideoApi extends SendFetch
         }
     }
 
-    public static async getBilibiliPagesAndCids(aid: number | null = null, bvid: string | null = null)
+    public static async getBilibiliPagesAndCids(
+        aid: number | null = null,
+        bvid: string | null = null
+    ): Promise<BilibiliPagesAndCids | null>
     {
+
         const bcors = this.getBilibiliCors();
-        const url = `${bcors}https://api.bilibili.com/x/player/pagelist`
+
+        const url = `${bcors}https://api.bilibili.com/x/player/pagelist`;
+
         const params = new URLSearchParams();
 
-        aid && params.set('aid', aid.toString());
-        bvid && params.set('bvid', bvid);
-
-        const bParams = this.returnBilibiliHeadersParam();
-        for (const [key, value] of bParams)
+        // ===== 只放业务参数 =====
+        if (aid !== null)
         {
-            params.set(key, value);
+            params.set('aid', aid.toString());
         }
+
+        if (bvid !== null)
+        {
+            params.set('bvid', bvid);
+        }
+
+        // ===== cookie（关键修复点）=====
+        const cookie = this.buildCookieString();
+
+        if (cookie)
+        {
+            params.set('cookie', encodeURIComponent(cookie));
+        }
+
         const response = await this.sendGet(url, params);
 
         if (response && response.ok)
         {
-            const data: BilibiliPagesAndCids = await response.json();
-            return data;
-        } else
-        {
-            return null;
+            return await response.json();
         }
 
+        return null;
     }
 
 

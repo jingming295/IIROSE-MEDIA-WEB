@@ -13,3 +13,6 @@
 /_bmad
 /.opencode
 /.bmad-loop
+
+# 敏感资料（测试账号凭据等），绝不入库
+/.secrets

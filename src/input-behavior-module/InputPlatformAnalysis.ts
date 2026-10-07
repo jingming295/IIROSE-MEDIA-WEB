@@ -35,10 +35,10 @@ export class InputPlatformAnalysis
     {
         if (path.includes('video'))
         {
-            const bilibiliPlatform = new BilibiliPlatform();
+
             const videoId = path.split('/')[2]
 
-            const bvideoDetail = await bilibiliPlatform.getBilibiliVideoDetail(videoId);
+            const bvideoDetail = await BilibiliPlatform.getBilibiliVideoDetail(videoId);
             if (!bvideoDetail) return;
             const platformData: PlatformData = {
                 title: bvideoDetail.title,
@@ -52,7 +52,7 @@ export class InputPlatformAnalysis
                 }
             }
 
-            bilibiliPlatform.VOD(platformData);
+            BilibiliPlatform.VOD(platformData);
         }
     }
 

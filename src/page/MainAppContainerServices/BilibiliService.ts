@@ -9,11 +9,11 @@ export class BilibiliService
      */
     static snbclickRecommand(ctx: BilibiliActionContext)
     {
-        const bilibiliPlatform = new BilibiliPlatform();
-        const data = bilibiliPlatform.getRecommendVideosBasicsData(
+
+        const data = BilibiliPlatform.getRecommendVideosBasicsData(
             ctx.getRefreshCount()
         );
-        const vod = bilibiliPlatform.VOD.bind(bilibiliPlatform);
+        const vod = BilibiliPlatform.VOD;
 
         ctx.setState({
             mediaData: data,
@@ -43,14 +43,13 @@ export class BilibiliService
         // 命中本地缓存
         if (currentPage <= maxPage)
         {
-            const platform = new BilibiliPlatform();
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = Math.min(startIndex + itemsPerPage, allMediaData.length);
             const currentPageData = allMediaData.slice(startIndex, endIndex);
 
             ctx.setState({
                 mediaData: Promise.resolve({ platformData: currentPageData, totalPage }),
-                currentOnDemandPlay: platform.VOD.bind(platform)
+                currentOnDemandPlay: BilibiliPlatform.VOD
             });
         }
         // 网络请求
@@ -60,12 +59,12 @@ export class BilibiliService
             ctx.setState({ updating: true, requestToken: currentRequestToken });
 
             const page = currentPage !== 1 ? Math.floor(allMediaData.length / 50) + 1 : 1;
-            const bilibili = new BilibiliPlatform();
-            const dataPromise = bilibili.searchForVideosBasicsData(searchKeyword, page);
+
+            const dataPromise = BilibiliPlatform.searchForVideosBasicsData(searchKeyword, page);
 
             ctx.setState({
                 mediaData: dataPromise,
-                currentOnDemandPlay: bilibili.VOD.bind(bilibili)
+                currentOnDemandPlay: BilibiliPlatform.VOD
             });
 
             dataPromise.then((res) =>
@@ -94,9 +93,9 @@ export class BilibiliService
         // 2. 准备请求：生成新的 Request Token 防止并发冲突
         const currentRequestToken = requestToken + 1;
 
-        const bilibili = new BilibiliPlatform();
-        const dataPromise = bilibili.searchForLiveBasicsData(searchKeyword, currentPage);
-        const lod = bilibili.LOD.bind(bilibili);
+
+        const dataPromise = BilibiliPlatform.searchForLiveBasicsData(searchKeyword, currentPage);
+        const lod = BilibiliPlatform.LOD;
 
         // 3. 更新 UI 状态：设置 Loading 状态（Promise）和播放回调
         ctx.setState({

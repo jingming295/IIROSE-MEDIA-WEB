@@ -6,3 +6,10 @@
 
 # 忽略 yarn.lock 文件
 /yarn.lock
+
+# BMAD / agent 工具链（生成物，不进仓库）
+/.agents
+/.claude
+/_bmad
+/.opencode
+/.bmad-loop

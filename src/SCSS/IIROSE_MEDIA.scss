@@ -973,3 +973,76 @@
     background-color: transparent;
   }
 }
+
+/* ===== 现代化统一：平台标签栏 / 子标签 / 翻页按钮 / 点歌卡片 / 操作按钮（覆写层）===== */
+.IIROSE_MEDIA_CONTAINER {
+  /* 平台标签栏 → 胶囊分段控件，激活态白胶囊深色字 */
+  .PlatformSelector {
+    .PlatformButtonWrapper {
+      border-radius: 999px !important;
+      backdrop-filter: blur(8px);
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3) !important;
+      }
+    }
+
+    .PlatformButtonWrapperActive {
+      background-color: rgba(255, 255, 255, 0.85) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+
+      .PlatformButton,
+      .goFavoriteIcon {
+        color: #2f2f2f !important;
+      }
+    }
+  }
+
+  /* 子标签（搜索音乐/专辑/MV/歌单）→ 胶囊，激活态白胶囊深色字 */
+  .MediaContainerSubNavBar {
+    .SubNavBarItem {
+      border-radius: 999px !important;
+      background-color: rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .subNavBarItemActive {
+      background-color: rgba(255, 255, 255, 0.85) !important;
+      color: #2f2f2f !important;
+    }
+  }
+
+  /* 翻页/返回按钮 → 胶囊圆角 */
+  .controllerWrapper {
+    .returnButtonWrapper,
+    .prevButtonWrapper,
+    .nextButtonWrapper {
+      border-radius: 999px !important;
+    }
+  }
+
+  /* 点歌卡片 → 圆角玻璃 + 悬停浮起 */
+  .MediaCard {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease !important;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  /* 播放/选集按钮 → 悬停淡底色 */
+  .MediaCardButtonContainer {
+    transition: background-color 0.25s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+  }
+}

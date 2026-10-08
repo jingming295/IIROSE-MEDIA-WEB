@@ -974,12 +974,11 @@
   }
 }
 
-/* ===== 现代化统一：平台标签栏 / 子标签 / 翻页按钮 / 点歌卡片 / 操作按钮（覆写层）===== */
+/* ===== 现代化统一：平台标签栏 / 子标签 / 翻页按钮 / 点歌卡片（覆写层）===== */
 .IIROSE_MEDIA_CONTAINER {
-  /* 平台标签栏 → 胶囊分段控件，激活态白胶囊深色字 */
+  /* 平台标签栏：激活态白底深色字（不圆角） */
   .PlatformSelector {
     .PlatformButtonWrapper {
-      border-radius: 999px !important;
       backdrop-filter: blur(8px);
       transition: background-color 0.3s ease;
 
@@ -999,10 +998,9 @@
     }
   }
 
-  /* 子标签（搜索音乐/专辑/MV/歌单）→ 胶囊，激活态白胶囊深色字 */
+  /* 子标签：激活态白底深色字（不圆角） */
   .MediaContainerSubNavBar {
     .SubNavBarItem {
-      border-radius: 999px !important;
       background-color: rgba(0, 0, 0, 0.3) !important;
     }
 
@@ -1021,19 +1019,29 @@
     }
   }
 
-  /* 点歌卡片 → 圆角玻璃 + 悬停浮起 */
+  /* 点歌卡片：网格行按内容自适应，卡片完整包住封面+信息+按钮，圆角玻璃无悬停位移 */
+  .MediaCardContainer {
+    grid-auto-rows: max-content !important;
+    align-content: start !important;
+  }
+
   .MediaCard {
     border-radius: 12px !important;
     overflow: hidden !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease !important;
 
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    .MediaCardImgCover {
+      /* 不再 height:100%（会把按钮挤出卡外），由宽度+1:1比例决定高度 */
+      height: auto !important;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      flex-shrink: 0 !important;
+    }
+
+    .MediaCardInfoContainer,
+    .MediaCardButtonsWrapper {
+      flex-shrink: 0;
     }
   }
 

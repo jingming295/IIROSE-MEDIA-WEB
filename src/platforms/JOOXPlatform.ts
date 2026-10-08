@@ -74,12 +74,26 @@ export class JOOXPlatform extends Platform {
     const socket = new Socket();
 
     for (const item of JOOXSearch) {
-      const playUrlData = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
+      let playUrlData = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
         "joox",
         item.joox.id,
       );
 
-      if (!playUrlData) throw new Error("无法获取播放链接");
+      // GD Studio API 限流时返回 HTTP 200 + 空 url（{"url":"","br":-1}），隔 1.5s 重试一次
+      if (!playUrlData?.url) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        playUrlData = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
+          "joox",
+          item.joox.id,
+        );
+      }
+
+      if (!playUrlData?.url) {
+        ShowMessage.show(
+          `《${item.title}》获取播放链接失败：GD Studio API 可能已限流（按 IP 计），请稍后再试`,
+        );
+        continue;
+      }
 
       const lyricData = await GDStudioOnlineMusicPlatformAPI.getLyric(
         "joox",
@@ -89,9 +103,19 @@ export class JOOXPlatform extends Platform {
         lyricData?.lyric || "",
         lyricData?.tlyric || "",
       );
-      const duration = await ParseMediaMetaData.getAudioDuration(
-        playUrlData.url,
-      );
+      let duration = await ParseMediaMetaData.getAudioDuration(playUrlData.url);
+
+      // 时长解析失败可能是 vkey 瞬时失效：重新取一次新链接再试
+      if (!duration) {
+        const fresh = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
+          "joox",
+          item.joox.id,
+        );
+        if (fresh?.url) {
+          playUrlData = fresh;
+          duration = await ParseMediaMetaData.getAudioDuration(fresh.url);
+        }
+      }
 
       const mediaData: MediaData = {
         type: "music",

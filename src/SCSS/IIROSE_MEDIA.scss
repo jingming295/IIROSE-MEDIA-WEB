@@ -952,3 +952,18 @@
     height: 100%;
   }
 }
+
+/* 设置卡片：插件自有配色（含标题栏/动作区背景），不随宿站主题（夜间模式）变化 */
+.IMW-SettingCard {
+  color: #424242;
+
+  .commonBoxHead {
+    color: #424242;
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .IMW-SettingCard-Action {
+    color: #424242;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}

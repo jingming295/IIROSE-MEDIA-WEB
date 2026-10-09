@@ -1,5 +1,5 @@
 <!-- bmad:context -->
-<!-- Verified 2026-10-09 against 46bcd89. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
+<!-- Verified 2026-10-09 against a155b61. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
 
 ## IIROSE-MEDIA-WEB
 
@@ -31,6 +31,7 @@
 
 - `react`/`react-dom` 由 tsconfig paths 映射到 `preact/compat`——直接 import 'react' 即可，不要安装真正的 react 包。
 - 样式统一 Tailwind v4 任意值类（如 `max-[490px]:hidden`、`[grid-auto-rows:max-content]`）；点歌卡片网格行必须保持 `max-content` 自适应，否则按钮会被 `overflow:hidden` 裁掉（曾出过此 bug）。
+- 图标一律自包含方案：元素加 id + `src/app.css` 写 `#id::before { content:"\F0xxx"; font-family:"md" }`；**不要借用宿站 `mdi-*` 类**（宿站样式表里未必有该类规则，且没有 `font-family:"md"` 兜底会渲染成无字形——关于图标曾因此消失）。
 
 ## Known pitfalls
 

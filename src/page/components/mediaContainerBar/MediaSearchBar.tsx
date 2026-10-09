@@ -89,7 +89,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
             )}
 
             <div
-              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#ffffff3] rounded-full"
+              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#fff3] rounded-full"
               onClick={() => {
                 this.prevPage(currentPage);
               }}

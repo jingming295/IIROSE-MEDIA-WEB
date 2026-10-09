@@ -29,7 +29,7 @@ export class MainNavigationBar extends Component<
   // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
   // 字/图标 #fff；激活态 bg #00000080，未激活 #fff3；返回按钮恒为 #00000080
   private navButtonClass = (active: boolean) =>
-    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-white text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-[#00000080]" : "bg-[#ffffff3]"}`;
+    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-white text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
 
   render() {
     const { activeButtonIndex } = this.props;

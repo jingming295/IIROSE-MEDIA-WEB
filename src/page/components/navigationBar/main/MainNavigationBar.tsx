@@ -1,99 +1,130 @@
-import { Component } from 'preact';
+import { Component } from "preact";
 
-interface MainNavigationBarProps
-{
-    switchCategories: (index: number) => void;
-    ShowHideMainApp: () => void;
-    activeButtonIndex: number;
+interface MainNavigationBarProps {
+  switchCategories: (index: number) => void;
+  ShowHideMainApp: () => void;
+  activeButtonIndex: number;
 }
 
-interface MainNavigationBarState
-{
-}
+interface MainNavigationBarState {}
 
-export class MainNavigationBar extends Component<MainNavigationBarProps, MainNavigationBarState>
-{
-    constructor(props: MainNavigationBarProps)
-    {
-        super(props);
-    }
+export class MainNavigationBar extends Component<
+  MainNavigationBarProps,
+  MainNavigationBarState
+> {
+  constructor(props: MainNavigationBarProps) {
+    super(props);
+  }
 
-    quitFromMainApp = () =>
-    {
-        const { ShowHideMainApp } = this.props
-        ShowHideMainApp()
-    }
+  quitFromMainApp = () => {
+    const { ShowHideMainApp } = this.props;
+    ShowHideMainApp();
+  };
 
-    handleSwitchPage = (index: number) =>
-    {
-        this.props.switchCategories(index);
-        this.setState({ activeButtonIndex: index }); // 更新活动按钮索引
-    }
+  handleSwitchPage = (index: number) => {
+    this.props.switchCategories(index);
+    this.setState({ activeButtonIndex: index }); // 更新活动按钮索引
+  };
 
-    render()
-    {
-        const { activeButtonIndex } = this.props;
+  // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
+  // 激活态 bg-black/50，未激活 bg-white/20
+  private navButtonClass = (active: boolean) =>
+    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-black/50" : "bg-white/20"}`;
 
-        return (
-            <div className='IIroseMainNavigationBar'>
+  render() {
+    const { activeButtonIndex } = this.props;
 
-                <div className='LeftComponent'>
-                    <div className='NavBarButton NavBarButtonActive' id='BackButton' onClick={this.quitFromMainApp}>
-                        <div className='NavBarButtonIcon' id='BackIcon'>
-                        </div>
-                    </div>
+    return (
+      <div className="flex min-h-[40px] justify-between">
+        <div className="flex">
+          <div
+            className={this.navButtonClass(true)}
+            id="BackButton"
+            onClick={this.quitFromMainApp}
+          >
+            <div
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id="BackIcon"
+            ></div>
+          </div>
 
-                    <div className='NavBarTitle' id='NavBarTitle'>
-                        <div className='NavBarButtonIcon' id='TitleIcon'>
-                        </div>
-                        <div className='NavBarButtonText'> IIROSE - MEDIA </div>
-                    </div>
-                </div>
-
-                <div className='RightComponent'>
-                    <div
-                        className={`NavBarButton ${activeButtonIndex === 0 ? 'NavBarButtonActive' : ''}`}
-                        id=''
-                        onClick={() => this.handleSwitchPage(0)}
-                    >
-                        <div className='NavBarButtonIcon' id='MusicIcon'>
-                        </div>
-                        <div className='NavBarButtonText'> 音乐 </div>
-                    </div>
-
-                    <div
-                        className={`NavBarButton ${activeButtonIndex === 1 ? 'NavBarButtonActive' : ''}`}
-                        id=''
-                        onClick={() => this.handleSwitchPage(1)}
-                    >
-                        <div className='NavBarButtonIcon' id='VideoIcon'>
-                        </div>
-                        <div className='NavBarButtonText'> 视频 </div>
-                    </div>
-
-                    <div
-                        className={`NavBarButton ${activeButtonIndex === 2 ? 'NavBarButtonActive' : ''}`}
-                        id=''
-                        onClick={() => this.handleSwitchPage(2)}
-                    >
-                        <div className='NavBarButtonIcon' id='SettingIcon'>
-                        </div>
-                        <div className='NavBarButtonText'> 设置 </div>
-                    </div>
-
-                    <div
-                        className={`NavBarButton ${activeButtonIndex === 3 ? 'NavBarButtonActive' : ''}`}
-                        id=''
-                        onClick={() => this.handleSwitchPage(3)}
-                    >
-                        <div className='NavBarButtonIcon mdi-information-outline' id=''>
-                        </div>
-                        <div className='NavBarButtonText'> 关于 </div>
-                    </div>
-
-                </div>
-
+          <div
+            className="px-[20px] max-[780px]:px-[10px] max-[780px]:hidden flex items-center cursor-auto text-base bg-white/20 text-white transition-opacity duration-300"
+            id="NavBarTitle"
+          >
+            <div
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer"
+              id="TitleIcon"
+            ></div>
+            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+              {" "}
+              IIROSE - MEDIA{" "}
             </div>
-        );
-    }
+          </div>
+        </div>
+
+        <div className="flex">
+          <div
+            className={this.navButtonClass(activeButtonIndex === 0)}
+            id=""
+            onClick={() => this.handleSwitchPage(0)}
+          >
+            <div
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id="MusicIcon"
+            ></div>
+            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+              {" "}
+              音乐{" "}
+            </div>
+          </div>
+
+          <div
+            className={this.navButtonClass(activeButtonIndex === 1)}
+            id=""
+            onClick={() => this.handleSwitchPage(1)}
+          >
+            <div
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id="VideoIcon"
+            ></div>
+            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+              {" "}
+              视频{" "}
+            </div>
+          </div>
+
+          <div
+            className={this.navButtonClass(activeButtonIndex === 2)}
+            id=""
+            onClick={() => this.handleSwitchPage(2)}
+          >
+            <div
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id="SettingIcon"
+            ></div>
+            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+              {" "}
+              设置{" "}
+            </div>
+          </div>
+
+          <div
+            className={this.navButtonClass(activeButtonIndex === 3)}
+            id=""
+            onClick={() => this.handleSwitchPage(3)}
+          >
+            <div
+              className="mdi-information-outline text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id=""
+            ></div>
+            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+              {" "}
+              关于{" "}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

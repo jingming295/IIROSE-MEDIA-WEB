@@ -4,7 +4,155 @@
 @config "../tailwind.config.js";
 
 @layer utilities {
-    .font-md{
-        font-family: 'md' !important;    
-    }
+  .font-md {
+    font-family: "md" !important;
+  }
+}
+
+/* ============================================================
+   以下为 Tailwind 无法表达、必须保留的纯 CSS：
+   1. @keyframes 动画
+   2. mdi 图标字体的 ::before content（反斜杠转义不能进 class 名）
+   3. 由 JS 命令式切换的状态类（ShowIIROSE_MEDIA_CONTAINER）
+   4. 插件写入宿站页面的元素（#mainContainer 等）
+   5. 通配选择器（universal transition）
+   其余全部样式已迁移到各组件的 Tailwind 类。
+   ============================================================ */
+
+/* --- 1. 动画 --- */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes expandHeight {
+  from {
+    height: 0%;
+  }
+
+  to {
+    height: 100%;
+  }
+}
+
+/* --- 5. 通配过渡（全局顺滑感） --- */
+.IIROSE_MEDIA_CONTAINER * {
+  transition: all 0.5s ease-in-out;
+}
+
+/* --- 3. 插件容器开关状态（JS 用 classList 切换，见 MainAppControlLayer） --- */
+.IIROSE_MEDIA_CONTAINER {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 90000;
+  transition: transform 0.25s ease-in-out;
+  transform-origin: right;
+  transform: translateX(100%);
+}
+
+.IIROSE_MEDIA_CONTAINER.ShowIIROSE_MEDIA_CONTAINER {
+  transform: translateX(0);
+}
+
+/* --- 4. 宿站页面元素 --- */
+#mainContainer {
+  transition: transform 0.25s;
+}
+
+.fullBoxFixed.hidemainHolder {
+  transform: translateX(-100%);
+  transform-origin: left;
+}
+
+/* 插件注入到宿站 #syncHolder 的取消层（IIROSEUtils.sync 创建） */
+#syncHolder #syncHolderOutside {
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  position: absolute;
+}
+
+/* --- 2. mdi 图标内容表 --- */
+#BackIcon::before,
+#TitleIcon::before,
+#MusicIcon::before,
+#VideoIcon::before,
+#SettingIcon::before,
+.inputIcon::before,
+.paginationIcon::before,
+.returnIcon::before,
+.prevIcon::before,
+.nextIcon::before,
+.containerSpin::before,
+.searchLogo::before,
+.noresultLogo::before {
+  font-family: "md";
+}
+
+#BackIcon::before,
+.prevIcon::before {
+  content: "\F0141";
+}
+
+#TitleIcon::before {
+  content: "\F0025";
+}
+
+#MusicIcon::before {
+  content: "\F075A";
+}
+
+#VideoIcon::before {
+  content: "\F0381";
+}
+
+#SettingIcon::before {
+  content: "\F0493";
+}
+
+.inputIcon::before {
+  content: "\F0349";
+}
+
+.paginationIcon::before {
+  content: "\F14F7";
+}
+
+.returnIcon::before {
+  content: "\F17A7";
+}
+
+.nextIcon::before {
+  content: "\F0142";
+}
+
+.containerSpin::before {
+  content: "\F0772";
+  animation: spin 2s linear infinite;
+}
+
+.searchLogo::before {
+  content: "\F1A7E";
+}
+
+.noresultLogo::before {
+  content: "\F0413";
 }

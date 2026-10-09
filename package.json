@@ -26,7 +26,6 @@
     "@types/md5": "^2.3.5",
     "@types/qrcode": "^1.5.5",
     "rollup-plugin-visualizer": "^5.14.0",
-    "sass-embedded": "^1.87.0",
     "typescript": "~5.7.2",
     "vite": "^6.3.1"
   }

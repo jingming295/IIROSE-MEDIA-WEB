@@ -1,7 +1,6 @@
 import { BiliBiliAccount } from "./Account/BiliBili/SetBiliBili";
 import { Environment } from "./environment/Environment";
 import { IMCInit } from "./page";
-import './SCSS/IIROSE_MEDIA.scss';
 import './app.css'
 import { LocalStorageUtils } from "./settings/localStorageUtils/LocalStorageUtils";
 

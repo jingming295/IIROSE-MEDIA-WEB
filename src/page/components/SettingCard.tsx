@@ -40,8 +40,8 @@ export class SettingCard extends Component<SettingCardProps, SettingCardState> {
     const { title, icon } = this.props.settingsData;
     const { currentActionTitle } = this.state;
     return (
-      <div className="IMW-SettingCard flex flex-col h-[200px] m-[12px] shadow-[0_0_1px_rgba(0,0,0,0.12),_0_1px_1px_rgba(0,0,0,0.24)]">
-        <div className="commonBoxHead">
+      <div className="IMW-SettingCard flex flex-col h-[200px] m-[12px] shadow-[0_0_1px_rgba(0,0,0,0.12),_0_1px_1px_rgba(0,0,0,0.24)] text-[#424242] bg-white/50 backdrop-blur-[10px] rounded-xl overflow-hidden">
+        <div className="commonBoxHead text-[rgba(0,0,0,0.4)]! bg-[rgba(255,255,255,0.3)]! border-b border-black/[0.06]">
           <div
             className={`flex font-md ${icon} h-full text-[30px] items-center`}
           ></div>
@@ -50,7 +50,7 @@ export class SettingCard extends Component<SettingCardProps, SettingCardState> {
           </span>
         </div>
         <div
-          className="IMW-SettingCard-Action h-[50%]"
+          className="IMW-SettingCard-Action h-[50%] text-[#424242] bg-transparent"
           onClick={this.handleClick}
         >
           {currentActionTitle.startsWith("mdi") ? (

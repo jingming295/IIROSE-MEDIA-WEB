@@ -1,40 +1,44 @@
-import { Component, ContextType } from 'preact';
+import { Component, ContextType } from "preact";
 import { MediaContainerContext } from "../media-container-context/MediaContainerContext";
 
-interface MediaCardMessageProps
-{
-    message: number;
+interface MediaCardMessageProps {
+  message: number;
 }
 
-export class MediaCardMessage extends Component<MediaCardMessageProps>
-{
-    static contextType = MediaContainerContext
-    declare context: ContextType<typeof MediaContainerContext>;
+export class MediaCardMessage extends Component<MediaCardMessageProps> {
+  static contextType = MediaContainerContext;
+  declare context: ContextType<typeof MediaContainerContext>;
 
-    render()
-    {
-        const { message } = this.props;
+  render() {
+    const { message } = this.props;
 
-        const color = this.context.color;
+    const color = this.context.color;
 
-        return (
-            <div className={`MediaCardMessageWrapper`} style={{ color: color }} >
-                {message === 0 && (
-                    <>
-                        <div className="noresultLogo"></div>
-                        <div className="message">什么也没有搜到...</div>
-                    </>
-                )}
-                {message === 1 && (
-                    <div className="containerSpin"></div>
-                )}
-                {message === 2 && (
-                    <>
-                        <div className="searchLogo"></div>
-                        <div className="message">请点击搜索图标进行搜索！</div>
-                    </>
-                )}
+    return (
+      <div
+        className={`MediaCardMessageWrapper flex flex-col justify-center items-center absolute w-full h-full transition-all duration-250 animate-[fadeIn_.25s_ease-out]`}
+        style={{ color: color }}
+      >
+        {message === 0 && (
+          <>
+            <div className="noresultLogo text-[200px] flex"></div>
+            <div className="mt-6 leading-[31px] text-2xl font-bold">
+              什么也没有搜到...
             </div>
-        );
-    }
+          </>
+        )}
+        {message === 1 && (
+          <div className="containerSpin flex justify-center items-center absolute w-full h-full text-[100px]"></div>
+        )}
+        {message === 2 && (
+          <>
+            <div className="searchLogo text-[200px] flex"></div>
+            <div className="mt-6 leading-[31px] text-2xl font-bold">
+              请点击搜索图标进行搜索！
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 }

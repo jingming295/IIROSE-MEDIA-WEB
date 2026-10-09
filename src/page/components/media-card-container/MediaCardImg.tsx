@@ -98,10 +98,10 @@ export class MediaCardImg extends Component<
     const isLoading = displaySrc.startsWith("data");
 
     return (
-      <div className="MediaCardImgCover">
+      <div className="flex relative w-full h-auto aspect-square transition-none shrink-0">
         <img
           src={displaySrc}
-          className={`MediaCardImg ${isLoading ? "MediaCardImg-loading" : "MediaCardImg-loaded"}`}
+          className={`object-contain object-center w-full h-full overflow-hidden aspect-square cursor-pointer ${isLoading ? "MediaCardImg-loading" : "MediaCardImg-loaded"}`}
           onClick={() => {
             window.open(platformData.websiteUrl || "");
           }}
@@ -111,7 +111,7 @@ export class MediaCardImg extends Component<
             backgroundColor: "#1a1a1a", // 没图时的背景色
           }}
         />
-        <div className="MediaCardDuration">{`${infoArea}`}</div>
+        <div className="absolute text-white [text-shadow:1px_0_#000,-1px_0_#000,0_1px_#000,0_-1px_#000] bottom-6 right-6 left-6 text-right font-bold">{`${infoArea}`}</div>
       </div>
     );
   }

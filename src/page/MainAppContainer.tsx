@@ -177,7 +177,7 @@ export class MainAppContainer extends Component<
     return (
       <Provider value={providerValue}>
         <div
-          className="MediaContainerWrapper"
+          className="relative overflow-hidden h-full flex justify-center items-center"
           onTouchStart={(e) =>
             this.mediaContainerGesture.handleStart(
               e,
@@ -195,11 +195,8 @@ export class MainAppContainer extends Component<
             )
           }
         >
-          <div className="MediaContainer">
-            <div
-              className="MediaContainerController"
-              style={{ backgroundColor: color }}
-            >
+          <div className="h-full w-full flex flex-col absolute transition-all duration-250 bg-[rgba(224,224,224,0.8)]">
+            <div className="flex flex-col" style={{ backgroundColor: color }}>
               {!settingsData && (
                 <MediaSearchBar
                   searchKeyword={searchKeyword}

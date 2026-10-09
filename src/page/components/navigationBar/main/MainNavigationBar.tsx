@@ -27,9 +27,9 @@ export class MainNavigationBar extends Component<
   };
 
   // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
-  // 激活态 bg-black/50，未激活 bg-white/20
+  // 字/图标 #fff；激活态 bg #00000080，未激活 #fff3；返回按钮恒为 #00000080
   private navButtonClass = (active: boolean) =>
-    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-black/50" : "bg-white/20"}`;
+    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-white text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-[#00000080]" : "bg-[#ffffff3]"}`;
 
   render() {
     const { activeButtonIndex } = this.props;
@@ -115,8 +115,8 @@ export class MainNavigationBar extends Component<
             onClick={() => this.handleSwitchPage(3)}
           >
             <div
-              className="mdi-information-outline text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
-              id=""
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              id="AboutIcon"
             ></div>
             <div className="text-sm transition-all duration-500 max-[490px]:hidden">
               {" "}

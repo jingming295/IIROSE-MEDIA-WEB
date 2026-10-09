@@ -1,5 +1,5 @@
-@layer theme, base, components, utilities;
-@import "tailwindcss/utilities.css" layer(utilities);
+@layer theme, base, components;
+@import "tailwindcss/utilities.css";
 @import "tailwindcss/theme.css" layer(theme);
 @config "../tailwind.config.js";
 
@@ -96,6 +96,7 @@
 #MusicIcon::before,
 #VideoIcon::before,
 #SettingIcon::before,
+#AboutIcon::before,
 .inputIcon::before,
 .paginationIcon::before,
 .returnIcon::before,
@@ -126,6 +127,10 @@
 
 #SettingIcon::before {
   content: "\F0493";
+}
+
+#AboutIcon::before {
+  content: "\F02FD";
 }
 
 .inputIcon::before {

@@ -50,7 +50,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
     }
 
     return (
-      <div className="flex items-center justify-end max-[490px]:justify-between animate-[fadeIn_.25s_ease-out]">
+      <div className="flex items-center justify-end max-[490px]:justify-between min-h-[36px] max-[780px]:min-h-0 animate-[fadeIn_.25s_ease-out]">
         {!isCurrentInMultiPage && (
           <div
             className="flex items-center text-white cursor-pointer h-full transition-all duration-250 max-w-[460px] max-[780px]:max-w-[200px] hover:opacity-70"
@@ -78,7 +78,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
           <div className="flex items-center h-full">
             {isCurrentInMultiPage && (
               <div
-                className="flex items-center px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-black/50 rounded-full"
+                className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#00000080] rounded-full"
                 onClick={mediaSearchBarActions.switchToOutFromMultiPage}
               >
                 <div className="returnIcon text-2xl"></div>
@@ -89,7 +89,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
             )}
 
             <div
-              className="flex items-center px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-white/20 rounded-full"
+              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#ffffff3] rounded-full"
               onClick={() => {
                 this.prevPage(currentPage);
               }}
@@ -101,7 +101,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
             </div>
 
             <div
-              className="flex items-center px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-black/50 rounded-full"
+              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#00000080] rounded-full"
               onClick={() => {
                 this.nextPage(currentPage, totalPage);
               }}

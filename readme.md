@@ -1,31 +1,42 @@
-# 🎉隆重推出IIROSE-MEDIA-WEB （早期测试版）
+# 🎉 IIROSE-MEDIA-WEB
 
-## 📝简介
+为 [蔷薇花园](https://iirose.com/) 打造的一站式媒体点播插件——搜索、点播、歌词，一气呵成。
 
-这是一个能够帮助你在[蔷薇花园](https://iirose.com/)点播媒体的插件。
+## ✨ 功能特性
 
-## 🔍DEMO
+- 🎵 **多平台聚合**：网易云音乐、JOOX、Bilibili 视频、无线电广播，一个界面全搞定
+- 🔍 **极速搜索**：关键词一搜，歌曲 / 专辑 / MV / 歌单即刻呈现
+- 🎼 **歌词自动匹配**：点播即带歌词，跟唱不用愁
+- 🎨 **现代化 UI**：毛玻璃质感设计，电脑 / 手机双端适配，夜间主题不串色
+- ⌨️ **快捷呼出**：Alt+S 或双指下滑，随时随地想点就点
+
+## 🔍 DEMO
 
 https://cloud.ming295.com/s/XACQ
 
-## 📦使用方法：
+## 📦 安装方法
 
-### 🐒方法1：油猴脚本
+### 💉 蔷薇注入
 
-如果你有油猴，你可以从这里安装 [IIROSE-MEDIA-WEB](https://greasyfork.org/zh-CN/scripts/492694-iirose-media-web)
+1. 打开左侧侧栏，选择「工具」>「终端」
+2. 在终端中输入 `js` 回车，在框内输入以下地址并点击确定：
 
-### 💉方法2：蔷薇注入
+   ```
+   https://func-ide-iirose-uest-web-cztvejindn.cn-beijing.fcapp.run/bundle.js
+   ```
 
-首先：打开左侧侧栏，选择"工具" > "终端"。
+3. 等待载入成功后，呼出 UI：
+   - **电脑端**：按下 `Alt + S`
+   - **移动端**：双指下滑
 
-然后：在终端中输入js回车后在框内输入 https://func-ide-iirose-uest-web-cztvejindn.cn-beijing.fcapp.run/bundle.js 并点击确定。
+## ☕ 支持我
 
-最后：等待载入成功后，进行以下操作可呼出UI：
+如果这个插件给你带来了便利，欢迎请我喝杯咖啡，你的支持是持续更新的动力！
 
-电脑端：按下"alt+s"呼出。
-移动端：使用双指下滑呼出。
+- **爱发电**：[afdian.com/a/mingj](https://afdian.com/a/mingj)
+- **GitHub Sponsors**：[github.com/sponsors/jingming295](https://github.com/sponsors/jingming295)
 
-## 🐛反馈
+## 🐛 反馈
 
-蔷薇花园艾特 [@61f7881cd4538@] 。
-Github开Issue [IIROSE-MEDIA-WEB](https://github.com/jingming295/IIROSE-MEDIA-WEB)
+- 蔷薇花园艾特 [@61f7881cd4538@]
+- GitHub 提交 [Issue](https://github.com/jingming295/IIROSE-MEDIA-WEB/issues)

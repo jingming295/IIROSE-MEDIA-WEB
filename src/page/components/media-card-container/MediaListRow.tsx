@@ -27,11 +27,14 @@ export class MediaListRow extends Component<MediaListRowProps> {
           <div className="font-bold text-[15px] leading-[20px] overflow-hidden text-ellipsis whitespace-pre">
             {platformData.title}
           </div>
-          <div className="text-[12px] leading-[16px] mt-[2px] overflow-hidden text-ellipsis whitespace-pre text-[rgba(0,0,0,0.5)]">
+          <div className="text-[12px] leading-[16px] mt-[2px] overflow-hidden text-ellipsis whitespace-pre text-[rgba(0,0,0,0.6)]">
             {platformData.author || ""}
           </div>
-          <div className="text-[11px] leading-[14px] mt-[2px] overflow-hidden text-ellipsis whitespace-pre text-[rgba(0,0,0,0.5)]">
-            {getMediaInfoArea(platformData)}
+          {/* 元信息右对齐到按钮组左侧，做右侧视觉锚点（桌面端消除中段大空白） */}
+          <div className="flex justify-end mt-[2px] overflow-hidden">
+            <div className="text-[12px] leading-[16px] overflow-hidden text-ellipsis whitespace-pre text-[rgba(0,0,0,0.6)]">
+              {getMediaInfoArea(platformData)}
+            </div>
           </div>
         </div>
 

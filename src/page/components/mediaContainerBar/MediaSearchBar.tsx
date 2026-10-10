@@ -60,10 +60,10 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
           onClick={mediaSearchBarActions.toggleSearchViewMode}
         >
           <div
-            className={`${viewMode === "card" ? "listViewIcon" : "cardViewIcon"} text-2xl`}
+            className={`${viewMode === "card" ? "cardViewIcon" : "listViewIcon"} text-2xl`}
           ></div>
           <div className="font-bold ml-[22px] max-[490px]:hidden">
-            {viewMode === "card" ? "列表" : "卡片"}
+            {viewMode === "card" ? "卡片" : "列表"}
           </div>
         </div>
 

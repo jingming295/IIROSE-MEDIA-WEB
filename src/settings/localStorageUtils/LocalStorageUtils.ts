@@ -152,6 +152,7 @@ export class LocalStorageUtils {
         isProxyAtInput: true,
       },
       defaultPage: 0, // 0 为音乐, 1 为视频
+      searchViewMode: "card", // 搜索结果视图：card 卡片网格 / list 列表
     };
     this.mergeSetting("imwPluginSetting", defaultPlugin);
   }

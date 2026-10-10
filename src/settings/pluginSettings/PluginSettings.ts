@@ -1,11 +1,14 @@
 import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 import { Input_Behavior_Module } from "../../input-behavior-module/Input-Behavior-Module";
 
+export type SearchViewMode = "card" | "list";
+
 export interface PluginSettingsInterface {
   chatBox: {
     isProxyAtInput: boolean;
   };
   defaultPage: number;
+  searchViewMode: SearchViewMode;
 }
 
 export class PluginSettings {
@@ -83,16 +86,38 @@ export class PluginSettings {
     return optionInText ? optionInText[1] : "音乐";
   }
 
+  /**
+   * 切换搜索结果视图（卡片/列表）：读 -> 翻转 -> 写 localStorage -> 返回新值
+   */
+  public static toggleSearchViewMode(): SearchViewMode {
+    const pluginSettings = PluginSettings.getPluginSetting();
+
+    pluginSettings.searchViewMode =
+      pluginSettings.searchViewMode === "list" ? "card" : "list";
+    localStorage.setItem("imwPluginSetting", JSON.stringify(pluginSettings));
+
+    return pluginSettings.searchViewMode;
+  }
+
+  public static parseSearchViewMode(mode: SearchViewMode): string {
+    return mode === "list" ? "列表" : "卡片";
+  }
+
   public static getPluginSetting(): PluginSettingsInterface {
     const pluginSettings = localStorage.getItem("imwPluginSetting");
     if (pluginSettings) {
-      return JSON.parse(pluginSettings) as PluginSettingsInterface;
+      const parsed = JSON.parse(pluginSettings) as PluginSettingsInterface;
+      // 单点归一化：手改 localStorage 产生的非法值一律回退 "card"
+      parsed.searchViewMode =
+        parsed.searchViewMode === "list" ? "list" : "card";
+      return parsed;
     }
     return {
       chatBox: {
         isProxyAtInput: true,
       },
       defaultPage: 0,
+      searchViewMode: "card",
     };
   }
 }

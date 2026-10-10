@@ -6,6 +6,7 @@ interface MediaSearchBarProps {
   currentPage: number; // 当前页面
   totalPage: number; // 总页面
   isCurrentInMultiPage: boolean;
+  viewMode: "card" | "list"; // 当前搜索结果视图
   mediaSearchBarActions: MediaSearchBarActions;
 }
 
@@ -13,6 +14,7 @@ interface MediaSearchBarActions {
   changeSearchKeyword: (keyword: string | null) => void;
   changecurrentPage: (page: number) => void;
   switchToOutFromMultiPage: () => void;
+  toggleSearchViewMode: () => void;
 }
 
 export class MediaSearchBar extends Component<MediaSearchBarProps> {
@@ -42,6 +44,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
       currentPage,
       totalPage,
       isCurrentInMultiPage,
+      viewMode,
       mediaSearchBarActions,
     } = this.props;
     let pages = "-/-";
@@ -51,6 +54,16 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
 
     return (
       <div className="flex items-center justify-end max-[490px]:justify-between min-h-[36px] max-[780px]:min-h-0 animate-[fadeIn_.25s_ease-out]">
+        <div
+          className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[14px] transition-all duration-500 hover:opacity-70 bg-[#fff3] rounded-full mr-[10px] max-[490px]:ml-[10px]"
+          title={viewMode === "card" ? "切换为列表视图" : "切换为卡片视图"}
+          onClick={mediaSearchBarActions.toggleSearchViewMode}
+        >
+          <div
+            className={`${viewMode === "card" ? "listViewIcon" : "cardViewIcon"} text-2xl`}
+          ></div>
+        </div>
+
         {!isCurrentInMultiPage && (
           <div
             className="flex items-center text-white cursor-pointer h-full transition-all duration-250 max-w-[460px] max-[780px]:max-w-[200px] hover:opacity-70"

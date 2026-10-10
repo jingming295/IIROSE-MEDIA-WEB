@@ -3,6 +3,7 @@ import { MediaCardImg } from "./MediaCardImg";
 import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
 import { MediaCardMessage } from "./MediaCardMessage";
+import { MediaListRow } from "./MediaListRow";
 import { SettingCard } from "../../../page/components/SettingCard";
 
 interface MediaCardProps {
@@ -11,6 +12,7 @@ interface MediaCardProps {
     totalPage: number;
   }> | null;
   settingsData: SettingData[] | null;
+  viewMode: "card" | "list"; // 搜索结果视图（只作用于结果分支）
 }
 
 interface MediaCardState {
@@ -41,7 +43,11 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
   };
 
   async componentDidUpdate(prevProps: MediaCardProps) {
-    if (prevProps !== this.props) {
+    // viewMode 切换不重置滚动位置，保留用户浏览上下文
+    if (
+      prevProps !== this.props &&
+      prevProps.viewMode === this.props.viewMode
+    ) {
       this.scrollToTop();
     }
 
@@ -142,6 +148,19 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
           ref={this.containerRef}
         >
           <MediaCardMessage message={0} />
+        </div>
+      );
+    }
+
+    if (this.props.viewMode === "list") {
+      return (
+        <div
+          className="relative flex flex-col gap-[10px] max-[490px]:gap-[8px] overflow-auto p-3 box-border transition-all duration-250"
+          ref={this.containerRef}
+        >
+          {data.platformData.map((item, index) => (
+            <MediaListRow key={index} platformData={item} />
+          ))}
         </div>
       );
     }

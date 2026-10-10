@@ -153,6 +153,28 @@ export class SettingsService {
         action: (doSomethings) => PluginSettings.setDefaultPage(doSomethings),
       },
       {
+        title: "搜索结果视图",
+        actionTitle: PluginSettings.parseSearchViewMode(ps.searchViewMode),
+        icon: "listViewIcon",
+        action: (doSomethings) => {
+          const newMode = PluginSettings.toggleSearchViewMode();
+          doSomethings?.(PluginSettings.parseSearchViewMode(newMode));
+          // ctx.setState 触发父级重渲染时，SettingCard 会用 props.actionTitle
+          // 覆盖内部标题，因此需同步更新 settingsData 里的 actionTitle
+          ctx.setState({
+            searchViewMode: newMode,
+            settingsData: data.map((item) =>
+              item.title === "搜索结果视图"
+                ? {
+                    ...item,
+                    actionTitle: PluginSettings.parseSearchViewMode(newMode),
+                  }
+                : item,
+            ),
+          });
+        },
+      },
+      {
         title: "代理蔷薇@输入",
         actionTitle: isProxyAtInputInText,
         icon: "mdi-at",

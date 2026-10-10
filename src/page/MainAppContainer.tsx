@@ -7,6 +7,7 @@ import { BilibiliPlatform } from "../platforms/BilibiliPlatform";
 import { NetEasePlatform } from "../platforms/NetEasePlatform";
 import { AllVideosPlatform } from "../platforms/AllVideosPlatform";
 import { SendFetch } from "../Api";
+import { PluginSettings } from "../settings/pluginSettings/PluginSettings";
 import {
   MediaContainerContext,
   Provider,
@@ -33,6 +34,8 @@ export class MainAppContainer extends Component<
     super(props);
     this.state = {
       searchKeyword: "",
+      searchViewMode:
+        PluginSettings.getPluginSetting().searchViewMode || "card",
       SubNavBarIndex: 0,
       currentPage: 1,
       updating: false,
@@ -152,6 +155,7 @@ export class MainAppContainer extends Component<
       totalPage,
       isCurrentInMultiPage,
       currentOnDemandPlay,
+      searchViewMode,
     } = this.state;
     const {
       changecurrentPage,
@@ -161,6 +165,7 @@ export class MainAppContainer extends Component<
       switchPlatform,
       switchToMultiPage,
       switchToOutFromMultiPage,
+      toggleSearchViewMode,
     } = this.controller;
     const categories = this.categories[CategoriesIndex];
     const categoriesPlatform =
@@ -203,10 +208,12 @@ export class MainAppContainer extends Component<
                   currentPage={currentPage}
                   totalPage={totalPage}
                   isCurrentInMultiPage={isCurrentInMultiPage}
+                  viewMode={searchViewMode}
                   mediaSearchBarActions={{
                     changeSearchKeyword,
                     changecurrentPage,
                     switchToOutFromMultiPage,
+                    toggleSearchViewMode,
                   }}
                 />
               )}
@@ -228,7 +235,11 @@ export class MainAppContainer extends Component<
               />
             </div>
 
-            <MediaCard mediaData={mediaData} settingsData={settingsData} />
+            <MediaCard
+              mediaData={mediaData}
+              settingsData={settingsData}
+              viewMode={searchViewMode}
+            />
           </div>
         </div>
       </Provider>
@@ -236,6 +247,14 @@ export class MainAppContainer extends Component<
   }
 
   private controller = {
+    /**
+     * @description 切换搜索结果视图（卡片/列表），并持久化到 localStorage
+     */
+    toggleSearchViewMode: () => {
+      const searchViewMode = PluginSettings.toggleSearchViewMode();
+      this.setState({ searchViewMode });
+    },
+
     /**
      * @description 更新目前的页面
      * @param page

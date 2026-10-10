@@ -104,7 +104,9 @@
 .nextIcon::before,
 .containerSpin::before,
 .searchLogo::before,
-.noresultLogo::before {
+.noresultLogo::before,
+.listViewIcon::before,
+.cardViewIcon::before {
   font-family: "md";
 }
 
@@ -160,4 +162,13 @@
 
 .noresultLogo::before {
   content: "\F0413";
+}
+
+/* 搜索结果视图切换（卡片/列表），码点对 @mdi/font 7.3.67 核实 */
+.listViewIcon::before {
+  content: "\F0572"; /* view-list */
+}
+
+.cardViewIcon::before {
+  content: "\F0570"; /* view-grid */
 }

@@ -11,6 +11,7 @@ interface MainAppContainerProps {
 interface MainAppContainerState {
   PlatformIndex: number;
   searchKeyword: string;
+  searchViewMode: "card" | "list";
   SubNavBarIndex: number;
   mediaData: Promise<{
     platformData: PlatformData[];

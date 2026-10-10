@@ -3,6 +3,7 @@ import { MediaContainerContext } from "../media-container-context/MediaContainer
 
 interface MediaContainerProps {
   platformData: PlatformData;
+  variant?: "full" | "compact"; // compact 为列表行的内联图标按钮
 }
 
 interface State {
@@ -66,7 +67,7 @@ export class MediaCardButton extends Component<MediaContainerProps> {
 
   render() {
     const { multipage, resolved } = this.state;
-    const { platformData } = this.props;
+    const { platformData, variant = "full" } = this.props;
     const contextState = this.context;
 
     // 加载状态
@@ -87,6 +88,34 @@ export class MediaCardButton extends Component<MediaContainerProps> {
     // 图标公共类
     const iconBaseClass =
       "font-['md'] text-[28px] font-bold transition-all duration-500 ease-in-out";
+
+    // 列表行的内联图标按钮（与 full 共享 demandPlay / multiPage 解析逻辑）
+    if (variant === "compact") {
+      const compactBtnClass = (disabled: boolean) =>
+        `flex items-center justify-center w-[38px] h-[38px] rounded-full shrink-0 transition-all duration-100 ease-in-out hover:opacity-70 ${
+          disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
+        }`;
+      return (
+        <div className="flex items-center gap-[8px] shrink-0">
+          <div
+            className={compactBtnClass(isLoading)}
+            style={{ color: contextState.color }}
+            onClick={isLoading ? undefined : this.demandPlay}
+          >
+            <div className={`${playIcon} ${iconBaseClass}`}></div>
+          </div>
+          {hasMultiPage && (
+            <div
+              className={compactBtnClass(false)}
+              style={{ color: contextState.color }}
+              onClick={this.confirmMultiPageAction}
+            >
+              <div className={`mdi-playlist-plus ${iconBaseClass}`}></div>
+            </div>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div className="flex w-full justify-between border-t border-black/10 shrink-0">

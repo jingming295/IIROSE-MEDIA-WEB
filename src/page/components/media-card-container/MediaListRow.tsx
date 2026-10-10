@@ -16,7 +16,7 @@ export class MediaListRow extends Component<MediaListRowProps> {
     const { platformData } = this.props;
 
     return (
-      <div className="flex items-center gap-3 w-full shrink-0 bg-white/50 rounded-xl overflow-hidden backdrop-blur-[10px] px-3 py-[10px] max-[490px]:py-[8px] max-[490px]:gap-[10px] animate-[fadeIn_.25s_ease-out]">
+      <div className="flex items-center gap-3 w-full shrink-0 box-border bg-white/50 rounded-xl overflow-hidden backdrop-blur-[10px] px-3 py-[10px] max-[490px]:py-[8px] max-[490px]:gap-[10px] animate-[fadeIn_.25s_ease-out]">
         <MediaCardImg
           src={platformData.coverImg}
           platformData={platformData}

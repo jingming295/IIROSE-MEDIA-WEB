@@ -93,13 +93,13 @@ export class MediaCardButton extends Component<MediaContainerProps> {
     // 与缩略图同高(72px)填满行的上下边缘：单个 72×72 方块，双个并排方格 + 分割线
     if (variant === "compact") {
       const compactBtnClass = (disabled: boolean) =>
-        `flex items-center justify-center w-[72px] max-[490px]:w-[64px] transition-all duration-100 ease-in-out ${
+        `flex items-center justify-center w-[72px] max-[490px]:w-[64px] transition-all duration-100! ease-in-out! ${
           disabled
             ? "opacity-30 cursor-not-allowed"
-            : "cursor-pointer hover:bg-[rgba(0,0,0,0.12)] active:scale-95"
+            : "cursor-pointer hov:hover:bg-[rgba(0,0,0,0.12)] active:scale-95"
         }`;
       return (
-        <div className="flex items-stretch h-[72px] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.08)] shrink-0">
+        <div className="flex items-stretch h-[72px] max-[490px]:h-[64px] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.08)] shrink-0">
           <div
             className={compactBtnClass(isLoading)}
             style={{ color: contextState.color }}

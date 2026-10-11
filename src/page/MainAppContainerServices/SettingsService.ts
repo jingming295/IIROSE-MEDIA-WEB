@@ -155,12 +155,12 @@ export class SettingsService {
       {
         title: "搜索结果视图",
         actionTitle: PluginSettings.parseSearchViewMode(ps.searchViewMode),
-        icon: "listViewIcon",
+        icon: ps.searchViewMode === "list" ? "listViewIcon" : "cardViewIcon",
         action: (doSomethings) => {
           const newMode = PluginSettings.toggleSearchViewMode();
           doSomethings?.(PluginSettings.parseSearchViewMode(newMode));
           // ctx.setState 触发父级重渲染时，SettingCard 会用 props.actionTitle
-          // 覆盖内部标题，因此需同步更新 settingsData 里的 actionTitle
+          // 覆盖内部标题，因此需同步更新 settingsData 里的 actionTitle 与 icon
           ctx.setState({
             searchViewMode: newMode,
             settingsData: data.map((item) =>
@@ -168,6 +168,7 @@ export class SettingsService {
                 ? {
                     ...item,
                     actionTitle: PluginSettings.parseSearchViewMode(newMode),
+                    icon: newMode === "list" ? "listViewIcon" : "cardViewIcon",
                   }
                 : item,
             ),

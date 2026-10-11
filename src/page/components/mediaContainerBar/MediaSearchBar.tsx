@@ -53,10 +53,10 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
     }
 
     return (
-      <div className="flex items-center justify-end max-[490px]:justify-between min-h-[36px] max-[780px]:min-h-0 animate-[fadeIn_.25s_ease-out]">
+      <div className="flex items-center max-[490px]:justify-between min-h-[36px] max-[780px]:min-h-0 animate-[fadeIn_.25s_ease-out]">
         <div
-          className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[14px] h-full transition-all duration-500 hover:opacity-70 bg-[#fff3] rounded-full ml-[10px] mr-auto max-[490px]:mr-[10px]"
-          title={viewMode === "card" ? "切换为列表视图" : "切换为卡片视图"}
+          className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[14px] h-full transition-all duration-500 hover:opacity-70 bg-[#fff3] rounded-full ml-3 mr-auto max-[490px]:mr-[10px]"
+          title={`当前:${viewMode === "card" ? "卡片" : "列表"},点击切换`}
           onClick={mediaSearchBarActions.toggleSearchViewMode}
         >
           <div

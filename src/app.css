@@ -121,7 +121,9 @@
 .cardViewIcon::before,
 .headphonesIcon::before,
 .playIcon::before,
-.playlistPlusIcon::before {
+.playlistPlusIcon::before,
+.starOutlineIcon::before,
+.starSolidIcon::before {
   font-family: "md";
 }
 
@@ -199,6 +201,14 @@
 
 .playlistPlusIcon::before {
   content: "\F0411"; /* playlist-plus */
+}
+
+.starOutlineIcon::before {
+  content: "\F04CF"; /* star-outline */
+}
+
+.starSolidIcon::before {
+  content: "\F04CE"; /* star */
 }
 
 /* --- 6. 移动端小屏交互增强 --- */

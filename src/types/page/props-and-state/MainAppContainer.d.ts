@@ -27,6 +27,7 @@ interface MainAppContainerState {
   requestToken: number;
   currentSubNavBarAction: () => void;
   currentOnDemandPlay: (platformData: PlatformData) => void;
+  favoritesMode: boolean;
 }
 
 interface MainAppContainerActionContext {

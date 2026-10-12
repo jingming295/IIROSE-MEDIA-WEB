@@ -7,6 +7,7 @@ interface MediaSearchBarProps {
   totalPage: number; // 总页面
   isCurrentInMultiPage: boolean;
   viewMode: "card" | "list"; // 当前搜索结果视图
+  favoritesMode?: boolean; // 是否激活收藏模式
   mediaSearchBarActions: MediaSearchBarActions;
 }
 
@@ -15,6 +16,7 @@ interface MediaSearchBarActions {
   changecurrentPage: (page: number) => void;
   switchToOutFromMultiPage: () => void;
   toggleSearchViewMode: () => void;
+  toggleFavoritesMode?: () => void;
 }
 
 export class MediaSearchBar extends Component<MediaSearchBarProps> {
@@ -54,8 +56,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
 
     return (
       <div className="flex items-center min-h-[36px] max-[768px]:min-h-[48px] max-[768px]:px-2 animate-[fadeIn_.25s_ease-out]">
+        {/* 1. 卡片/列表 视图切换 */}
         <div
-          className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[44px] max-[768px]:h-[44px] max-[768px]:min-w-[44px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full ml-3 max-[768px]:ml-0 mr-auto shrink-0"
+          className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[44px] max-[768px]:h-[44px] max-[768px]:min-w-[44px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full ml-3 max-[768px]:ml-0 mr-1.5 shrink-0"
           title={`当前:${viewMode === "card" ? "卡片" : "列表"},点击切换`}
           onClick={mediaSearchBarActions.toggleSearchViewMode}
         >
@@ -67,15 +70,43 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
           </div>
         </div>
 
+        {/* 2. ⭐ 收藏模式 点亮/点暗 双态切换 */}
+        <div
+          className={`flex items-center justify-center cursor-pointer px-[20px] max-[768px]:w-[44px] max-[768px]:h-[44px] max-[768px]:min-w-[44px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 rounded-full mr-auto shrink-0 ${
+            this.props.favoritesMode
+              ? "bg-[#00000080] text-[#fbc02d] shadow-[0_0_8px_rgba(251,192,45,0.3)]"
+              : "bg-[#fff3] text-white"
+          }`}
+          title={
+            this.props.favoritesMode
+              ? "当前:已点亮收藏模式，点击切回全网发现"
+              : "当前:全网发现模式，点击点亮收藏模式"
+          }
+          onClick={mediaSearchBarActions.toggleFavoritesMode}
+        >
+          <div
+            className={`${
+              this.props.favoritesMode ? "starSolidIcon text-[#fbc02d]" : "starOutlineIcon text-white"
+            } text-2xl max-[768px]:text-[22px]`}
+          ></div>
+          <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
+            {this.props.favoritesMode ? "已藏" : "全网"}
+          </div>
+        </div>
+
+        {/* 3. 🔍 搜索框 */}
         {!isCurrentInMultiPage && (
           <div
             className="flex items-center text-white cursor-pointer h-full max-[768px]:h-[44px] max-[768px]:px-2.5 max-[768px]:bg-[#fff2] max-[768px]:rounded-full transition-all duration-100! max-w-[460px] max-[768px]:max-w-[120px] max-[400px]:max-w-[70px] max-[768px]:mr-1 hov:hover:opacity-70 active:scale-95 shrink min-w-0"
             onClick={() => this.searchInput()}
-            title={searchKeyword || "点击搜索"}
+            title={
+              searchKeyword ||
+              (this.props.favoritesMode ? "点击过滤收藏" : "点击搜索")
+            }
           >
             <div className="inputIcon text-2xl max-[768px]:text-[22px] mr-[22px] max-[768px]:mr-1 shrink-0"></div>
             <div className="font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap max-[768px]:max-w-[70px]">
-              {searchKeyword}
+              {searchKeyword || (this.props.favoritesMode ? "过滤收藏" : "")}
             </div>
           </div>
         )}

@@ -4,6 +4,7 @@ import { MediaCardInfo } from "./MediaCardInfo";
 import { MediaCardButton } from "./MediaCardButton";
 import { MediaCardMessage } from "./MediaCardMessage";
 import { MediaListRow } from "./MediaListRow";
+import { FavoriteStarButton } from "./FavoriteStarButton";
 import { SettingCard } from "../../../page/components/SettingCard";
 
 interface MediaCardProps {
@@ -176,6 +177,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
             key={index}
           >
             <MediaCardImg src={item.coverImg} platformData={item} />
+            <FavoriteStarButton platformData={item} variant="floating" />
             <MediaCardInfo platformData={item} />
             <MediaCardButton platformData={item} />
           </div>

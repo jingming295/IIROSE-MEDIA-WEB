@@ -20,6 +20,8 @@ import { NetEaseService } from "./MainAppContainerServices/NetEaseService";
 import { MediaContainerGesture } from "./MainAppContainerServices/MediaContainerGesture";
 import { JOOXService } from "./MainAppContainerServices/JOOXService";
 import { RadioService } from "./MainAppContainerServices/RadioService";
+import { FavoritesService } from "./MainAppContainerServices/FavoritesService";
+import { FavoritesStorageService } from "../storage/FavoritesStorageService";
 
 export class MainAppContainer extends Component<
   MainAppContainerProps,
@@ -52,7 +54,12 @@ export class MainAppContainer extends Component<
       requestToken: 0,
       currentSubNavBarAction: () => {},
       currentOnDemandPlay: () => {},
+      favoritesMode: false,
     };
+  }
+
+  componentDidMount() {
+    FavoritesStorageService.init();
   }
 
   sleep(ms: number): Promise<void> {
@@ -75,6 +82,16 @@ export class MainAppContainer extends Component<
     const propsSearchKeyword = this.props.searchKeyword;
     const prevPropsSearchKeyword = prevProps.searchKeyword;
 
+    if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
+      this.setState({
+        PlatformIndex: 0,
+        SubNavBarIndex: 0,
+        currentPage: 1,
+        allMediaData: [],
+        mediaData: null,
+      });
+    }
+
     if (prevState.SubNavBarIndex !== this.state.SubNavBarIndex) {
       this.setState({ updating: false });
     }
@@ -84,8 +101,19 @@ export class MainAppContainer extends Component<
     }
 
     if (prevPropsSearchKeyword !== propsSearchKeyword) {
-      const { SubNavBarIndex } = this.state;
-      if (propsSearchKeyword === null || propsSearchKeyword === "") {
+      const { SubNavBarIndex, favoritesMode } = this.state;
+      if (favoritesMode) {
+        this.setState(
+          {
+            allMediaData: [],
+            searchKeyword: propsSearchKeyword || "",
+            currentPage: 1,
+          },
+          () => {
+            this.state.currentSubNavBarAction();
+          },
+        );
+      } else if (propsSearchKeyword === null || propsSearchKeyword === "") {
         if (SubNavBarIndex === 0) return;
         this.setState({ allMediaData: [] });
         this.setState({ mediaData: null });
@@ -156,6 +184,7 @@ export class MainAppContainer extends Component<
       isCurrentInMultiPage,
       currentOnDemandPlay,
       searchViewMode,
+      favoritesMode,
     } = this.state;
     const {
       changecurrentPage,
@@ -166,11 +195,12 @@ export class MainAppContainer extends Component<
       switchToMultiPage,
       switchToOutFromMultiPage,
       toggleSearchViewMode,
+      toggleFavoritesMode,
     } = this.controller;
-    const categories = this.categories[CategoriesIndex];
+    const categories = this.getActiveCategories(CategoriesIndex);
     const categoriesPlatform =
       categories?.platform[PlatformIndex] || categories.platform[0];
-    const color = categoriesPlatform.color;
+    const color = categoriesPlatform?.color || "rgb(100, 149, 237)";
 
     const providerValue = {
       color,
@@ -209,11 +239,13 @@ export class MainAppContainer extends Component<
                   totalPage={totalPage}
                   isCurrentInMultiPage={isCurrentInMultiPage}
                   viewMode={searchViewMode}
+                  favoritesMode={favoritesMode}
                   mediaSearchBarActions={{
                     changeSearchKeyword,
                     changecurrentPage,
                     switchToOutFromMultiPage,
                     toggleSearchViewMode,
+                    toggleFavoritesMode,
                   }}
                 />
               )}
@@ -253,6 +285,25 @@ export class MainAppContainer extends Component<
     toggleSearchViewMode: () => {
       const searchViewMode = PluginSettings.toggleSearchViewMode();
       this.setState({ searchViewMode });
+    },
+
+    /**
+     * @description 切换收藏显示模式（点亮/点暗）
+     */
+    toggleFavoritesMode: async () => {
+      const nextMode = !this.state.favoritesMode;
+      this.props.changeSearchKeyword?.("");
+      await this.setState({
+        favoritesMode: nextMode,
+        currentPage: 1,
+        PlatformIndex: 0,
+        SubNavBarIndex: 0,
+        isCurrentInMultiPage: false,
+        oldItems: null,
+        searchKeyword: "",
+        allMediaData: [],
+        mediaData: null,
+      });
     },
 
     /**
@@ -298,7 +349,12 @@ export class MainAppContainer extends Component<
      * @param index
      */
     switchPlatform: (index: number) => {
-      this.setState({ PlatformIndex: index });
+      this.setState({
+        PlatformIndex: index,
+        SubNavBarIndex: 0,
+        currentPage: 1,
+        allMediaData: [],
+      });
     },
 
     /**
@@ -439,6 +495,150 @@ export class MainAppContainer extends Component<
       pushAllData: this.controller.pushAllData, // 直接引用已有的 controller 方法
     };
   }
+
+  private getActiveCategories(
+    categoriesIndex: number,
+    favoritesMode?: boolean,
+  ): Categories {
+    const isFav =
+      favoritesMode !== undefined ? favoritesMode : this.state.favoritesMode;
+    if (isFav && this.favoritesCategories[categoriesIndex]) {
+      return this.favoritesCategories[categoriesIndex];
+    }
+    return this.categories[categoriesIndex] || this.categories[0];
+  }
+
+  private favoritesCategories: Categories[] = [
+    {
+      // 0: 音乐
+      platform: [
+        {
+          title: "网易云音乐",
+          iconsrc:
+            "https://static.codemao.cn/rose/v0/images/system/media/music/NeteaseMusic/logo.png",
+          color: "rgb(221, 28, 4)",
+          subNavBarItems: [
+            {
+              title: "全部",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "netease",
+                  "all",
+                  this.itemsPerPage,
+                );
+              },
+            },
+            {
+              title: "单曲",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "netease",
+                  "song",
+                  this.itemsPerPage,
+                );
+              },
+            },
+            {
+              title: "专辑",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "netease",
+                  "album",
+                  this.itemsPerPage,
+                );
+              },
+            },
+            {
+              title: "歌单",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "netease",
+                  "playlist",
+                  this.itemsPerPage,
+                );
+              },
+            },
+          ],
+        },
+        {
+          title: "JOOX",
+          iconsrc: "http://r.iirose.com/i/26/3/4/1/4905-KM.png",
+          color: "rgb(24, 209, 106)",
+          subNavBarItems: [
+            {
+              title: "全部",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "joox",
+                  "all",
+                  this.itemsPerPage,
+                );
+              },
+            },
+            {
+              title: "单曲",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "joox",
+                  "song",
+                  this.itemsPerPage,
+                );
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      // 1: 视频
+      platform: [
+        {
+          title: "哔哩哔哩视频",
+          iconsrc:
+            "https://static.codemao.cn/rose/v0/images/system/media/video/bilibili/ic_launcher.png",
+          color: "rgb(209, 79, 118)",
+          subNavBarItems: [
+            {
+              title: "全部",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "bilibili",
+                  "all",
+                  this.itemsPerPage,
+                );
+              },
+            },
+            {
+              title: "视频",
+              class: "search",
+              searchAction: () => {
+                FavoritesService.loadFavorites(
+                  this.getActionContext(),
+                  "bilibili",
+                  "video",
+                  this.itemsPerPage,
+                );
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ];
 
   private categories: Categories[] = [
     {

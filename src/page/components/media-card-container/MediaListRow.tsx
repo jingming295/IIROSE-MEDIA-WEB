@@ -1,6 +1,7 @@
 import { Component } from "preact";
 import { MediaCardImg, getMediaInfoArea } from "./MediaCardImg";
 import { MediaCardButton } from "./MediaCardButton";
+import { FavoriteStarButton } from "./FavoriteStarButton";
 
 interface MediaListRowProps {
   platformData: PlatformData;
@@ -41,7 +42,10 @@ export class MediaListRow extends Component<MediaListRowProps> {
           )}
         </div>
 
-        <MediaCardButton platformData={platformData} variant="compact" />
+        <div className="flex items-center gap-1.5 max-[768px]:gap-1 shrink-0">
+          <FavoriteStarButton platformData={platformData} variant="inline" />
+          <MediaCardButton platformData={platformData} variant="compact" />
+        </div>
       </div>
     );
   }

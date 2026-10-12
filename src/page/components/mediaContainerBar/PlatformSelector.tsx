@@ -38,15 +38,15 @@ export class PlatformSelector extends Component<
     const { platform, isCurrentInMultiPage } = this.props;
     const { activeIndex } = this.state;
     return (
-      <div className="flex px-[20px] max-[768px]:px-2 max-[768px]:gap-2 items-center overflow-x-auto no-scrollbar animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
+      <div className="flex px-[20px] max-[768px]:px-2 items-center overflow-x-auto no-scrollbar animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
         {!isCurrentInMultiPage &&
           platform.map((item, index) => {
             const isActive = index === activeIndex;
             return (
               <div
-                className={`flex items-center shrink-0 h-10 max-[768px]:h-9 max-[768px]:rounded-md backdrop-blur-[8px] transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:bg-[rgba(255,255,255,0.3)] ${
+                className={`flex items-center shrink-0 h-10 max-[768px]:h-9 backdrop-blur-[8px] transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:bg-[rgba(255,255,255,0.3)] ${
                   isActive
-                    ? "bg-[rgba(255,255,255,0.85)] shadow-[0_2px_10px_rgba(0,0,0,0.18)] max-[768px]:ring-2 max-[768px]:ring-white"
+                    ? "bg-[rgba(255,255,255,0.85)] shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
                     : "bg-white/20"
                 }`}
                 key={index}

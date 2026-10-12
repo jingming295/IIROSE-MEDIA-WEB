@@ -27,7 +27,7 @@ export class MainNavigationBar extends Component<
   };
 
   // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
-  // 移动端（≤768px）：隐藏文字，确保 40px+ 触控热区与 8px 按钮间距，纯图标高密度
+  // 移动端（≤768px）：隐藏文字，40px 触控区紧密相连无间距，纯图标高密度
   private navButtonClass = (active: boolean) =>
     `min-w-[40px] min-h-[40px] px-[20px] max-[768px]:px-0 max-[768px]:w-[40px] flex items-center justify-center cursor-pointer text-white text-2xl transition-all duration-100! hov:hover:opacity-70 active:scale-95 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
 
@@ -64,7 +64,7 @@ export class MainNavigationBar extends Component<
           </div>
         </div>
 
-        <div className="flex max-[768px]:gap-2">
+        <div className="flex">
           <div
             className={this.navButtonClass(activeButtonIndex === 0)}
             id=""

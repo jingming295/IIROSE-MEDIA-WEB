@@ -53,9 +53,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
     }
 
     return (
-      <div className="flex items-center max-[768px]:justify-between min-h-[36px] max-[768px]:min-h-[40px] max-[768px]:px-2 animate-[fadeIn_.25s_ease-out]">
+      <div className="flex items-center min-h-[36px] max-[768px]:min-h-[40px] max-[768px]:px-2 animate-[fadeIn_.25s_ease-out]">
         <div
-          className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full ml-3 max-[768px]:ml-0 mr-auto max-[768px]:mr-1 shrink-0"
+          className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full ml-3 max-[768px]:ml-0 mr-auto shrink-0"
           title={`当前:${viewMode === "card" ? "卡片" : "列表"},点击切换`}
           onClick={mediaSearchBarActions.toggleSearchViewMode}
         >
@@ -69,7 +69,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
 
         {!isCurrentInMultiPage && (
           <div
-            className="flex items-center text-white cursor-pointer h-full max-[768px]:h-[36px] max-[768px]:px-2 max-[768px]:bg-[#fff2] max-[768px]:rounded-full transition-all duration-100! max-w-[460px] max-[768px]:max-w-[120px] max-[400px]:max-w-[70px] hov:hover:opacity-70 active:scale-95 shrink min-w-0"
+            className="flex items-center text-white cursor-pointer h-full max-[768px]:h-[36px] max-[768px]:px-2 max-[768px]:bg-[#fff2] max-[768px]:rounded-full transition-all duration-100! max-w-[460px] max-[768px]:max-w-[120px] max-[400px]:max-w-[70px] max-[768px]:mr-1 hov:hover:opacity-70 active:scale-95 shrink min-w-0"
             onClick={() => this.searchInput()}
             title={searchKeyword || "点击搜索"}
           >

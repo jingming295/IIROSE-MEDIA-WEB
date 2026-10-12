@@ -23,7 +23,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
   public searchInput() {
     const changeSearchKeyWord =
       this.props.mediaSearchBarActions.changeSearchKeyword;
-    IIROSEUtils.sync(2, ["搜索", "", 100], changeSearchKeyWord);
+    const title = this.props.favoritesMode ? "过滤收藏" : "搜索";
+    const currentVal = this.props.searchKeyword || "";
+    IIROSEUtils.sync(2, [title, currentVal, 100], changeSearchKeyWord);
   }
 
   public async nextPage(currentPage: number, totalPage: number) {

@@ -42,7 +42,7 @@ export class MediaListRow extends Component<MediaListRowProps> {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 max-[768px]:gap-1 shrink-0">
+        <div className="flex items-center gap-2 max-[768px]:gap-1.5 shrink-0">
           <FavoriteStarButton platformData={platformData} variant="inline" />
           <MediaCardButton platformData={platformData} variant="compact" />
         </div>

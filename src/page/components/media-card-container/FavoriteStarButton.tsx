@@ -1,6 +1,5 @@
 import { Component } from "preact";
 import { FavoritesStorageService } from "../../../storage/FavoritesStorageService";
-import { ShowMessage } from "../../../iirose_func/ShowMessage";
 
 interface FavoriteStarButtonProps {
   platformData: PlatformData;
@@ -59,9 +58,6 @@ export class FavoriteStarButton extends Component<
         this.setState({ isFavorited: res.isFavorited });
       }
 
-      // 宿站友好轻提示
-      ShowMessage.show(res.isFavorited ? "★ 已添加到收藏" : "☆ 已取消收藏");
-
       if (onToggle) {
         onToggle(res.isFavorited);
       }
@@ -86,13 +82,17 @@ export class FavoriteStarButton extends Component<
     if (variant === "inline") {
       return (
         <div
-          className="flex items-center justify-center w-[56px] max-[768px]:w-[40px] h-[72px] max-[768px]:h-[56px] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.08)] shrink-0 cursor-pointer transition-all duration-100! hov:hover:bg-[rgba(0,0,0,0.14)] active:scale-95"
+          className={`flex items-center justify-center w-[44px] h-[44px] max-[768px]:w-[38px] max-[768px]:h-[38px] rounded-full shrink-0 cursor-pointer transition-all duration-150 active:scale-90 ${
+            isFavorited
+              ? "bg-[#fbc02d]/15 hover:bg-[#fbc02d]/25"
+              : "bg-black/5 hover:bg-black/10"
+          }`}
           onClick={this.handleClick}
           title={isFavorited ? "已收藏，点击取消" : "点击添加到收藏"}
         >
           <div
-            className={`${iconClass} font-['md'] text-[24px] max-[768px]:text-[20px] transition-all duration-100!`}
-            style={{ color: starColor || "rgba(0,0,0,0.5)" }}
+            className={`${iconClass} font-['md'] text-[24px] max-[768px]:text-[20px] transition-all duration-150`}
+            style={{ color: starColor || "rgba(0,0,0,0.4)" }}
           ></div>
         </div>
       );

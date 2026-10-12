@@ -28,6 +28,7 @@ interface MainAppContainerState {
   currentSubNavBarAction: () => void;
   currentOnDemandPlay: (platformData: PlatformData) => void;
   favoritesMode: boolean;
+  favoritesSearchKeyword: string;
 }
 
 interface MainAppContainerActionContext {

@@ -13,7 +13,16 @@ export class FavoritesService {
     type: "all" | "song" | "album" | "playlist" | "video",
     itemsPerPage: number = 10,
   ) {
-    const { searchKeyword, currentPage, requestToken } = ctx.getState();
+    const {
+      searchKeyword,
+      favoritesSearchKeyword,
+      favoritesMode,
+      currentPage,
+      requestToken,
+    } = ctx.getState();
+    const effectiveKeyword = (
+      favoritesMode ? favoritesSearchKeyword : searchKeyword
+    )?.trim();
 
     const currentRequestToken = requestToken + 1;
     ctx.setState({ updating: true, requestToken: currentRequestToken });
@@ -22,7 +31,7 @@ export class FavoritesService {
     const records = await FavoritesStorageService.query({
       platform,
       type: type === "all" ? undefined : type,
-      keyword: searchKeyword || undefined,
+      keyword: effectiveKeyword || undefined,
     });
 
     if (ctx.getState().requestToken !== currentRequestToken) {

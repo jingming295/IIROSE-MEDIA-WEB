@@ -82,17 +82,17 @@ export class FavoriteStarButton extends Component<
     if (variant === "inline") {
       return (
         <div
-          className={`flex items-center justify-center w-[44px] h-[44px] max-[768px]:w-[38px] max-[768px]:h-[38px] rounded-full shrink-0 cursor-pointer transition-all duration-150 active:scale-90 ${
+          className={`flex items-center justify-center w-[60px] max-[768px]:w-[44px] h-[72px] max-[768px]:h-[56px] rounded-xl overflow-hidden shrink-0 cursor-pointer transition-all duration-150 active:scale-95 border ${
             isFavorited
-              ? "bg-[#fbc02d]/15 hover:bg-[#fbc02d]/25"
-              : "bg-black/5 hover:bg-black/10"
+              ? "bg-[#fbc02d]/15 border-[#fbc02d]/30 hov:hover:bg-[#fbc02d]/25"
+              : "bg-[rgba(0,0,0,0.06)] border-black/[0.04] hov:hover:bg-[rgba(0,0,0,0.12)]"
           }`}
           onClick={this.handleClick}
           title={isFavorited ? "已收藏，点击取消" : "点击添加到收藏"}
         >
           <div
             className={`${iconClass} font-['md'] text-[24px] max-[768px]:text-[20px] transition-all duration-150`}
-            style={{ color: starColor || "rgba(0,0,0,0.4)" }}
+            style={{ color: starColor || "rgba(0,0,0,0.45)" }}
           ></div>
         </div>
       );

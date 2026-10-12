@@ -73,6 +73,7 @@ export class MainAppContainer extends Component<
     currentSubNavBarAction: () => void;
     currentOnDemandPlay: (platformData: PlatformData) => void;
   } | null = null;
+  private isRestoringDiscoveryState: boolean = false;
 
   componentDidMount() {
     FavoritesStorageService.init();
@@ -86,6 +87,11 @@ export class MainAppContainer extends Component<
     prevProps: Readonly<MainAppContainerProps>,
     prevState: Readonly<MainAppContainerState>,
   ): void {
+    if (this.isRestoringDiscoveryState) {
+      this.isRestoringDiscoveryState = false;
+      return;
+    }
+
     const { needOutFromMultiPage, needOutFromSettings } = this.props;
     const {
       settingsData,
@@ -192,6 +198,7 @@ export class MainAppContainer extends Component<
     const { CategoriesIndex, ShowOrHideIMC, changeSearchKeyword } = this.props;
     const {
       PlatformIndex,
+      SubNavBarIndex,
       mediaData,
       settingsData,
       searchKeyword,
@@ -281,6 +288,8 @@ export class MainAppContainer extends Component<
                 categories={categories}
                 isCurrentInMultiPage={isCurrentInMultiPage}
                 PlatformIndex={PlatformIndex}
+                SubNavBarIndex={SubNavBarIndex}
+                isRestoring={this.isRestoringDiscoveryState}
                 actions={{
                   updateCurrentSubNavBarAction,
                   updateSubNavBarIndex,
@@ -366,6 +375,7 @@ export class MainAppContainer extends Component<
         this.savedDiscoveryState = null;
 
         if (saved) {
+          this.isRestoringDiscoveryState = true;
           await this.setState({
             favoritesMode: false,
             currentPage: saved.currentPage,

@@ -5,6 +5,8 @@ interface MediaContainerSubNavBarProps {
   categories: Categories;
   isCurrentInMultiPage: boolean;
   PlatformIndex: number;
+  SubNavBarIndex?: number;
+  isRestoring?: boolean;
   actions: Actions;
 }
 
@@ -25,7 +27,7 @@ export class MediaContainerSubNavBar extends Component<
   constructor(props: MediaContainerSubNavBarProps) {
     super(props);
     this.state = {
-      activeIndex: 0, // 初始状态，激活第一个项
+      activeIndex: props.SubNavBarIndex ?? 0, // 初始状态，激活对应项
       subNavBarClass: "", // 当前的 class 初始化为空
     };
   }
@@ -66,6 +68,16 @@ export class MediaContainerSubNavBar extends Component<
     }
 
     if (prevProps.categories !== this.props.categories) {
+      if (this.props.isRestoring) {
+        const targetIndex = this.props.SubNavBarIndex ?? 0;
+        const item = platform.subNavBarItems[targetIndex];
+        this.setState({
+          activeIndex: targetIndex,
+          subNavBarClass: item?.class,
+        });
+        return;
+      }
+
       if (platform.subNavBarItems.length > 0) {
         const firstIndex = 0;
         this.setState({ activeIndex: firstIndex }, async () => {

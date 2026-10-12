@@ -46,5 +46,10 @@
 - GD Studio API（music-api.gdstudio.xyz）按 IP 限流：连续几次 `types=url` 请求即触发、恢复窗口 >10 分钟，且限流时返回 **HTTP 200 + `{"url":"","br":-1}`**——判失败必须检查 `data.url` 是否为空，不能只看 HTTP 状态码。
 - 宿站弹窗关闭后残留全屏遮罩（`#syncHolderOutside` 不自清理、`#syncHolder` 常显），会拦截真实鼠标点击——自动化点击页内元素前先移除/隐藏它们。
 - 宿站 `messages.html` iframe 存在 1.13~1.19 倍视口缩放：物理宽度 390px 对应 iframe 465px，412px+ 对应 470px~512px；移动端响应式断点必须使用 `max-[768px]`，禁止单一依赖 `max-[490px]`（否则大屏手机会回退桌面布局并导致文字折行）。
+- 宿站 `buildSelect2` 多弹窗流转与 fadeOut 冲突：选项/多选确定点击后，宿站**先同步执行业务回调，紧随其后立即触发 `fadeOut(speed250, () => selectHolderBox.empty())`**！若在回调内同步唤起下一个 `buildSelect2`（如选集后打开正序/乱序确认框），刚生成的新弹窗会被宿站后续的 `fadeOut` 瞬间清空销毁。**跨弹窗流转必须包裹在 `setTimeout(() => { ... }, 300)` 中**，待前置 250ms 淡出动画完全结束且 DOM 清空后再行淡入。
+- 宿站 `buildSelect2` 多选确认按钮位置与闭包索引：多选模式（`r=true`）原生将「确定」追加至末尾（索引 `u = a.length`），长列表极难触达；确定按钮闭包中 `t == u` 为静态数值绑定，多选收集遍历的是提前缓存的 jQuery 集合 `m`，因此通过 DOM `selectHolderBox.prepend(confirmBtn)` 将其移至最顶端（并配合 `position: sticky; top: 0; z-index: 10` 吸顶）**完全安全且不会破坏勾选收集逻辑**。
+- 输入框 `@` 链接拦截防泄露：拦截必须在 `moveinputDo` 最前端**同步清空输入框并中断原生发送**，再进入异步 URL 重定向与直链嗅探；不可在异步期间保留输入内容，否则用户连按回车或异常放行会导致链接以私聊或公聊文字误发。
+- 混合内容安全与封面 HTTPS 升级：宿站运行在 HTTPS 上下文，第三方 API（如网易云）返回的封面常为 `http://` 形式，会触发浏览器 Mixed Content 拦截导致图片破损；渲染封面必须先做 `src.replace(/^http:\/\//, 'https://')` 安全升级，并挂载 `onerror` 平滑回退到自包含矢量图标。
 
 <!-- /bmad:context -->
+

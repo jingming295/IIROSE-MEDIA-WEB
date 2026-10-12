@@ -6,7 +6,7 @@ interface MediaContainerSubNavBarProps {
   isCurrentInMultiPage: boolean;
   PlatformIndex: number;
   SubNavBarIndex?: number;
-  isRestoring?: boolean;
+  favoritesMode?: boolean;
   actions: Actions;
 }
 
@@ -68,7 +68,8 @@ export class MediaContainerSubNavBar extends Component<
     }
 
     if (prevProps.categories !== this.props.categories) {
-      if (this.props.isRestoring) {
+      // 从收藏切回全网：永远只同步 activeIndex，绝不重新搜索！
+      if (prevProps.favoritesMode && !this.props.favoritesMode) {
         const targetIndex = this.props.SubNavBarIndex ?? 0;
         const item = platform.subNavBarItems[targetIndex];
         this.setState({

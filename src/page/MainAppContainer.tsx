@@ -59,7 +59,7 @@ export class MainAppContainer extends Component<
     };
   }
 
-  private savedDiscoveryState: {
+  private discoverySnapshot: {
     searchKeyword: string;
     mediaData: Promise<{
       platformData: PlatformData[];
@@ -73,7 +73,6 @@ export class MainAppContainer extends Component<
     currentSubNavBarAction: () => void;
     currentOnDemandPlay: (platformData: PlatformData) => void;
   } | null = null;
-  private isRestoringDiscoveryState: boolean = false;
 
   componentDidMount() {
     FavoritesStorageService.init();
@@ -87,8 +86,21 @@ export class MainAppContainer extends Component<
     prevProps: Readonly<MainAppContainerProps>,
     prevState: Readonly<MainAppContainerState>,
   ): void {
-    if (this.isRestoringDiscoveryState) {
-      this.isRestoringDiscoveryState = false;
+    if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
+      this.discoverySnapshot = null;
+      this.setState({
+        PlatformIndex: 0,
+        SubNavBarIndex: 0,
+        currentPage: 1,
+        allMediaData: [],
+        mediaData: null,
+        favoritesSearchKeyword: "",
+      });
+      return;
+    }
+
+    // 收藏模式切换时不触发任何数据重置逻辑
+    if (prevState.favoritesMode !== this.state.favoritesMode) {
       return;
     }
 
@@ -104,18 +116,6 @@ export class MainAppContainer extends Component<
     const propsSearchKeyword = this.props.searchKeyword;
     const prevPropsSearchKeyword = prevProps.searchKeyword;
 
-    if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
-      this.savedDiscoveryState = null;
-      this.setState({
-        PlatformIndex: 0,
-        SubNavBarIndex: 0,
-        currentPage: 1,
-        allMediaData: [],
-        mediaData: null,
-        favoritesSearchKeyword: "",
-      });
-    }
-
     if (prevState.SubNavBarIndex !== this.state.SubNavBarIndex) {
       this.setState({ updating: false });
     }
@@ -128,21 +128,43 @@ export class MainAppContainer extends Component<
       const { SubNavBarIndex, favoritesMode } = this.state;
       if (favoritesMode) {
         // 如果在收藏模式下收到外部全局搜索指令（如聊天框 @点歌），退出收藏模式进入全网模式
-        this.savedDiscoveryState = null;
-        this.setState({
-          favoritesMode: false,
-          allMediaData: [],
-          searchKeyword: propsSearchKeyword || "",
-          currentPage: 1,
-        });
+        this.discoverySnapshot = null;
+        this.setState(
+          {
+            favoritesMode: false,
+            allMediaData: [],
+            mediaData: null,
+            searchKeyword: propsSearchKeyword || "",
+            currentPage: 1,
+          },
+          () => {
+            const categories = this.categories[this.props.CategoriesIndex];
+            const plat = categories?.platform[this.state.PlatformIndex];
+            plat?.subNavBarItems[this.state.SubNavBarIndex]?.searchAction();
+          },
+        );
       } else if (propsSearchKeyword === null || propsSearchKeyword === "") {
         if (SubNavBarIndex === 0) return;
-        this.setState({ allMediaData: [] });
-        this.setState({ mediaData: null });
-        this.setState({ searchKeyword: "", currentPage: 1 });
-      } else {
-        this.setState({ allMediaData: [] });
-        this.setState({ searchKeyword: propsSearchKeyword, currentPage: 1 });
+        this.setState({
+          allMediaData: [],
+          mediaData: null,
+          searchKeyword: "",
+          currentPage: 1,
+        });
+      } else if (propsSearchKeyword !== this.state.searchKeyword) {
+        this.setState(
+          {
+            allMediaData: [],
+            mediaData: null,
+            searchKeyword: propsSearchKeyword,
+            currentPage: 1,
+          },
+          () => {
+            const categories = this.categories[this.props.CategoriesIndex];
+            const plat = categories?.platform[this.state.PlatformIndex];
+            plat?.subNavBarItems[this.state.SubNavBarIndex]?.searchAction();
+          },
+        );
       }
     }
 
@@ -289,7 +311,7 @@ export class MainAppContainer extends Component<
                 isCurrentInMultiPage={isCurrentInMultiPage}
                 PlatformIndex={PlatformIndex}
                 SubNavBarIndex={SubNavBarIndex}
-                isRestoring={this.isRestoringDiscoveryState}
+                favoritesMode={favoritesMode}
                 actions={{
                   updateCurrentSubNavBarAction,
                   updateSubNavBarIndex,
@@ -310,9 +332,10 @@ export class MainAppContainer extends Component<
 
   private controller = {
     handleSearchKeywordChange: (keyword: string | null) => {
+      const kw = (keyword || "").trim();
+
       if (this.state.favoritesMode) {
-        // 收藏模式：仅修改收藏内部的过滤关键词，不污染全网搜索
-        const kw = keyword || "";
+        // 收藏模式：仅修改收藏内部的过滤关键词，刷新收藏列表
         this.setState(
           {
             favoritesSearchKeyword: kw,
@@ -325,8 +348,28 @@ export class MainAppContainer extends Component<
           },
         );
       } else {
-        // 全网模式：通知上层并更新全网搜索关键词
-        this.props.changeSearchKeyword(keyword);
+        // 全网模式：通知上层并直接发起当前子分类的全网检索
+        this.props.changeSearchKeyword(kw);
+
+        this.setState(
+          {
+            searchKeyword: kw,
+            currentPage: 1,
+            allMediaData: [],
+            mediaData: null,
+          },
+          () => {
+            const categories = this.categories[this.props.CategoriesIndex];
+            const plat = categories?.platform[this.state.PlatformIndex];
+            const action =
+              plat?.subNavBarItems[this.state.SubNavBarIndex]?.searchAction;
+            if (action) {
+              action();
+            } else if (this.state.currentSubNavBarAction) {
+              this.state.currentSubNavBarAction();
+            }
+          },
+        );
       }
     },
 
@@ -345,8 +388,8 @@ export class MainAppContainer extends Component<
       const nextMode = !this.state.favoritesMode;
 
       if (nextMode) {
-        // 全网 -> 收藏：暂存当前全网搜索现场
-        this.savedDiscoveryState = {
+        // 全网 -> 收藏：拍摄全网现场快照
+        this.discoverySnapshot = {
           searchKeyword:
             this.state.searchKeyword || this.props.searchKeyword || "",
           mediaData: this.state.mediaData,
@@ -370,25 +413,23 @@ export class MainAppContainer extends Component<
           mediaData: null,
         });
       } else {
-        // 收藏 -> 全网：完整还原先前保存的全网搜索现场
-        const saved = this.savedDiscoveryState;
-        this.savedDiscoveryState = null;
+        // 收藏 -> 全网：从快照完整恢复全网现场（保留快照，支持任意多次切换）
+        const snap = this.discoverySnapshot;
 
-        if (saved) {
-          this.isRestoringDiscoveryState = true;
+        if (snap) {
           await this.setState({
             favoritesMode: false,
-            currentPage: saved.currentPage,
-            totalPage: saved.totalPage,
-            PlatformIndex: saved.PlatformIndex,
-            SubNavBarIndex: saved.SubNavBarIndex,
+            currentPage: snap.currentPage,
+            totalPage: snap.totalPage,
+            PlatformIndex: snap.PlatformIndex,
+            SubNavBarIndex: snap.SubNavBarIndex,
             isCurrentInMultiPage: false,
             oldItems: null,
-            searchKeyword: saved.searchKeyword,
-            allMediaData: saved.allMediaData,
-            mediaData: saved.mediaData,
-            currentSubNavBarAction: saved.currentSubNavBarAction,
-            currentOnDemandPlay: saved.currentOnDemandPlay,
+            searchKeyword: snap.searchKeyword,
+            allMediaData: snap.allMediaData,
+            mediaData: snap.mediaData,
+            currentSubNavBarAction: snap.currentSubNavBarAction,
+            currentOnDemandPlay: snap.currentOnDemandPlay,
           });
         } else {
           await this.setState({

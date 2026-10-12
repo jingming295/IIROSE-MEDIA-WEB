@@ -134,3 +134,36 @@ flowchart TD
 2. 弹出选项后点击「选集播放」：进入多选列表，每首曲目左侧清晰展示对应专辑/分 P 封面，加载失败时显示图标兜底。
 3. 进入选集列表后，每点选一项目右侧动态呈现 1, 2, 3, 4, 5... 顺序序号徽章与行高亮；取消勾选时后续序号自动重排；「确定」按钮在最下方吸底固定悬浮（长列表时浮于弹窗底部随时可点，滚到底部平滑停靠，短列表自然排在末尾）。
 4. 勾选多首曲目并点击「确定」后：前一弹窗平滑淡出，随后顺畅弹出「正序播放 / 乱序播放」选择框；选择「正序播放」时严格按照用户选取的 1 -> 2 -> 3 顺序播放，选择「乱序播放」时随机打乱后播放。
+
+---
+
+## 6. 跨平台媒体收藏系统架构设计 (`FavoritesStorageService` & `oldItems` 现场快照)
+
+### 6.1 总体架构与数据持久化
+- **存储介质**：基于浏览器原生 IndexedDB（数据库名 `IIROSE_MEDIA_DB`，版本 1，对象仓库 `favorites`），容量上限达数百兆，摆脱 localStorage 5MB 限制与序列化开销。
+- **复合主键设计**：采用 `platform:type:rawId`（例如 `netease:song:12345`、`bilibili:video:BV1xx`），彻底杜绝跨平台 ID 冲突。
+- **数据结构与索引**：
+  - 保存标准化 `PlatformData`，剥离不可序列化的函数与 Promise，封面在写入前统一完成 HTTPS 升级；
+  - 支持多维索引：`platform`、`type`、`platform_type`、`createdAt`，查询结果按入库时间严格倒序排列。
+- **零延迟同步判定**：
+  - 服务初始化时将全量收藏 ID 载入内存 `Set<string>`，渲染卡片与列表行时 `isFavorited()` 为纳秒级同步判断；
+  - 若处于无痕模式或 IndexedDB 被禁用，自动平滑回退至内存 `Map`，界面不崩溃。
+
+### 6.2 顶栏布局与模式流转机制
+- **Row 2 工具栏排布约定**：
+  - 严格保持标准顺序：`[卡片/列表] [⭐收藏模式] [🔍 搜索] [xx/xx] [上一页] [下一页]`；
+  - `⭐收藏模式` 为点亮/点暗双态切换按钮：
+    - 点亮状态（已藏）：明黄实心星（`#fbc02d`）+ 深色背景，标签为「已藏」，搜索框转为本地即时过滤；
+    - 点暗状态（全网）：白色空心星 + 浅透背景，标签为「全网」，恢复远程搜索。
+- **无侵扰静默操作**：
+  - 收藏与取消收藏取消所有弹窗弱提示（Toast），提供最平滑沉浸的指尖交互；
+  - 卡片视图右上角配备 36×36px 磨砂圆钮；列表视图右侧采用温和低饱和度的圆角卡片块（`rounded-xl`）。
+
+### 6.3 复用 `oldItems` 规范的全网现场无损保护
+- **现场保存 (`discoveryOldItems`)**：
+  - 从全网切入收藏时，复用既有的 `OldItems` 接口标准，完整封存当前 `mediaData`、`allMediaData`、`currentPage`、`totalPage`、`PlatformIndex`、`SubNavBarIndex`、`searchKeyword` 以及点播回调；
+  - 若在选集模式（多集/分 P）中点亮收藏，优先取外层父级列表的 `oldItems` 作为全网现场。
+- **子组件副作用阻断与还原**：
+  - **`PlatformSelector` 阻断**：在模式切换时拦截 `prevProps.platform !== this.props.platform`，严禁触发 `switchPlatform(0)`，防止已还原的 `currentPage` 和 `allMediaData` 被篡改覆盖为 `1`；
+  - **`MediaContainerSubNavBar` 置顶拦截**：将模式切换检测置于生命周期最前端并立即 `return`，阻断 `searchKeyword` 比对误触发的重搜索；
+  - **无损秒级恢复**：切回全网时对齐 `switchToOutFromMultiPage` 机制，页码（例如 `2/29`）与卡片数据原地完整再现，支持任意多次反复切换而绝不触发多余网络请求。

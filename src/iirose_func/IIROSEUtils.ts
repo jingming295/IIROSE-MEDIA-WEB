@@ -75,7 +75,19 @@ export class IIROSEUtils
                     const optionCount = a.length;
                     const confirmBtn = items[optionCount] || items[items.length - 1];
 
-                    // 确定按钮在最下方（原生末尾位置），初始进入滚动到顶部方便用户从前选起
+                    // 确定按钮在最下方吸底固定显示：
+                    // 当内容超出视口时保持悬停在弹窗底部随时可点，滚到底部时平滑停靠在最后一项下方
+                    if (confirmBtn) {
+                        confirmBtn.style.position = 'sticky';
+                        confirmBtn.style.bottom = '0';
+                        confirmBtn.style.zIndex = '10';
+                        confirmBtn.style.backdropFilter = 'blur(10px)';
+                        const boxBg = window.getComputedStyle(selectHolderBox).backgroundColor;
+                        confirmBtn.style.backgroundColor = (boxBg && boxBg !== 'rgba(0, 0, 0, 0)' && boxBg !== 'transparent') ? boxBg : 'rgba(32, 32, 32, 0.95)';
+                        confirmBtn.style.borderTop = '1px solid rgba(128, 128, 128, 0.25)';
+                    }
+
+                    // 初始进入滚动到顶部方便用户从前选起
                     selectHolderBox.scrollTop = 0;
 
                     // 维护用户选取的顺序队列 (保存选项索引 0 <= idx < optionCount)

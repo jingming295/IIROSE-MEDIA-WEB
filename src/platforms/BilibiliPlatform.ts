@@ -465,47 +465,60 @@ export class BilibiliPlatform extends Platform {
               await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
             }
           } else if (select === 2) {
-            // 选集多选点播
-            const selectOptions = pages.map((item) => [
-              item.page,
-              `P${item.page} ${item.part}`,
-              `<div class="mdi-video" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
-            ]);
+            // 选集多选点播：等待 buildBiliSelect 菜单淡出（250ms）后唤起多选列表
+            setTimeout(async () => {
+              const defaultCover =
+                (res && res.data && res.data.pic) || (await platformData.coverImg) || "";
+              const selectOptions = pages.map((item) => [
+                item.page,
+                `P${item.page} ${item.part}`,
+                IIROSEUtils.generatePicHtml(
+                  (item as any).first_frame || defaultCover,
+                  "mdi-video",
+                ),
+              ]);
 
-            IIROSEUtils.buildSelect2(
-              null,
-              selectOptions,
-              (_t: HTMLElement, selected: any) => {
-                const rawArr = Array.isArray(selected) ? selected : [selected];
-                const checkedPages = rawArr
-                  .filter((x: any) => x !== "" && x !== null && x !== undefined)
-                  .map(Number);
-                if (checkedPages.length === 0) return;
-
-                let chosenPages = pages.filter((p) => checkedPages.includes(p.page));
-                if (chosenPages.length === 1) {
-                  BilibiliPlatform.playBiliPage(platformData, chosenPages[0], aid, bvid);
-                  return;
-                }
-
-                BilibiliPlatform.buildOrderConfirmSelect((order: number) => {
-                  if (order === 1) {
-                    chosenPages = [...chosenPages].sort(() => Math.random() - 0.5);
+              IIROSEUtils.buildSelect2(
+                null,
+                selectOptions,
+                (_t: HTMLElement, selected: any) => {
+                  const rawArr = Array.isArray(selected) ? selected : [selected];
+                  const checkedPages = rawArr
+                    .filter((x: any) => x !== "" && x !== null && x !== undefined)
+                    .map(Number);
+                  if (checkedPages.length === 0) {
+                    ShowMessage.show("未选择任何分P");
+                    return;
                   }
-                  (async () => {
-                    for (const item of chosenPages) {
-                      await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
-                    }
-                  })();
-                });
-              },
-              false,
-              true,
-              null,
-              true,
-              null,
-              () => {},
-            );
+
+                  let chosenPages = pages.filter((p) => checkedPages.includes(p.page));
+                  if (chosenPages.length === 1) {
+                    BilibiliPlatform.playBiliPage(platformData, chosenPages[0], aid, bvid);
+                    return;
+                  }
+
+                  setTimeout(() => {
+                    BilibiliPlatform.buildOrderConfirmSelect((order: number) => {
+                      if (order === 1) {
+                        chosenPages = [...chosenPages].sort(() => Math.random() - 0.5);
+                      }
+                      (async () => {
+                        for (const item of chosenPages) {
+                          await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
+                        }
+                      })();
+                    });
+                  }, 300);
+                },
+                false,
+                true,
+                null,
+                true,
+                null,
+                () => {},
+                true,
+              );
+            }, 300);
           }
         });
         return;

@@ -707,14 +707,17 @@ export class NetEasePlatform extends Platform {
       } else if (select === 2) {
         // 选集多选点播
         const tracks = songListDetail.playlist.tracks || [];
+        const playlistCover =
+          (await platformData.coverImg) || songListDetail.playlist.coverImgUrl || "";
         const selectOptions = (tracks.length > 0 ? tracks : trackIds).map((item: any, idx: number) => {
           const songId = item.id;
           const name = item.name || `曲目 ${idx + 1}`;
           const ar = item.ar?.map((a: any) => a.name).join("/") || "";
+          const cover = item.al?.picUrl || item.album?.picUrl || playlistCover;
           return [
             songId,
             `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
-            `<div class="mdi-music-note" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+            IIROSEUtils.generatePicHtml(cover, "mdi-music-note"),
           ];
         });
 
@@ -726,17 +729,22 @@ export class NetEasePlatform extends Platform {
             const checkedIds = rawArr
               .filter((x: any) => x !== "" && x !== null && x !== undefined)
               .map(Number);
-            if (checkedIds.length === 0) return;
+            if (checkedIds.length === 0) {
+              ShowMessage.show("未选择任何曲目");
+              return;
+            }
             if (checkedIds.length === 1) {
               NetEasePlatform.finalODSONG(checkedIds);
               return;
             }
-            NetEasePlatform.buildOrderConfirmSelect((order) => {
-              if (order === 1) {
-                checkedIds.sort(() => Math.random() - 0.5);
-              }
-              NetEasePlatform.finalODSONG(checkedIds);
-            });
+            setTimeout(() => {
+              NetEasePlatform.buildOrderConfirmSelect((order) => {
+                if (order === 1) {
+                  checkedIds.sort(() => Math.random() - 0.5);
+                }
+                NetEasePlatform.finalODSONG(checkedIds);
+              });
+            }, 300);
           },
           false,
           true,
@@ -744,6 +752,7 @@ export class NetEasePlatform extends Platform {
           true,
           null,
           () => {},
+          true,
         );
       }
     };
@@ -783,14 +792,17 @@ export class NetEasePlatform extends Platform {
         NetEasePlatform.finalODSONG(songsID);
       } else if (select === 2) {
         // 专辑选集多选点播
+        const albumCover =
+          albumDetails.album.picUrl || (await platformData.coverImg) || "";
         const selectOptions = Songs.map((item: any, idx: number) => {
           const songId = item.id;
           const name = item.name || `曲目 ${idx + 1}`;
           const ar = item.ar?.map((a: any) => a.name).join("/") || "";
+          const cover = item.al?.picUrl || albumCover;
           return [
             songId,
             `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
-            `<div class="mdi-music-note" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+            IIROSEUtils.generatePicHtml(cover, "mdi-music-note"),
           ];
         });
 
@@ -802,17 +814,22 @@ export class NetEasePlatform extends Platform {
             const checkedIds = rawArr
               .filter((x: any) => x !== "" && x !== null && x !== undefined)
               .map(Number);
-            if (checkedIds.length === 0) return;
+            if (checkedIds.length === 0) {
+              ShowMessage.show("未选择任何曲目");
+              return;
+            }
             if (checkedIds.length === 1) {
               NetEasePlatform.finalODSONG(checkedIds);
               return;
             }
-            NetEasePlatform.buildOrderConfirmSelect((order) => {
-              if (order === 1) {
-                checkedIds.sort(() => Math.random() - 0.5);
-              }
-              NetEasePlatform.finalODSONG(checkedIds);
-            });
+            setTimeout(() => {
+              NetEasePlatform.buildOrderConfirmSelect((order) => {
+                if (order === 1) {
+                  checkedIds.sort(() => Math.random() - 0.5);
+                }
+                NetEasePlatform.finalODSONG(checkedIds);
+              });
+            }, 300);
           },
           false,
           true,
@@ -820,6 +837,7 @@ export class NetEasePlatform extends Platform {
           true,
           null,
           () => {},
+          true,
         );
       }
     };

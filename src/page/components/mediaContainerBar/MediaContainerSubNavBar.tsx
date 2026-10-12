@@ -142,14 +142,14 @@ export class MediaContainerSubNavBar extends Component<
 
     return (
       <div className="relative overflow-hidden w-full">
-        <div className="flex text-white overflow-x-auto overflow-y-hidden whitespace-nowrap scroll-smooth subnavbar-mask no-scrollbar h-[30px] max-[768px]:h-[32px] pr-6 animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
+        <div className="flex text-white overflow-x-auto overflow-y-hidden whitespace-nowrap scroll-smooth subnavbar-mask no-scrollbar h-[30px] max-[768px]:h-[36px] pr-6 animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
           {platform.subNavBarItems.map((item, index) => {
             const isActive = index === activeIndex;
             const subNavBarClass = item.class ? item.class : "";
             return (
               <div
                 key={index} // 加入 key 属性
-                className={`flex items-center shrink-0 h-full px-[20px] max-[768px]:px-[12px] max-[768px]:text-xs cursor-pointer transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:opacity-70 active:scale-95 ${
+                className={`flex items-center shrink-0 h-full px-[20px] max-[768px]:px-3.5 max-[768px]:text-xs cursor-pointer transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:opacity-70 active:scale-95 ${
                   isActive
                     ? "bg-[rgba(255,255,255,0.85)] text-[#2f2f2f] font-semibold"
                     : "bg-black/30 text-white/90"

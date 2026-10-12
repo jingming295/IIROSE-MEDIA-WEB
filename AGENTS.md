@@ -32,7 +32,11 @@
 - `react`/`react-dom` 由 tsconfig paths 映射到 `preact/compat`——直接 import 'react' 即可，不要安装真正的 react 包。
 - 样式统一 Tailwind v4 任意值类（如 `max-[768px]:hidden`、`[grid-auto-rows:max-content]`）；移动端响应式断点统一使用 `max-[768px]`；点歌卡片网格行必须保持 `max-content` 自适应，否则按钮会被 `overflow:hidden` 裁掉（曾出过此 bug）。
 - 图标一律自包含方案：元素加 id + `src/app.css` 写 `#id::before { content:"\F0xxx"; font-family:"md" }`；**不要借用宿站 `mdi-*` 类**（宿站样式表里未必有该类规则，且没有 `font-family:"md"` 兜底会渲染成无字形——关于图标曾因此消失）。
-- 顶栏布局约定：主导航项（音乐/视频/设置/关于）移动端紧密相连无 gap；搜索框在移动端与桌面端均统一靠右排列，与分页控件紧邻对齐（由左侧视图切换按钮的 `mr-auto` 撑满空隙，禁止父级 `justify-between` 导致居中）；选平台组件移动端保持紧凑相连的长方形形态（无 gap）并显示名称文本，禁止切为带间隙的圆形胶囊。
+- 顶栏布局与触控目标约定：
+  - Row 1（主导航项）：移动端高 44px（`min-h-[44px]`），按钮 44×44px 紧密相连无 gap，纯图标 24px（符合 Apple HIG 44pt 规范）；
+  - Row 2（操作与分页）：移动端高 48px（`min-h-[48px]`），上一页/下一页按钮放大为 48×44px 触控药丸（`rounded-lg`，双钮占宽 25.6%，箭头 22px），视图切换与搜索按钮为 44×44px，搜索框靠右紧邻分页（由左侧视图切换按钮 `mr-auto` 撑满空隙，禁止父级 `justify-between` 导致居中）；
+  - Row 3（选平台组件）：移动端高 40px（`h-10`），保持紧凑相连的长方形选项卡形态（无 gap），图标 26px，文字 13px，禁止切为带间隙的圆形胶囊；
+  - Row 4（子分类标签）：移动端高 36px（`h-[36px]`），内边距 `px-3.5`，文字 12px 防误触。
 
 ## Known pitfalls
 

@@ -2,10 +2,13 @@ interface OldItems
 {
     mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null;
     allMediaData: PlatformData[];
-    SubNavBarAction: () => void;
-    OnDemandPlay: (platformData: PlatformData) => void;
+    SubNavBarAction?: () => void;
+    OnDemandPlay?: (platformData: PlatformData) => void;
     totalPage: number;
     currentPage: number;
+    PlatformIndex?: number;
+    SubNavBarIndex?: number;
+    searchKeyword?: string;
 }
 
 interface Platform

@@ -59,20 +59,7 @@ export class MainAppContainer extends Component<
     };
   }
 
-  private discoverySnapshot: {
-    searchKeyword: string;
-    mediaData: Promise<{
-      platformData: PlatformData[];
-      totalPage: number;
-    }> | null;
-    allMediaData: PlatformData[];
-    currentPage: number;
-    totalPage: number;
-    PlatformIndex: number;
-    SubNavBarIndex: number;
-    currentSubNavBarAction: () => void;
-    currentOnDemandPlay: (platformData: PlatformData) => void;
-  } | null = null;
+  private discoveryOldItems: OldItems | null = null;
 
   componentDidMount() {
     FavoritesStorageService.init();
@@ -87,7 +74,7 @@ export class MainAppContainer extends Component<
     prevState: Readonly<MainAppContainerState>,
   ): void {
     if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
-      this.discoverySnapshot = null;
+      this.discoveryOldItems = null;
       this.setState({
         PlatformIndex: 0,
         SubNavBarIndex: 0,
@@ -128,7 +115,7 @@ export class MainAppContainer extends Component<
       const { SubNavBarIndex, favoritesMode } = this.state;
       if (favoritesMode) {
         // 如果在收藏模式下收到外部全局搜索指令（如聊天框 @点歌），退出收藏模式进入全网模式
-        this.discoverySnapshot = null;
+        this.discoveryOldItems = null;
         this.setState(
           {
             favoritesMode: false,
@@ -303,6 +290,8 @@ export class MainAppContainer extends Component<
                 platform={categories.platform}
                 isCurrentInMultiPage={isCurrentInMultiPage}
                 switchPlatform={switchPlatform}
+                PlatformIndex={PlatformIndex}
+                favoritesMode={favoritesMode}
               />
               <MediaContainerSubNavBar
                 platform={categoriesPlatform}
@@ -348,9 +337,8 @@ export class MainAppContainer extends Component<
           },
         );
       } else {
-        // 全网模式：通知上层并直接发起当前子分类的全网检索
-        this.props.changeSearchKeyword(kw);
-
+        // 全网模式：同步清空缓存与重置分页，并发起检索
+        this.state.allMediaData.length = 0;
         this.setState(
           {
             searchKeyword: kw,
@@ -359,14 +347,18 @@ export class MainAppContainer extends Component<
             mediaData: null,
           },
           () => {
-            const categories = this.categories[this.props.CategoriesIndex];
-            const plat = categories?.platform[this.state.PlatformIndex];
-            const action =
-              plat?.subNavBarItems[this.state.SubNavBarIndex]?.searchAction;
-            if (action) {
-              action();
-            } else if (this.state.currentSubNavBarAction) {
-              this.state.currentSubNavBarAction();
+            if (this.props.searchKeyword === kw) {
+              const categories = this.categories[this.props.CategoriesIndex];
+              const plat = categories?.platform[this.state.PlatformIndex];
+              const action =
+                plat?.subNavBarItems[this.state.SubNavBarIndex]?.searchAction;
+              if (action) {
+                action();
+              } else if (this.state.currentSubNavBarAction) {
+                this.state.currentSubNavBarAction();
+              }
+            } else {
+              this.props.changeSearchKeyword(kw);
             }
           },
         );
@@ -388,18 +380,25 @@ export class MainAppContainer extends Component<
       const nextMode = !this.state.favoritesMode;
 
       if (nextMode) {
-        // 全网 -> 收藏：拍摄全网现场快照
-        this.discoverySnapshot = {
-          searchKeyword:
-            this.state.searchKeyword || this.props.searchKeyword || "",
-          mediaData: this.state.mediaData,
-          allMediaData: this.state.allMediaData,
-          currentPage: this.state.currentPage,
-          totalPage: this.state.totalPage,
+        // 全网 -> 收藏：拍摄全网现场快照（若处于选集模式则直接复用外层 oldItems）
+        const src =
+          this.state.isCurrentInMultiPage && this.state.oldItems
+            ? this.state.oldItems
+            : this.state;
+
+        this.discoveryOldItems = {
+          mediaData: src.mediaData,
+          allMediaData: src.allMediaData,
+          totalPage: src.totalPage,
+          currentPage: src.currentPage,
+          SubNavBarAction:
+            (src as any).SubNavBarAction || this.state.currentSubNavBarAction,
+          OnDemandPlay:
+            (src as any).OnDemandPlay || this.state.currentOnDemandPlay,
           PlatformIndex: this.state.PlatformIndex,
           SubNavBarIndex: this.state.SubNavBarIndex,
-          currentSubNavBarAction: this.state.currentSubNavBarAction,
-          currentOnDemandPlay: this.state.currentOnDemandPlay,
+          searchKeyword:
+            this.state.searchKeyword || this.props.searchKeyword || "",
         };
 
         await this.setState({
@@ -413,23 +412,25 @@ export class MainAppContainer extends Component<
           mediaData: null,
         });
       } else {
-        // 收藏 -> 全网：从快照完整恢复全网现场（保留快照，支持任意多次切换）
-        const snap = this.discoverySnapshot;
+        // 收藏 -> 全网：类似 switchToOutFromMultiPage 恢复全网现场
+        const old = this.discoveryOldItems;
 
-        if (snap) {
+        if (old) {
           await this.setState({
             favoritesMode: false,
-            currentPage: snap.currentPage,
-            totalPage: snap.totalPage,
-            PlatformIndex: snap.PlatformIndex,
-            SubNavBarIndex: snap.SubNavBarIndex,
+            currentPage: old.currentPage,
+            totalPage: old.totalPage,
+            PlatformIndex: old.PlatformIndex ?? 0,
+            SubNavBarIndex: old.SubNavBarIndex ?? 0,
             isCurrentInMultiPage: false,
             oldItems: null,
-            searchKeyword: snap.searchKeyword,
-            allMediaData: snap.allMediaData,
-            mediaData: snap.mediaData,
-            currentSubNavBarAction: snap.currentSubNavBarAction,
-            currentOnDemandPlay: snap.currentOnDemandPlay,
+            searchKeyword: old.searchKeyword ?? "",
+            allMediaData: old.allMediaData,
+            mediaData: old.mediaData,
+            currentSubNavBarAction:
+              old.SubNavBarAction || this.state.currentSubNavBarAction,
+            currentOnDemandPlay:
+              old.OnDemandPlay || this.state.currentOnDemandPlay,
           });
         } else {
           await this.setState({

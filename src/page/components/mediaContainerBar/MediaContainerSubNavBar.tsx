@@ -42,6 +42,33 @@ export class MediaContainerSubNavBar extends Component<
 
     const { searchKeyword } = this.props;
 
+    // 1. 收藏模式切换拦截：绝不允许进入后续的 searchKeyword 检查或默认首项搜索
+    if (prevProps.favoritesMode !== this.props.favoritesMode) {
+      if (prevProps.favoritesMode && !this.props.favoritesMode) {
+        // 从收藏切回全网：永远只同步 activeIndex 和 class，绝不重新搜索、绝不重置页码！
+        const targetIndex = this.props.SubNavBarIndex ?? 0;
+        const item = platform.subNavBarItems[targetIndex];
+        this.setState({
+          activeIndex: targetIndex,
+          subNavBarClass: item?.class,
+        });
+        return;
+      } else {
+        // 从全网切入收藏：激活收藏首个分类项并执行
+        const firstIndex = 0;
+        this.setState({ activeIndex: firstIndex }, async () => {
+          await updateSubNavBarIndex(firstIndex);
+          const firstItem = platform.subNavBarItems[firstIndex];
+          if (firstItem) {
+            firstItem.searchAction();
+            this.setState({ subNavBarClass: firstItem.class });
+            updateCurrentSubNavBarAction(firstItem.searchAction);
+          }
+        });
+        return;
+      }
+    }
+
     if (prevProps.searchKeyword !== searchKeyword && searchKeyword !== "") {
       if (subNavBarClass === "search") {
         platform.subNavBarItems[activeIndex].searchAction();
@@ -68,17 +95,6 @@ export class MediaContainerSubNavBar extends Component<
     }
 
     if (prevProps.categories !== this.props.categories) {
-      // 从收藏切回全网：永远只同步 activeIndex，绝不重新搜索！
-      if (prevProps.favoritesMode && !this.props.favoritesMode) {
-        const targetIndex = this.props.SubNavBarIndex ?? 0;
-        const item = platform.subNavBarItems[targetIndex];
-        this.setState({
-          activeIndex: targetIndex,
-          subNavBarClass: item?.class,
-        });
-        return;
-      }
-
       if (platform.subNavBarItems.length > 0) {
         const firstIndex = 0;
         this.setState({ activeIndex: firstIndex }, async () => {

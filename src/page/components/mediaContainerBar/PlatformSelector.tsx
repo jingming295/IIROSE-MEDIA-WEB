@@ -4,6 +4,8 @@ interface PlatformSelectorProps {
   platform: Platform[];
   switchPlatform: (index: number) => void;
   isCurrentInMultiPage: boolean;
+  PlatformIndex?: number;
+  favoritesMode?: boolean;
 }
 
 interface PlatformSelectorState {
@@ -17,11 +19,19 @@ export class PlatformSelector extends Component<
   constructor(props: PlatformSelectorProps) {
     super(props);
     this.state = {
-      activeIndex: 0, // 初始状态，激活第一个项
+      activeIndex: props.PlatformIndex ?? 0, // 初始状态，激活对应项
     };
   }
 
   componentDidUpdate(prevProps: Readonly<PlatformSelectorProps>): void {
+    // 收藏模式切换导致的 platform 变化绝对不能触发 switchPlatform(0)！
+    if (prevProps.favoritesMode !== this.props.favoritesMode) {
+      if (this.props.PlatformIndex !== undefined) {
+        this.setState({ activeIndex: this.props.PlatformIndex });
+      }
+      return;
+    }
+
     if (prevProps.platform !== this.props.platform) {
       this.setState({ activeIndex: 0 });
       this.handleSwitchPlatform(0);
@@ -35,8 +45,9 @@ export class PlatformSelector extends Component<
   };
 
   render() {
-    const { platform, isCurrentInMultiPage } = this.props;
-    const { activeIndex } = this.state;
+    const { platform, isCurrentInMultiPage, PlatformIndex } = this.props;
+    const activeIndex =
+      PlatformIndex !== undefined ? PlatformIndex : this.state.activeIndex;
     return (
       <div className="flex px-[20px] max-[768px]:px-2 items-center overflow-x-auto no-scrollbar animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
         {!isCurrentInMultiPage &&

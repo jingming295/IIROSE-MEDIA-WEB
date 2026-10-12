@@ -99,7 +99,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (settingsData) {
       return (
         <div
-          className="relative grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           {settingsData.map((item, index) => (
@@ -112,7 +112,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (loading) {
       return (
         <div
-          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           <MediaCardMessage message={1} />
@@ -123,7 +123,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (error) {
       return (
         <div
-          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           <MediaCardMessage message={0} />
@@ -134,7 +134,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (!data) {
       return (
         <div
-          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           <MediaCardMessage message={2} />
@@ -144,7 +144,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (data.platformData.length === 0) {
       return (
         <div
-          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative h-full grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           <MediaCardMessage message={0} />
@@ -155,7 +155,7 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
     if (this.props.viewMode === "list") {
       return (
         <div
-          className="relative flex flex-col gap-[10px] max-[490px]:gap-[8px] overflow-auto p-3 box-border transition-all duration-250"
+          className="relative flex flex-col gap-[10px] max-[768px]:gap-[8px] overflow-auto p-3 box-border transition-all duration-250"
           ref={this.containerRef}
         >
           {data.platformData.map((item, index) => (
@@ -167,12 +167,12 @@ export class MediaCard extends Component<MediaCardProps, MediaCardState> {
 
     return (
       <div
-        className="relative grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[490px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[490px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
+        className="relative grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] max-[780px]:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] max-[768px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 max-[768px]:gap-[10px] [grid-auto-rows:max-content] [align-content:start] overflow-auto p-3 box-border transition-all duration-250"
         ref={this.containerRef}
       >
         {data.platformData.map((item, index) => (
           <div
-            className="flex grow shrink flex-col bg-white/50 m-3 max-[490px]:m-0 max-[980px]:max-h-full relative animate-[fadeIn_.25s_ease-out] rounded-xl overflow-hidden backdrop-blur-[10px]"
+            className="flex grow shrink flex-col bg-white/50 m-3 max-[768px]:m-0 max-[980px]:max-h-full relative animate-[fadeIn_.25s_ease-out] rounded-xl overflow-hidden backdrop-blur-[10px]"
             key={index}
           >
             <MediaCardImg src={item.coverImg} platformData={item} />

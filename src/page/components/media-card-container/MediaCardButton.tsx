@@ -78,7 +78,7 @@ export class MediaCardButton extends Component<MediaContainerProps> {
       platformData.neteaseMusic || platformData.websiteUrl?.includes("163.com");
     const hasMultiPage = !!multipage;
 
-    const playIcon = isNetease ? "mdi-headphones" : "mdi-play";
+    const playIconClass = isNetease ? "headphonesIcon" : "playIcon";
     const actionText = isNetease ? "选歌" : "选集";
 
     // 公共容器类 (整合了原 SCSS 逻辑)
@@ -93,19 +93,23 @@ export class MediaCardButton extends Component<MediaContainerProps> {
     // 与缩略图同高(72px)填满行的上下边缘：单个 72×72 方块，双个并排方格 + 分割线
     if (variant === "compact") {
       const compactBtnClass = (disabled: boolean) =>
-        `flex items-center justify-center w-[72px] max-[490px]:w-[64px] transition-all duration-100! ease-in-out! ${
+        `flex items-center justify-center w-[72px] ${
+          hasMultiPage ? "max-[768px]:w-[40px]" : "max-[768px]:w-[56px]"
+        } transition-all duration-100! ease-in-out! ${
           disabled
             ? "opacity-30 cursor-not-allowed"
             : "cursor-pointer hov:hover:bg-[rgba(0,0,0,0.12)] active:scale-95"
         }`;
+      const compactIconClass =
+        "font-['md'] text-[26px] max-[768px]:text-[20px] font-bold transition-all duration-100! ease-in-out!";
       return (
-        <div className="flex items-stretch h-[72px] max-[490px]:h-[64px] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.08)] shrink-0">
+        <div className="flex items-stretch h-[72px] max-[768px]:h-[56px] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.08)] shrink-0">
           <div
             className={compactBtnClass(isLoading)}
             style={{ color: contextState.color }}
             onClick={isLoading ? undefined : this.demandPlay}
           >
-            <div className={`${playIcon} ${iconBaseClass}`}></div>
+            <div className={`${playIconClass} ${compactIconClass}`}></div>
           </div>
           {hasMultiPage && (
             <div
@@ -113,7 +117,7 @@ export class MediaCardButton extends Component<MediaContainerProps> {
               style={{ color: contextState.color }}
               onClick={this.confirmMultiPageAction}
             >
-              <div className={`mdi-playlist-plus ${iconBaseClass}`}></div>
+              <div className={`playlistPlusIcon ${compactIconClass}`}></div>
             </div>
           )}
         </div>
@@ -130,7 +134,7 @@ export class MediaCardButton extends Component<MediaContainerProps> {
           style={{ color: contextState.color }}
           onClick={isLoading ? undefined : this.demandPlay}
         >
-          <div className={`${playIcon} ${iconBaseClass}`}></div>
+          <div className={`${playIconClass} ${iconBaseClass}`}></div>
           <div className="ml-[22px] font-bold">播放</div>
         </div>
 
@@ -141,7 +145,7 @@ export class MediaCardButton extends Component<MediaContainerProps> {
             style={{ color: contextState.color }}
             onClick={this.confirmMultiPageAction}
           >
-            <div className={`mdi-playlist-plus ${iconBaseClass}`}></div>
+            <div className={`playlistPlusIcon ${iconBaseClass}`}></div>
             <div className="ml-[22px] font-bold">{actionText}</div>
           </div>
         )}

@@ -136,19 +136,23 @@ export class MediaContainerSubNavBar extends Component<
     const { platform, isCurrentInMultiPage } = this.props;
     const { activeIndex } = this.state;
 
+    if (isCurrentInMultiPage) {
+      return null;
+    }
+
     return (
-      <div className="flex text-white overflow-y-hidden whitespace-nowrap scroll-smooth animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
-        {!isCurrentInMultiPage &&
-          platform.subNavBarItems.map((item, index) => {
+      <div className="relative overflow-hidden w-full">
+        <div className="flex text-white overflow-x-auto overflow-y-hidden whitespace-nowrap scroll-smooth subnavbar-mask no-scrollbar h-[30px] max-[768px]:h-[32px] pr-6 animate-[fadeIn_.25s_ease-out,expandHeight_.25s_ease-in-out]">
+          {platform.subNavBarItems.map((item, index) => {
             const isActive = index === activeIndex;
             const subNavBarClass = item.class ? item.class : "";
             return (
               <div
                 key={index} // 加入 key 属性
-                className={`flex items-center h-[30px] px-[20px] max-[490px]:px-[10px] max-[490px]:py-[2px] cursor-pointer transition-all duration-500 animate-[fadeIn_.25s_ease-out] hover:opacity-70 ${
+                className={`flex items-center shrink-0 h-full px-[20px] max-[768px]:px-[12px] max-[768px]:text-xs cursor-pointer transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:opacity-70 active:scale-95 ${
                   isActive
-                    ? "bg-[rgba(255,255,255,0.85)] text-[#2f2f2f]"
-                    : "bg-black/30"
+                    ? "bg-[rgba(255,255,255,0.85)] text-[#2f2f2f] font-semibold"
+                    : "bg-black/30 text-white/90"
                 } ${subNavBarClass}`} // 动态应用类名
                 onClick={() =>
                   this.handleItemClick(index, item.searchAction, item.class)
@@ -158,6 +162,7 @@ export class MediaContainerSubNavBar extends Component<
               </div>
             );
           })}
+        </div>
       </div>
     );
   }

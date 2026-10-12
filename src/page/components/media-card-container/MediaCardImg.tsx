@@ -119,7 +119,7 @@ export class MediaCardImg extends Component<
       <div
         className={`flex relative transition-none shrink-0 ${
           compact
-            ? "w-[72px] h-[72px] rounded-md overflow-hidden"
+            ? "w-[72px] h-[72px] max-[768px]:w-[56px] max-[768px]:h-[56px] rounded-md overflow-hidden"
             : "w-full h-auto aspect-square"
         }`}
       >

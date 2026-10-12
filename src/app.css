@@ -118,7 +118,10 @@
 .searchLogo::before,
 .noresultLogo::before,
 .listViewIcon::before,
-.cardViewIcon::before {
+.cardViewIcon::before,
+.headphonesIcon::before,
+.playIcon::before,
+.playlistPlusIcon::before {
   font-family: "md";
 }
 
@@ -184,3 +187,35 @@
 .cardViewIcon::before {
   content: "\F0570"; /* view-grid */
 }
+
+/* 列表行与卡片动作图标（自包含业务类） */
+.headphonesIcon::before {
+  content: "\F02CB"; /* headphones */
+}
+
+.playIcon::before {
+  content: "\F040A"; /* play */
+}
+
+.playlistPlusIcon::before {
+  content: "\F0411"; /* playlist-plus */
+}
+
+/* --- 6. 移动端小屏交互增强 --- */
+/* 子分类横滑右侧渐变遮罩提示（仅在 ≤768px 移动视口下生效，提示用户可继续横滑） */
+@media (max-width: 768px) {
+  .subnavbar-mask {
+    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+  }
+}
+
+/* 隐藏横向滚动条以防撑破移动端行高 */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+

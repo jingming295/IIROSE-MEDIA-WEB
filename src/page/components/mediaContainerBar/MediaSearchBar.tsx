@@ -53,27 +53,28 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
     }
 
     return (
-      <div className="flex items-center max-[490px]:justify-between min-h-[36px] max-[780px]:min-h-0 animate-[fadeIn_.25s_ease-out]">
+      <div className="flex items-center justify-between min-h-[36px] max-[768px]:min-h-[40px] max-[768px]:px-2 animate-[fadeIn_.25s_ease-out]">
         <div
-          className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[14px] h-full transition-all duration-500 hover:opacity-70 bg-[#fff3] rounded-full ml-3 mr-auto max-[490px]:mr-[10px]"
+          className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 h-full transition-all duration-100! hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full ml-3 max-[768px]:ml-0 mr-auto max-[768px]:mr-1 shrink-0"
           title={`当前:${viewMode === "card" ? "卡片" : "列表"},点击切换`}
           onClick={mediaSearchBarActions.toggleSearchViewMode}
         >
           <div
-            className={`${viewMode === "card" ? "cardViewIcon" : "listViewIcon"} text-2xl`}
+            className={`${viewMode === "card" ? "cardViewIcon" : "listViewIcon"} text-2xl max-[768px]:text-[20px]`}
           ></div>
-          <div className="font-bold ml-[22px] max-[490px]:hidden">
+          <div className="font-bold ml-[22px] max-[768px]:hidden">
             {viewMode === "card" ? "卡片" : "列表"}
           </div>
         </div>
 
         {!isCurrentInMultiPage && (
           <div
-            className="flex items-center text-white cursor-pointer h-full transition-all duration-250 max-w-[460px] max-[780px]:max-w-[200px] hover:opacity-70"
+            className="flex items-center text-white cursor-pointer h-full max-[768px]:h-[36px] max-[768px]:px-2 max-[768px]:bg-[#fff2] max-[768px]:rounded-full transition-all duration-100! max-w-[460px] max-[768px]:max-w-[120px] max-[400px]:max-w-[70px] hov:hover:opacity-70 active:scale-95 shrink min-w-0"
             onClick={() => this.searchInput()}
+            title={searchKeyword || "点击搜索"}
           >
-            <div className="inputIcon text-2xl mr-[22px] max-[490px]:ml-[20px]"></div>
-            <div className="font-bold text-sm overflow-hidden text-ellipsis whitespace-pre max-[780px]:max-w-[50px]">
+            <div className="inputIcon text-2xl max-[768px]:text-[20px] mr-[22px] max-[768px]:mr-1 shrink-0"></div>
+            <div className="font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap max-[768px]:max-w-[70px]">
               {searchKeyword}
             </div>
           </div>
@@ -86,44 +87,47 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
             justifyContent: isCurrentInMultiPage ? "flex-end" : "", // 根据 isCurrentInMultiPage 的值设置对齐方式
           }}
         >
-          <div className="flex items-center text-white cursor-pointer h-full transition-all duration-250 mx-[24px] hover:opacity-70">
-            <div className="paginationIcon text-2xl"></div>
-            <div className="ml-[22px] text-sm">{pages}</div>
+          <div className="flex items-center text-white cursor-pointer h-full transition-all duration-100! mx-[24px] max-[768px]:mx-1 hov:hover:opacity-70 shrink-0">
+            <div className="paginationIcon text-2xl max-[768px]:text-[18px]"></div>
+            <div className="ml-[22px] max-[768px]:ml-1 text-sm max-[768px]:text-xs">{pages}</div>
           </div>
 
-          <div className="flex items-center h-full">
+          <div className="flex items-center h-full max-[768px]:gap-2 shrink-0">
             {isCurrentInMultiPage && (
               <div
-                className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#00000080] rounded-full"
+                className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 transition-all duration-100! h-full hov:hover:opacity-70 active:scale-95 bg-[#00000080] rounded-full"
+                title="返回"
                 onClick={mediaSearchBarActions.switchToOutFromMultiPage}
               >
-                <div className="returnIcon text-2xl"></div>
-                <div className="font-bold ml-[22px] max-[490px]:hidden">
+                <div className="returnIcon text-2xl max-[768px]:text-[20px]"></div>
+                <div className="font-bold ml-[22px] max-[768px]:hidden">
                   返回
                 </div>
               </div>
             )}
 
             <div
-              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#fff3] rounded-full"
+              className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 transition-all duration-100! h-full hov:hover:opacity-70 active:scale-95 bg-[#fff3] rounded-full"
+              title="上一页"
               onClick={() => {
                 this.prevPage(currentPage);
               }}
             >
-              <div className="prevIcon text-2xl"></div>
-              <div className="font-bold ml-[22px] max-[490px]:hidden">
+              <div className="prevIcon text-2xl max-[768px]:text-[20px]"></div>
+              <div className="font-bold ml-[22px] max-[768px]:hidden">
                 上一页
               </div>
             </div>
 
             <div
-              className="flex items-center text-white cursor-pointer px-[20px] max-[780px]:p-[10px] max-[780px]:h-auto max-[490px]:px-[25px] transition-all duration-500 h-full hover:opacity-70 bg-[#00000080] rounded-full"
+              className="flex items-center justify-center text-white cursor-pointer px-[20px] max-[768px]:w-[36px] max-[768px]:h-[36px] max-[768px]:min-w-[36px] max-[768px]:p-0 transition-all duration-100! h-full hov:hover:opacity-70 active:scale-95 bg-[#00000080] rounded-full"
+              title="下一页"
               onClick={() => {
                 this.nextPage(currentPage, totalPage);
               }}
             >
-              <div className="nextIcon text-2xl"></div>
-              <div className="font-bold ml-[22px] max-[490px]:hidden">
+              <div className="nextIcon text-2xl max-[768px]:text-[20px]"></div>
+              <div className="font-bold ml-[22px] max-[768px]:hidden">
                 下一页
               </div>
             </div>

@@ -27,9 +27,9 @@ export class MainNavigationBar extends Component<
   };
 
   // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
-  // 字/图标 #fff；激活态 bg #00000080，未激活 #fff3；返回按钮恒为 #00000080
+  // 移动端（≤768px）：隐藏文字，确保 40px+ 触控热区与 8px 按钮间距，纯图标高密度
   private navButtonClass = (active: boolean) =>
-    `px-[20px] max-[780px]:px-[10px] flex items-center cursor-pointer text-white text-2xl transition-all duration-500 hover:opacity-70 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
+    `min-w-[40px] min-h-[40px] px-[20px] max-[768px]:px-0 max-[768px]:w-[40px] flex items-center justify-center cursor-pointer text-white text-2xl transition-all duration-100! hov:hover:opacity-70 active:scale-95 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
 
   render() {
     const { activeButtonIndex } = this.props;
@@ -40,40 +40,42 @@ export class MainNavigationBar extends Component<
           <div
             className={this.navButtonClass(true)}
             id="BackButton"
+            title="返回"
             onClick={this.quitFromMainApp}
           >
             <div
-              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="BackIcon"
             ></div>
           </div>
 
           <div
-            className="px-[20px] max-[780px]:px-[10px] max-[780px]:hidden flex items-center cursor-auto text-base bg-white/20 text-white transition-opacity duration-300"
+            className="px-[20px] max-[768px]:hidden flex items-center cursor-auto text-base bg-white/20 text-white transition-opacity duration-300"
             id="NavBarTitle"
           >
             <div
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer"
               id="TitleIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
               {" "}
               IIROSE - MEDIA{" "}
             </div>
           </div>
         </div>
 
-        <div className="flex">
+        <div className="flex max-[768px]:gap-2">
           <div
             className={this.navButtonClass(activeButtonIndex === 0)}
             id=""
+            title="音乐"
             onClick={() => this.handleSwitchPage(0)}
           >
             <div
-              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="MusicIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
               {" "}
               音乐{" "}
             </div>
@@ -82,13 +84,14 @@ export class MainNavigationBar extends Component<
           <div
             className={this.navButtonClass(activeButtonIndex === 1)}
             id=""
+            title="视频"
             onClick={() => this.handleSwitchPage(1)}
           >
             <div
-              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="VideoIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
               {" "}
               视频{" "}
             </div>
@@ -97,13 +100,14 @@ export class MainNavigationBar extends Component<
           <div
             className={this.navButtonClass(activeButtonIndex === 2)}
             id=""
+            title="设置"
             onClick={() => this.handleSwitchPage(2)}
           >
             <div
-              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="SettingIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
               {" "}
               设置{" "}
             </div>
@@ -112,13 +116,14 @@ export class MainNavigationBar extends Component<
           <div
             className={this.navButtonClass(activeButtonIndex === 3)}
             id=""
+            title="关于"
             onClick={() => this.handleSwitchPage(3)}
           >
             <div
-              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[490px]:px-[5px_20px] max-[490px]:mr-0 max-[490px]:text-[27px]"
+              className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="AboutIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[490px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
               {" "}
               关于{" "}
             </div>

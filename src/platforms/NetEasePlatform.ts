@@ -28,18 +28,18 @@ export class NetEasePlatform extends Platform {
         "乱序点播",
         `<div class="mdi-sort" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
       ],
+      [
+        2,
+        "选集点播",
+        `<div class="mdi-playlist-check" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+      ],
     ];
 
     const startElement = null;
-
     const multiSelect = false;
-
     const allowClear = false;
-
     const showIcon = true;
-
     const topHTMLELEMENT = null;
-
     const bottomHTMLELEMENT = null;
 
     IIROSEUtils.buildSelect2(
@@ -52,6 +52,38 @@ export class NetEasePlatform extends Platform {
       multiSelect,
       bottomHTMLELEMENT,
       enterCB,
+    );
+  };
+
+  /**
+   * 选集多选完成后的二次排序确认选择器
+   */
+  public static buildOrderConfirmSelect = (action: (select: number) => Promise<void> | void) => {
+    const select = [
+      [
+        0,
+        "正序播放",
+        `<div class="mdi-sort-alphabetical-variant" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+      ],
+      [
+        1,
+        "乱序播放",
+        `<div class="mdi-sort" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+      ],
+    ];
+
+    IIROSEUtils.buildSelect2(
+      null,
+      select,
+      (_t: HTMLElement, s: string) => {
+        action(parseInt(s));
+      },
+      false,
+      true,
+      null,
+      false,
+      null,
+      () => {},
     );
   };
 
@@ -667,10 +699,53 @@ export class NetEasePlatform extends Platform {
       const trackIds = songListDetail.playlist.trackIds;
       let trackID = trackIds.map((item) => item.id);
 
-      if (select === 1) {
+      if (select === 0) {
+        NetEasePlatform.finalODSONG(trackID);
+      } else if (select === 1) {
         trackID = trackID.sort(() => Math.random() - 0.5);
+        NetEasePlatform.finalODSONG(trackID);
+      } else if (select === 2) {
+        // 选集多选点播
+        const tracks = songListDetail.playlist.tracks || [];
+        const selectOptions = (tracks.length > 0 ? tracks : trackIds).map((item: any, idx: number) => {
+          const songId = item.id;
+          const name = item.name || `曲目 ${idx + 1}`;
+          const ar = item.ar?.map((a: any) => a.name).join("/") || "";
+          return [
+            songId,
+            `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
+            `<div class="mdi-music-note" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+          ];
+        });
+
+        IIROSEUtils.buildSelect2(
+          null,
+          selectOptions,
+          (_t: HTMLElement, selected: any) => {
+            const rawArr = Array.isArray(selected) ? selected : [selected];
+            const checkedIds = rawArr
+              .filter((x: any) => x !== "" && x !== null && x !== undefined)
+              .map(Number);
+            if (checkedIds.length === 0) return;
+            if (checkedIds.length === 1) {
+              NetEasePlatform.finalODSONG(checkedIds);
+              return;
+            }
+            NetEasePlatform.buildOrderConfirmSelect((order) => {
+              if (order === 1) {
+                checkedIds.sort(() => Math.random() - 0.5);
+              }
+              NetEasePlatform.finalODSONG(checkedIds);
+            });
+          },
+          false,
+          true,
+          null,
+          true,
+          null,
+          () => {},
+        );
       }
-      this.finalODSONG(trackID);
     };
 
     try {
@@ -701,11 +776,52 @@ export class NetEasePlatform extends Platform {
       const Songs = albumDetails.songs;
       let songsID = Songs.map((item) => item.id);
 
-      if (select === 1) {
+      if (select === 0) {
+        NetEasePlatform.finalODSONG(songsID);
+      } else if (select === 1) {
         songsID = songsID.sort(() => Math.random() - 0.5);
-      }
+        NetEasePlatform.finalODSONG(songsID);
+      } else if (select === 2) {
+        // 专辑选集多选点播
+        const selectOptions = Songs.map((item: any, idx: number) => {
+          const songId = item.id;
+          const name = item.name || `曲目 ${idx + 1}`;
+          const ar = item.ar?.map((a: any) => a.name).join("/") || "";
+          return [
+            songId,
+            `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
+            `<div class="mdi-music-note" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+          ];
+        });
 
-      NetEasePlatform.finalODSONG(songsID);
+        IIROSEUtils.buildSelect2(
+          null,
+          selectOptions,
+          (_t: HTMLElement, selected: any) => {
+            const rawArr = Array.isArray(selected) ? selected : [selected];
+            const checkedIds = rawArr
+              .filter((x: any) => x !== "" && x !== null && x !== undefined)
+              .map(Number);
+            if (checkedIds.length === 0) return;
+            if (checkedIds.length === 1) {
+              NetEasePlatform.finalODSONG(checkedIds);
+              return;
+            }
+            NetEasePlatform.buildOrderConfirmSelect((order) => {
+              if (order === 1) {
+                checkedIds.sort(() => Math.random() - 0.5);
+              }
+              NetEasePlatform.finalODSONG(checkedIds);
+            });
+          },
+          false,
+          true,
+          null,
+          true,
+          null,
+          () => {},
+        );
+      }
     };
 
     try {

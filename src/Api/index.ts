@@ -1,7 +1,6 @@
 import { BilibiliACC } from "../Account/BiliBili/BilibiliAccountInterface";
 import { GetBiliBiliAccount } from "../Account/BiliBili/GetBiliBili";
 import { ShowMessage } from "../iirose_func/ShowMessage";
-import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
 
 export class SendFetch
 {
@@ -290,8 +289,15 @@ export class SendFetch
 
     protected static getBilibiliCors()
     {
-        const bvSettings = new BiliBiliSettings().getBilibiliVideoSettings();
-        const api = bvSettings.api;
+        let api = 'Guangzhou';
+        try {
+            const ls = typeof localStorage !== 'undefined' ? localStorage.getItem('bilibiliSetting') : null;
+            if (ls) {
+                const parsed = JSON.parse(ls);
+                if (parsed.api) api = parsed.api;
+            }
+        } catch { /* ignore */ }
+
         if (api === 'Guangzhou')
         {
             return this.cncors;

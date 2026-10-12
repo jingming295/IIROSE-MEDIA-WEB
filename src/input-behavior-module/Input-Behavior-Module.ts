@@ -54,44 +54,59 @@ export class Input_Behavior_Module
         }
     }
 
-    // 代理方法逻辑保持不变
-    public static async changedOriginalMoveInputDo(
+    /**
+     * 代理 moveinputDo 方法：
+     * 必须保持同步函数契约！严禁声明为 async 或返回 Promise，
+     * 否则宿站在私聊模式下（pmFull）执行 if (pmFull && !moveinputDo(val, 1)) 会因 Promise 为真值而判定未拦截，进而误外发私聊！
+     */
+    public static changedOriginalMoveInputDo(
         originalMethod: Function,
         changeSearchKeyword: (keyword: string | null) => void,
         ShowOrHideIMC: () => Promise<void>,
         e: string,
-        t: undefined
-    )
+        t?: any
+    ): any
     {
+        // 1. 显式检查设置项是否开启
+        const ps = PluginSettings.getPluginSetting();
+        if (!ps.chatBox.isProxyAtInput)
+        {
+            return originalMethod(e, t);
+        }
+
         if (typeof e === 'string' && e.startsWith('@'))
         {
-            const urlPattern = /^(https?:\/\/)/;
-            const urlMatch = e.slice(1).match(urlPattern);
-            if (urlMatch)
-            {
-                InputPlatformAnalysis.Analysis(e, originalMethod);
-            }
-            else if (
-                (e.length === 2 && /\p{P}|\p{S}/u.test(e[1])) ||
-                window.Probe.getMediaLink ||
+            // 2. 宿站原生快捷键、单字符 @、换背景图 Probe 状态放行原生处理
+            if (
                 e.length === 1 ||
-                e === '@@@'
+                e === '@@@' ||
+                e.startsWith('@@') ||
+                (e.length === 2 && /\p{P}|\p{S}/u.test(e[1])) ||
+                window.Probe?.getMediaLink
             )
             {
                 return originalMethod(e, t);
-            } else
-            {
-                if (this.firstTime)
-                {
-                    await ShowOrHideIMC();
-                    this.firstTime = false;
-                } else
-                {
-                    ShowOrHideIMC();
-                }
-                changeSearchKeyword(e.slice(1));
             }
-        } else
+
+            // 3. 拦截成功：清空输入框（针对宿站可能未清空的情形进行兜底保障）
+            if ((window as any).moveinput?.val)
+            {
+                try { (window as any).moveinput.val(""); } catch { /* ignore */ }
+            }
+
+            // 4. 后台异步执行链接解析或搜索派发，完全与宿站主线程解耦
+            void InputPlatformAnalysis.Analysis(
+                e,
+                originalMethod,
+                t,
+                changeSearchKeyword,
+                ShowOrHideIMC
+            );
+
+            // 5. 必须同步返回 false！确保私聊 !moveinputDo(this.value, 1) 为 true，从而阻断 msgfetch 发送私聊
+            return false;
+        }
+        else
         {
             return originalMethod(e, t);
         }

@@ -7,7 +7,7 @@ export class ParseMediaMetaData
     {
         try
         {
-            const response = await fetch(url);
+            const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
             if (!response.ok) return 0;
 
             const text = await response.text();
@@ -98,4 +98,33 @@ export class ParseMediaMetaData
         });
     };
 
+    /**
+     * 前端版：获取普通视频文件 (MP4/WebM) 的时长
+     */
+    public static getVideoDuration = (url: string): Promise<number> =>
+    {
+        return new Promise((resolve) =>
+        {
+            const video = document.createElement('video');
+            video.muted = true;
+            video.preload = 'metadata';
+            video.src = url;
+
+            video.onloadedmetadata = () =>
+            {
+                const duration = video.duration;
+                video.src = '';
+                video.load();
+                resolve(isNaN(duration) ? 0 : duration);
+            };
+
+            video.onerror = () =>
+            {
+                console.error("解析视频时长失败", url);
+                resolve(0);
+            };
+
+            setTimeout(() => resolve(0), 10000);
+        });
+    };
 }

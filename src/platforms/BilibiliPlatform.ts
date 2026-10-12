@@ -491,7 +491,9 @@ export class BilibiliPlatform extends Platform {
                     return;
                   }
 
-                  let chosenPages = pages.filter((p) => checkedPages.includes(p.page));
+                  let chosenPages = checkedPages
+                    .map((pageNo) => pages.find((p) => p.page === pageNo))
+                    .filter((p): p is typeof pages[0] => Boolean(p));
                   if (chosenPages.length === 1) {
                     BilibiliPlatform.playBiliPage(platformData, chosenPages[0], aid, bvid);
                     return;
@@ -516,7 +518,6 @@ export class BilibiliPlatform extends Platform {
                 true,
                 null,
                 () => {},
-                true,
               );
             }, 300);
           }

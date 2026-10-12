@@ -60,17 +60,27 @@ flowchart TD
   - 检查 `Content-Type`（`audio/*`, `video/*`）与直链扩展名（`.mp3`, `.flv`, `.mp4` 等）；
   - 超时则弹出「直链媒体探测超时」用户提示；非媒体链接平滑回填输入框并放行至宿站原生逻辑。
 
-### 3.3 选集弹窗多选增强与确定吸顶 (`IIROSEUtils.ts`)
-- **问题**：宿站 `Utils.buildSelect2` 多选模式（`r=true`）将确定按钮（索引 `u = a.length`）渲染在全部 `a.length` 个子项的最后，列表较长时极难触达。
-- **置顶机制**：
-  - `buildSelect2` 完成渲染后，通过微任务（`setTimeout(..., 0)`）获取 `#selectHolderBox` 的全部 `.selectHolderBoxItem`。
-  - 将最后一个元素（确定按钮）移动到容器最前端：`selectHolderBox.prepend(confirmBtn)`。
-- **闭包安全性**：
-  - 宿站绑定在确定元素上的 `onclick` 闭包为 `t === u`，DOM 位置调整不会改变闭包内捕获的数值索引与 jQuery 元素集合 `m`，多选收集与提交回调完全正常。
-- **吸顶样式规范**：
-  - 附加 `position: sticky; top: 0; z-index: 10`。
-  - 继承宿站面板半透明背景色（`window.getComputedStyle(selectHolderBox).backgroundColor`），叠加 `backdrop-filter: blur(10px)`。
-  - 增加底部微边框 `border-bottom: 1px solid rgba(128, 128, 128, 0.25)`，使吸顶状态与下方滚动曲目具备清晰视觉分割。
+### 3.3 选集弹窗顺序多选与序号徽章体系 (`IIROSEUtils.ts`)
+- **设计目标**：
+  - 用户多选时，直观展示点击次序（1, 2, 3, 4, 5...）；
+  - 取消某项勾选时，剩余项序号自动平滑重排；
+  - 确定按钮按用户诉求置于列表最下方，符合从上往下选、选完在末尾确认的直觉；
+  - 正序播放严格按照用户选取的 1, 2, 3... 序号顺序逐一下发。
+- **动态次序管理 (`selectedQueue`)**：
+  - 维护一个响应式选中队列 `selectedQueue: number[]`，记录用户点击选项的先后索引；
+  - 点击未选中项：追加到队列末尾，分配最新序号；
+  - 再次点击已选项：从队列中移除，其余项自动重新计算 `selectedQueue.indexOf(idx) + 1`，序号无缝前移，始终保持连贯的 1, 2, 3...；
+- **视觉呈现**：
+  - 选中项整行添加浅蓝背景高亮 `rgba(30, 136, 229, 0.12)`；
+  - 右侧原本的复选框槽位替换为直径 28px 的高清晰度 Material 蓝色圆形徽章（`#1e88e5`，白色加粗数字，居中微投影），移动端与桌面端均具备极高辨识度；
+  - 未选中项恢复为原生空心复选框 `mdi-checkbox-blank-outline`，清除行高亮；
+- **确定按钮与有序回调**：
+  - 确定按钮保持在列表最下方（原生 DOM 末端），打开列表时自动 `scrollTop = 0` 保证从第一项开始呈现；
+  - 确定按钮接管点击事件，依据 `selectedQueue` 的时间线次序提取并映射选中的数据 ID：`const orderedResult = selectedQueue.map(idx => a[idx][0])`；
+  - 回调交付的数组即为严格按照用户选取先后排列的集合。
+- **业务层播放顺序保证**：
+  - **网易云**：在 `finalODSONG` 中针对 NetEase 批量详情 API 不保序的问题，通过 `Map` 按照 `songsID`（即选取顺序）二次排序，确保正序播放严格按用户选取的 1, 2, 3 顺序下发；
+  - **B站**：在 `VOD` 中通过 `checkedPages.map(pageNo => pages.find(...))` 保持分 P 有序集合，正序播放直接依序执行。
 
 ### 3.4 弹窗流转防闪退机制 (`NetEasePlatform.ts` & `BilibiliPlatform.ts`)
 - **冲突根因**：

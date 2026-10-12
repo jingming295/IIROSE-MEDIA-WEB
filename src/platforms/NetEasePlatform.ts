@@ -752,7 +752,6 @@ export class NetEasePlatform extends Platform {
           true,
           null,
           () => {},
-          true,
         );
       }
     };
@@ -837,7 +836,6 @@ export class NetEasePlatform extends Platform {
           true,
           null,
           () => {},
-          true,
         );
       }
     };
@@ -922,7 +920,12 @@ export class NetEasePlatform extends Platform {
     const quality = neteaseSetting.quality;
 
     if (songDetailSongs) {
-      for (const item of songDetailSongs) {
+      const songMap = new Map(songDetailSongs.map((s) => [s.id, s]));
+      const orderedSongs = songsID
+        .map((id) => songMap.get(id))
+        .filter((s): s is SongDetailSong => Boolean(s));
+
+      for (const item of orderedSongs) {
         if (item.noCopyrightRcmd) {
           ShowMessage.show(`歌曲《${item.name}》可能为无版权歌曲，已跳过播放`);
           continue;

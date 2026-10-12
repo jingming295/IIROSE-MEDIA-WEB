@@ -47,7 +47,6 @@ export class IIROSEUtils
      * @param r 是否启用多选功能
      * @param l 自定义HTML字符串，出现在底端
      * @param n 返回（点击空白处）的回调函数
-     * @param confirmOnTop 是否在多选时将确定按钮置顶（默认 true）
      */
     public static buildSelect2(
         i: HTMLElement | undefined | null,
@@ -58,35 +57,112 @@ export class IIROSEUtils
         o: string | undefined | null,
         r: boolean,
         l: string | undefined | null,
-        n: () => void,
-        confirmOnTop: boolean = true
+        n: () => void
     )
     {
         if (!window.Utils) return;
         window.Utils.buildSelect2(i, a, s, e, t, o, r, l, n);
 
-        if (r && confirmOnTop) {
+        if (r) {
             setTimeout(() => {
                 try {
                     const selectHolderBox = (window as any).Objs?.selectHolder?.selectHolderBox?.[0] || document.getElementById('selectHolderBox');
-                    if (selectHolderBox) {
-                        const items = selectHolderBox.querySelectorAll('.selectHolderBoxItem');
-                        if (items.length > 1) {
-                            const confirmBtn = items[items.length - 1] as HTMLElement;
-                            selectHolderBox.prepend(confirmBtn);
-                            selectHolderBox.scrollTop = 0;
+                    if (!selectHolderBox) return;
 
-                            confirmBtn.style.position = 'sticky';
-                            confirmBtn.style.top = '0';
-                            confirmBtn.style.zIndex = '10';
-                            confirmBtn.style.backdropFilter = 'blur(10px)';
-                            const boxBg = window.getComputedStyle(selectHolderBox).backgroundColor;
-                            confirmBtn.style.backgroundColor = (boxBg && boxBg !== 'rgba(0, 0, 0, 0)' && boxBg !== 'transparent') ? boxBg : 'rgba(32, 32, 32, 0.95)';
-                            confirmBtn.style.borderBottom = '1px solid rgba(128, 128, 128, 0.25)';
+                    const items = Array.from(selectHolderBox.querySelectorAll('.selectHolderBoxItem')) as HTMLElement[];
+                    if (items.length <= 1) return;
+
+                    const optionCount = a.length;
+                    const confirmBtn = items[optionCount] || items[items.length - 1];
+
+                    // 确定按钮在最下方（原生末尾位置），初始进入滚动到顶部方便用户从前选起
+                    selectHolderBox.scrollTop = 0;
+
+                    // 维护用户选取的顺序队列 (保存选项索引 0 <= idx < optionCount)
+                    const selectedQueue: number[] = [];
+
+                    // 刷新全部选项的选中状态与序号徽章 (1, 2, 3, 4, 5...)
+                    const updateVisuals = () => {
+                        for (let idx = 0; idx < optionCount; idx++) {
+                            const itemEl = items[idx];
+                            if (!itemEl) continue;
+
+                            const touchBox = itemEl.querySelector('.fullBox.whoisTouch3') || itemEl.lastElementChild;
+                            const iconEl = touchBox?.firstElementChild as HTMLElement;
+
+                            const orderIdx = selectedQueue.indexOf(idx);
+                            if (orderIdx !== -1) {
+                                // 选中状态：显示选取序号 (1, 2, 3...)，整行高亮
+                                const orderNum = orderIdx + 1;
+                                itemEl.style.backgroundColor = 'rgba(30, 136, 229, 0.12)';
+                                if (iconEl) {
+                                    iconEl.className = '';
+                                    iconEl.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#1e88e5;color:#fff;font-size:15px;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,0.3);font-family:sans-serif;vertical-align:middle;">${orderNum}</span>`;
+                                    iconEl.style.lineHeight = '100px';
+                                    iconEl.style.textAlign = 'center';
+                                }
+                            } else {
+                                // 未选中状态：恢复原生空心复选框，清除行高亮
+                                itemEl.style.backgroundColor = '';
+                                if (iconEl) {
+                                    iconEl.className = 'mdi-checkbox-blank-outline';
+                                    iconEl.innerHTML = '';
+                                    iconEl.style.fontFamily = 'md';
+                                    iconEl.style.fontSize = '28px';
+                                    iconEl.style.lineHeight = '100px';
+                                    iconEl.style.textAlign = 'center';
+                                }
+                            }
                         }
+                    };
+
+                    // 接管选项点击事件，记录并实时更新选取顺序
+                    for (let idx = 0; idx < optionCount; idx++) {
+                        const itemEl = items[idx];
+                        if (!itemEl) continue;
+
+                        itemEl.onclick = (ev: MouseEvent) => {
+                            ev.stopPropagation();
+
+                            const pos = selectedQueue.indexOf(idx);
+                            if (pos !== -1) {
+                                // 再次点击已选中的项：取消选中，其余已选项目的序号自动前移重排
+                                selectedQueue.splice(pos, 1);
+                            } else {
+                                // 点击未选中项：追加到队列末尾，分配最新序号
+                                selectedQueue.push(idx);
+                            }
+
+                            updateVisuals();
+                        };
+                    }
+
+                    // 接管最下方的确定按钮点击事件，严格按用户选取顺序返回选中的值
+                    if (confirmBtn) {
+                        confirmBtn.onclick = (ev: MouseEvent) => {
+                            ev.stopPropagation();
+
+                            const touchBox = confirmBtn.lastElementChild as HTMLElement;
+                            if (touchBox) touchBox.className = 'fullBox bgColorActive';
+
+                            // 按照用户点击的先后顺序映射出选中的值
+                            const orderedResult = selectedQueue.map(idx => a[idx][0]);
+
+                            if (s) {
+                                s(i as any, orderedResult);
+                            }
+
+                            const d = (window as any).Objs?.selectHolder;
+                            if (d && !(window as any).Probe?.keepSelectOpen) {
+                                d.This.stop().fadeOut(250, function() {
+                                    d.selectHolderBox.empty();
+                                });
+                                d.selectHolderBox.css('transform', 'scale(0.9)');
+                            }
+                        };
                     }
                 } catch (err) {
-                    console.error('[IIROSEUtils] Move confirm button to top failed:', err);
+                    console.error('[IIROSEUtils] Sequential multi-select setup failed:', err);
                 }
             }, 0);
         }

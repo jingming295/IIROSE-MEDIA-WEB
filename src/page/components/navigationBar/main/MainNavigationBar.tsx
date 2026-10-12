@@ -57,7 +57,7 @@ export class MainNavigationBar extends Component<
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer"
               id="TitleIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden whitespace-nowrap">
               {" "}
               IIROSE - MEDIA{" "}
             </div>
@@ -75,7 +75,7 @@ export class MainNavigationBar extends Component<
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="MusicIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden whitespace-nowrap">
               {" "}
               音乐{" "}
             </div>
@@ -91,7 +91,7 @@ export class MainNavigationBar extends Component<
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="VideoIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden whitespace-nowrap">
               {" "}
               视频{" "}
             </div>
@@ -107,7 +107,7 @@ export class MainNavigationBar extends Component<
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="SettingIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden whitespace-nowrap">
               {" "}
               设置{" "}
             </div>
@@ -123,7 +123,7 @@ export class MainNavigationBar extends Component<
               className="text-2xl pl-[10px] mr-[20px] cursor-pointer max-[768px]:p-0 max-[768px]:mr-0 max-[768px]:text-[24px]"
               id="AboutIcon"
             ></div>
-            <div className="text-sm transition-all duration-500 max-[768px]:hidden">
+            <div className="text-sm transition-all duration-500 max-[768px]:hidden whitespace-nowrap">
               {" "}
               关于{" "}
             </div>

@@ -62,7 +62,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
           <div
             className={`${viewMode === "card" ? "cardViewIcon" : "listViewIcon"} text-2xl max-[768px]:text-[20px]`}
           ></div>
-          <div className="font-bold ml-[22px] max-[768px]:hidden">
+          <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
             {viewMode === "card" ? "卡片" : "列表"}
           </div>
         </div>
@@ -80,16 +80,10 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
           </div>
         )}
 
-        <div
-          className="flex items-center h-full"
-          style={{
-            width: isCurrentInMultiPage ? "100%" : "", // 根据 isCurrentInMultiPage 的值设置宽度
-            justifyContent: isCurrentInMultiPage ? "flex-end" : "", // 根据 isCurrentInMultiPage 的值设置对齐方式
-          }}
-        >
+        <div className="flex items-center h-full ml-auto shrink-0">
           <div className="flex items-center text-white cursor-pointer h-full transition-all duration-100! mx-[24px] max-[768px]:mx-1 hov:hover:opacity-70 shrink-0">
             <div className="paginationIcon text-2xl max-[768px]:text-[18px]"></div>
-            <div className="ml-[22px] max-[768px]:ml-1 text-sm max-[768px]:text-xs">{pages}</div>
+            <div className="ml-[22px] max-[768px]:ml-1 text-sm max-[768px]:text-xs whitespace-nowrap">{pages}</div>
           </div>
 
           <div className="flex items-center h-full max-[768px]:gap-2 shrink-0">
@@ -100,7 +94,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
                 onClick={mediaSearchBarActions.switchToOutFromMultiPage}
               >
                 <div className="returnIcon text-2xl max-[768px]:text-[20px]"></div>
-                <div className="font-bold ml-[22px] max-[768px]:hidden">
+                <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
                   返回
                 </div>
               </div>
@@ -114,7 +108,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
               }}
             >
               <div className="prevIcon text-2xl max-[768px]:text-[20px]"></div>
-              <div className="font-bold ml-[22px] max-[768px]:hidden">
+              <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
                 上一页
               </div>
             </div>
@@ -127,7 +121,7 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
               }}
             >
               <div className="nextIcon text-2xl max-[768px]:text-[20px]"></div>
-              <div className="font-bold ml-[22px] max-[768px]:hidden">
+              <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
                 下一页
               </div>
             </div>

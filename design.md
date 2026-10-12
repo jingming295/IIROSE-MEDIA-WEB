@@ -33,12 +33,13 @@ flowchart TD
     DirectProbe -- 是媒体 --> DirectPlay[构造 MediaCard 发送媒体包]
     DirectProbe -- 非媒体 --> NativePass[回填并放行至原生聊天]
 
-    NetEaseSelect -- 选集 --> MultiSelectUI[选集多选列表: 封面展示 + 确定吸顶]
+    NetEaseSelect -- 选集 --> MultiSelectUI[选集多选列表: 封面展示 + 12345 顺序序号徽章 + 确定吸底]
     BiliSelect -- 选集 --> MultiSelectUI
 
     MultiSelectUI -- 点击确定 --> Delay300ms[延迟 300ms 规避宿站 fadeOut]
     Delay300ms --> OrderConfirm[弹出 正序播放 / 乱序播放 确认框]
-    OrderConfirm -- 正序/乱序 --> SendPlay[批量分发播放并上报 WebSocket]
+    OrderConfirm -- 正序播放 --> SendOrderPlay[按用户选取的 12345 顺序分发播放]
+    OrderConfirm -- 乱序播放 --> SendShufflePlay[打乱选取结果后分发播放]
 ```
 
 ---
@@ -75,11 +76,15 @@ flowchart TD
   - 右侧原本的复选框槽位替换为直径 28px 的高清晰度 Material 蓝色圆形徽章（`#1e88e5`，白色加粗数字，居中微投影），移动端与桌面端均具备极高辨识度；
   - 未选中项恢复为原生空心复选框 `mdi-checkbox-blank-outline`，清除行高亮；
 - **确定按钮吸底固定与有序回调**：
-  - 确定按钮保持在列表最下方（原生 DOM 末端），通过 `position: sticky; bottom: 0; z-index: 10` 实现**底部吸附固定**；
-  - 配合 `backdrop-filter: blur(10px)`、继承面板半透明背景色与顶部细边框 `border-top: 1px solid rgba(128, 128, 128, 0.25)`，使得当内容超出视口时，确定按钮始终悬停吸附在弹窗底端随时可点，同时当滚动到最末项时平滑停靠在最后一项下方，不遮挡末项内容；
-  - 打开列表时自动 `scrollTop = 0` 保证从第一项开始自上而下呈现；
-  - 确定按钮接管点击事件，依据 `selectedQueue` 的时间线次序提取并映射选中的数据 ID：`const orderedResult = selectedQueue.map(idx => a[idx][0])`；
-  - 回调交付的数组即为严格按照用户选取先后排列的集合。
+  - **位置策略**：确定按钮保持在列表最下方（原生 DOM 末端），打开列表时自动 `scrollTop = 0` 保证从第一项开始自上而下呈现；
+  - **吸底固定原理（Sticky Bottom）**：
+    - 针对最末项挂载 `position: sticky; bottom: 0; z-index: 10`；
+    - 在包含块高度超出弹窗视口时，根据 CSS Sticky 规范，末项会自动悬停吸附在视口底端，避免用户长距离滑动；
+    - 配合 `backdrop-filter: blur(10px)` 与继承面板背景色，杜绝透视重叠；辅以 `border-top: 1px solid rgba(128, 128, 128, 0.25)` 实现悬浮态与曲目滚动区的清爽分隔；
+    - 当滚动到达最末项时，按钮无缝平滑停靠在最后一项正下方，绝不遮挡末尾曲目；
+  - **有序结果收集**：
+    - 确定按钮接管点击事件，依据 `selectedQueue` 的时间线次序提取并映射选中的数据 ID：`const orderedResult = selectedQueue.map(idx => a[idx][0])`；
+    - 回调交付的数组即为严格按照用户选取先后排列的集合。
 - **业务层播放顺序保证**：
   - **网易云**：在 `finalODSONG` 中针对 NetEase 批量详情 API 不保序的问题，通过 `Map` 按照 `songsID`（即选取顺序）二次排序，确保正序播放严格按用户选取的 1, 2, 3 顺序下发；
   - **B站**：在 `VOD` 中通过 `checkedPages.map(pageNo => pages.find(...))` 保持分 P 有序集合，正序播放直接依序执行。
@@ -127,5 +132,5 @@ flowchart TD
 
 1. 输入框键入网易云歌单链接并按回车：输入框立即清空，不触发任何公屏或私聊文字发送。
 2. 弹出选项后点击「选集播放」：进入多选列表，每首曲目左侧清晰展示对应专辑/分 P 封面，加载失败时显示图标兜底。
-3. 列表滚动时，「确定」按钮始终吸附在列表顶部，点击响应灵敏。
-4. 勾选多首曲目并点击「确定」后：前一弹窗平滑淡出，随后顺畅弹出「正序播放 / 乱序播放」选择框，选择后曲目按所选顺序加入播放队列。
+3. 进入选集列表后，每点选一项目右侧动态呈现 1, 2, 3, 4, 5... 顺序序号徽章与行高亮；取消勾选时后续序号自动重排；「确定」按钮在最下方吸底固定悬浮（长列表时浮于弹窗底部随时可点，滚到底部平滑停靠，短列表自然排在末尾）。
+4. 勾选多首曲目并点击「确定」后：前一弹窗平滑淡出，随后顺畅弹出「正序播放 / 乱序播放」选择框；选择「正序播放」时严格按照用户选取的 1 -> 2 -> 3 顺序播放，选择「乱序播放」时随机打乱后播放。

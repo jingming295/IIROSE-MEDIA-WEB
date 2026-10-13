@@ -19,7 +19,14 @@ export class FavoritesService {
       favoritesMode,
       currentPage,
       requestToken,
+      isCurrentInMultiPage,
     } = ctx.getState();
+
+    // 若当前处于选集/多集状态，阻断外层收藏查询，防止覆盖正在查看的选集列表
+    if (isCurrentInMultiPage) {
+      return;
+    }
+
     const effectiveKeyword = (
       favoritesMode ? favoritesSearchKeyword : searchKeyword
     )?.trim();

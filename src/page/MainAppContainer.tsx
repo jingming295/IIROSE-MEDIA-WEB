@@ -453,8 +453,34 @@ export class MainAppContainer extends Component<
      * @returns
      */
     changecurrentPage: async (page: number) => {
-      const { updating, currentSubNavBarAction } = this.state;
+      const {
+        updating,
+        currentSubNavBarAction,
+        isCurrentInMultiPage,
+        allMediaData,
+        totalPage,
+      } = this.state;
       if (updating) return;
+
+      if (isCurrentInMultiPage) {
+        const safePage = Math.max(1, page);
+        const startIndex = (safePage - 1) * this.itemsPerPage;
+        const endIndex = Math.min(
+          startIndex + this.itemsPerPage,
+          allMediaData.length,
+        );
+        const currentPageData = allMediaData.slice(startIndex, endIndex);
+
+        await this.setState({
+          currentPage: safePage,
+          mediaData: Promise.resolve({
+            platformData: currentPageData,
+            totalPage: totalPage,
+          }),
+        });
+        return;
+      }
+
       await this.setState({ currentPage: page });
       currentSubNavBarAction();
     },
@@ -505,16 +531,16 @@ export class MainAppContainer extends Component<
      */
     switchToMultiPage: async (
       platformData: PlatformData,
-      isCurrentInMultiPage?: boolean,
+      _isCurrentInMultiPage?: boolean,
     ) => {
       if (platformData.bilibili) {
         const data = BilibiliPlatform.getMultiPageBasicsData(platformData);
         const vod = BilibiliPlatform.VOD;
-        this.setState({ currentPage: 1, totalPage: 0 });
+        this.setState({ currentPage: 1, totalPage: 0, allMediaData: [] });
         this.setState({ mediaData: data });
         this.setState({ currentOnDemandPlay: vod });
         data.then((res) => {
-          if (!isCurrentInMultiPage) return;
+          if (!this.state.isCurrentInMultiPage) return;
           if (!res) return;
           this.setState({ totalPage: res.totalPage });
           if (res.allPlatformData) {
@@ -523,12 +549,12 @@ export class MainAppContainer extends Component<
         });
       } else if (platformData.neteaseMusic?.isSongList) {
         const data = NetEasePlatform.getSongListMultiPageData(platformData);
-        this.setState({ currentPage: 1, totalPage: 0 });
+        this.setState({ currentPage: 1, totalPage: 0, allMediaData: [] });
         this.setState({ mediaData: data });
         this.setState({ currentOnDemandPlay: NetEasePlatform.MOD });
 
         data.then((res) => {
-          if (!isCurrentInMultiPage) return;
+          if (!this.state.isCurrentInMultiPage) return;
           if (!res) return;
           this.setState({ totalPage: res.totalPage });
           if (res.allPlatformData) {
@@ -538,12 +564,12 @@ export class MainAppContainer extends Component<
       } else if (platformData.neteaseMusic?.isAlbum) {
         const data = NetEasePlatform.getAlbumMultiPageData(platformData);
 
-        this.setState({ currentPage: 1, totalPage: 0 });
+        this.setState({ currentPage: 1, totalPage: 0, allMediaData: [] });
         this.setState({ mediaData: data });
         this.setState({ currentOnDemandPlay: NetEasePlatform.MOD });
 
         data.then((res) => {
-          if (!isCurrentInMultiPage) return;
+          if (!this.state.isCurrentInMultiPage) return;
           if (!res) return;
           this.setState({ totalPage: res.totalPage });
           if (res.allPlatformData) {

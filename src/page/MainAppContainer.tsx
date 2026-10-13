@@ -463,7 +463,7 @@ export class MainAppContainer extends Component<
       if (updating) return;
 
       if (isCurrentInMultiPage) {
-        const safePage = Math.max(1, page);
+        const safePage = Math.min(Math.max(1, page), totalPage || 1);
         const startIndex = (safePage - 1) * this.itemsPerPage;
         const endIndex = Math.min(
           startIndex + this.itemsPerPage,

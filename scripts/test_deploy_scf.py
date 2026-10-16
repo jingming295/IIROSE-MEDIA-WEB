@@ -93,18 +93,36 @@ class DeployScfTests(unittest.TestCase):
         output = io.BytesIO()
         with zipfile.ZipFile(output, "w") as archive:
             archive.writestr("src/app.js", b"handler")
-        with self.assertRaisesRegex(deploy_scf.DeploymentError, "src/bundle.js"):
+        with self.assertRaisesRegex(deploy_scf.DeploymentError, "bundle.js"):
             deploy_scf.replace_bundle(output.getvalue(), b"new")
 
         output = io.BytesIO()
         with zipfile.ZipFile(output, "w") as archive:
             archive.writestr("src/bundle.js", b"old")
-        with self.assertRaisesRegex(deploy_scf.DeploymentError, "src/app.js"):
+        with self.assertRaisesRegex(deploy_scf.DeploymentError, "app.js"):
             deploy_scf.replace_bundle(output.getvalue(), b"new")
 
     def test_empty_download_url_is_rejected(self):
         with self.assertRaisesRegex(deploy_scf.DeploymentError, "下载地址"):
             deploy_scf.download_package("")
+
+    def test_console_root_layout_is_supported(self):
+        output = io.BytesIO()
+        with zipfile.ZipFile(output, "w") as archive:
+            archive.writestr("app.js", b"handler")
+            archive.writestr("bundle.js", b"old")
+        updated = deploy_scf.replace_bundle(output.getvalue(), b"new")
+        with zipfile.ZipFile(io.BytesIO(updated)) as archive:
+            self.assertEqual(archive.read("app.js"), b"handler")
+            self.assertEqual(archive.read("bundle.js"), b"new")
+
+    def test_ambiguous_layout_is_rejected(self):
+        output = io.BytesIO(make_package())
+        with zipfile.ZipFile(output, "a") as archive:
+            archive.writestr("app.js", b"handler")
+            archive.writestr("bundle.js", b"old")
+        with self.assertRaisesRegex(deploy_scf.DeploymentError, "唯一"):
+            deploy_scf.replace_bundle(output.getvalue(), b"new")
 
     def test_download_error_does_not_expose_signed_url(self):
         url = "https://example.invalid/code?signature=secret"

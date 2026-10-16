@@ -67,10 +67,7 @@ def replace_bundle(package: bytes, bundle: bytes) -> bytes:
         names = source.namelist()
         if len(set(names)) != len(names):
             raise DeploymentError("现有代码包含重复路径，无法安全替换")
-        if TARGET_BUNDLE not in names:
-            raise DeploymentError(f"现有代码包缺少精确路径 {TARGET_BUNDLE}")
-        if REQUIRED_ENTRY not in names:
-            raise DeploymentError(f"现有代码包缺少必需文件 {REQUIRED_ENTRY}")
+        target = bundle_entry(names)
         if not bundle:
             raise DeploymentError("构建后的 bundle 为空")
 
@@ -78,9 +75,7 @@ def replace_bundle(package: bytes, bundle: bytes) -> bytes:
         with zipfile.ZipFile(output, "w") as destination:
             destination.comment = source.comment
             for info in source.infolist():
-                content = (
-                    bundle if info.filename == TARGET_BUNDLE else source.read(info)
-                )
+                content = bundle if info.filename == target else source.read(info)
                 destination.writestr(
                     copy.copy(info), content, compress_type=info.compress_type
                 )
@@ -88,6 +83,20 @@ def replace_bundle(package: bytes, bundle: bytes) -> bytes:
     # 上传前也验证；不能保留元数据的特殊 zip 必须在修改云函数前失败。
     verify_package_update(package, updated, bundle)
     return updated
+
+
+def bundle_entry(names: list[str]) -> str:
+    # SCF 控制台的 src 可能仅表示编辑器根目录，不一定是 zip 内的目录。
+    candidates = [
+        prefix + "bundle.js"
+        for prefix in ("src/", "")
+        if prefix + "bundle.js" in names and prefix + "app.js" in names
+    ]
+    if len(candidates) != 1:
+        raise DeploymentError(
+            "代码包须在 src/ 或根目录唯一包含配对的 app.js 与 bundle.js"
+        )
+    return candidates[0]
 
 
 def verify_package_update(
@@ -98,6 +107,7 @@ def verify_package_update(
     """Verify the replacement and preservation invariants after re-downloading."""
 
     with _read_zip(original) as before, _read_zip(updated) as after:
+        target = bundle_entry(before.namelist())
         if before.comment != after.comment:
             raise DeploymentError("更新后代码包注释发生变化")
         if before.namelist() != after.namelist():
@@ -108,14 +118,13 @@ def verify_package_update(
                 raise DeploymentError("更新后代码包的文件顺序发生了非预期变化")
             if _zip_metadata(before_info) != _zip_metadata(after_info):
                 raise DeploymentError("更新后文件元数据发生变化")
-            if before_info.filename == TARGET_BUNDLE:
+            if before_info.filename == target:
                 if after.read(after_info) != expected_bundle:
-                    raise DeploymentError(f"更新后 {TARGET_BUNDLE} 内容校验失败")
+                    raise DeploymentError(f"更新后 {target} 内容校验失败")
             elif before.read(before_info) != after.read(after_info):
                 raise DeploymentError("更新后其他文件内容发生变化")
 
-        if not {REQUIRED_ENTRY, TARGET_BUNDLE}.issubset(after.namelist()):
-            raise DeploymentError("更新后代码包缺少必需文件")
+        bundle_entry(after.namelist())
 
 
 def _field(response: Any, name: str, default: Any = None) -> Any:
@@ -277,7 +286,9 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    print(f"已更新 {REGION} / {namespace} / {FUNCTION_NAME} 的 {TARGET_BUNDLE}")
+    print(
+        f"已更新 {REGION} / {namespace} / {FUNCTION_NAME} 的 bundle.js 并完成回读校验"
+    )
     return 0
 
 

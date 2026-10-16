@@ -1,0 +1,2 @@
+tencentcloud-sdk-python-scf==3.1.100
+tencentcloud-sdk-python-common==3.1.100

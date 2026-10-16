@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Replace the frontend bundle in an existing Tencent Cloud SCF zip package."""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import copy
+import io
+import os
+import sys
+import time
+import urllib.request
+import zipfile
+from collections.abc import Callable, Mapping
+from pathlib import Path
+from typing import Any
+
+
+REGION = "ap-guangzhou"
+FUNCTION_NAME = "IIROSE-MEDIA-WEB"
+DEFAULT_NAMESPACE = "default"
+QUALIFIER = "$LATEST"
+TARGET_BUNDLE = "src/bundle.js"
+REQUIRED_ENTRY = "src/app.js"
+DEFAULT_TIMEOUT_SECONDS = 600
+DEFAULT_POLL_INTERVAL_SECONDS = 5
+
+
+class DeploymentError(RuntimeError):
+    """Raised when a deployment cannot be completed or verified."""
+
+
+def _zip_metadata(info: zipfile.ZipInfo) -> tuple[Any, ...]:
+    """Return metadata that must survive rebuilding the package."""
+
+    return (
+        info.date_time,
+        info.compress_type,
+        info.comment,
+        info.extra,
+        info.create_system,
+        info.create_version,
+        info.extract_version,
+        info.flag_bits,
+        info.internal_attr,
+        info.external_attr,
+        info.volume,
+    )
+
+
+def _read_zip(data: bytes) -> zipfile.ZipFile:
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(data), "r")
+        if archive.testzip() is not None:
+            archive.close()
+            raise DeploymentError("代码包 CRC 完整性校验失败")
+        return archive
+    except (OSError, zipfile.BadZipFile) as exc:
+        raise DeploymentError("腾讯云函数现有代码包不是有效的 zip 文件") from exc
+
+
+def replace_bundle(package: bytes, bundle: bytes) -> bytes:
+    """Replace exactly ``src/bundle.js`` while retaining all other entries."""
+
+    with _read_zip(package) as source:
+        names = source.namelist()
+        if len(set(names)) != len(names):
+            raise DeploymentError("现有代码包含重复路径，无法安全替换")
+        if TARGET_BUNDLE not in names:
+            raise DeploymentError(f"现有代码包缺少精确路径 {TARGET_BUNDLE}")
+        if REQUIRED_ENTRY not in names:
+            raise DeploymentError(f"现有代码包缺少必需文件 {REQUIRED_ENTRY}")
+        if not bundle:
+            raise DeploymentError("构建后的 bundle 为空")
+
+        output = io.BytesIO()
+        with zipfile.ZipFile(output, "w") as destination:
+            destination.comment = source.comment
+            for info in source.infolist():
+                content = (
+                    bundle if info.filename == TARGET_BUNDLE else source.read(info)
+                )
+                destination.writestr(
+                    copy.copy(info), content, compress_type=info.compress_type
+                )
+        updated = output.getvalue()
+    # 上传前也验证；不能保留元数据的特殊 zip 必须在修改云函数前失败。
+    verify_package_update(package, updated, bundle)
+    return updated
+
+
+def verify_package_update(
+    original: bytes,
+    updated: bytes,
+    expected_bundle: bytes,
+) -> None:
+    """Verify the replacement and preservation invariants after re-downloading."""
+
+    with _read_zip(original) as before, _read_zip(updated) as after:
+        if before.comment != after.comment:
+            raise DeploymentError("更新后代码包注释发生变化")
+        if before.namelist() != after.namelist():
+            raise DeploymentError("更新后代码包的文件列表发生了非预期变化")
+
+        for before_info, after_info in zip(before.infolist(), after.infolist()):
+            if before_info.filename != after_info.filename:
+                raise DeploymentError("更新后代码包的文件顺序发生了非预期变化")
+            if _zip_metadata(before_info) != _zip_metadata(after_info):
+                raise DeploymentError("更新后文件元数据发生变化")
+            if before_info.filename == TARGET_BUNDLE:
+                if after.read(after_info) != expected_bundle:
+                    raise DeploymentError(f"更新后 {TARGET_BUNDLE} 内容校验失败")
+            elif before.read(before_info) != after.read(after_info):
+                raise DeploymentError("更新后其他文件内容发生变化")
+
+        if not {REQUIRED_ENTRY, TARGET_BUNDLE}.issubset(after.namelist()):
+            raise DeploymentError("更新后代码包缺少必需文件")
+
+
+def _field(response: Any, name: str, default: Any = None) -> Any:
+    if isinstance(response, Mapping):
+        return response.get(name, default)
+    return getattr(response, name, default)
+
+
+def _response(response: Any) -> Any:
+    return _field(response, "Response", response)
+
+
+def download_package(
+    url: str, opener: Callable[..., Any] = urllib.request.urlopen
+) -> bytes:
+    if not url:
+        raise DeploymentError("GetFunctionAddress 未返回代码包下载地址")
+    if url.startswith("http://"):
+        url = "https://" + url[len("http://") :]
+    if not url.startswith("https://"):
+        raise DeploymentError("代码包下载地址必须使用 HTTPS")
+    try:
+        with opener(url, timeout=60) as response:
+            return response.read()
+    except (OSError, ValueError) as exc:
+        raise DeploymentError("下载腾讯云函数现有代码包失败") from exc
+
+
+def call_api(client: Any, action: str, request: Any) -> Any:
+    try:
+        return getattr(client, action)(request)
+    except Exception:
+        # SDK 异常可能包含请求体、签名 URL 或服务端文本，禁止原样输出。
+        raise DeploymentError(
+            f"{action} 调用失败，请检查凭据、目标函数与 API 权限"
+        ) from None
+
+
+def get_function_address(client: Any, namespace: str) -> str:
+    from tencentcloud.scf.v20180416 import models
+
+    request = models.GetFunctionAddressRequest()
+    request.FunctionName = FUNCTION_NAME
+    request.Namespace = namespace
+    request.Qualifier = QUALIFIER
+    response = _response(call_api(client, "GetFunctionAddress", request))
+    return str(_field(response, "Url", "") or "")
+
+
+def update_function_code(client: Any, namespace: str, package: bytes) -> Any:
+    from tencentcloud.scf.v20180416 import models
+
+    request = models.UpdateFunctionCodeRequest()
+    request.FunctionName = FUNCTION_NAME
+    request.Namespace = namespace
+    request.ZipFile = base64.b64encode(package).decode("ascii")
+    if len(request.ZipFile) > 20 * 1024 * 1024:
+        raise DeploymentError("代码包超过 UpdateFunctionCode ZipFile 的 20 MiB 限制")
+    request.Publish = "FALSE"
+    request.CodeSource = "ZipFile"
+    # UpdateFunctionCode 只更新 $LATEST；该 API 没有 Qualifier 参数。
+    return call_api(client, "UpdateFunctionCode", request)
+
+
+def wait_for_function_ready(
+    client: Any,
+    namespace: str,
+    *,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+    interval: float = DEFAULT_POLL_INTERVAL_SECONDS,
+    sleep: Callable[[float], None] = time.sleep,
+    monotonic: Callable[[], float] = time.monotonic,
+) -> None:
+    """Wait for the asynchronous code update and fail clearly on bad states."""
+
+    from tencentcloud.scf.v20180416 import models
+
+    started = monotonic()
+    while True:
+        request = models.GetFunctionRequest()
+        request.FunctionName = FUNCTION_NAME
+        request.Namespace = namespace
+        request.Qualifier = QUALIFIER
+        request.ShowCode = "FALSE"
+        response = _response(call_api(client, "GetFunction", request))
+        status = str(_field(response, "Status", "") or "")
+        available = str(_field(response, "AvailableStatus", "") or "")
+        code_result = str(_field(response, "CodeResult", "") or "")
+        if (
+            "fail" in status.lower()
+            or status in {"Error", "Inactive"}
+            or _field(response, "ErrNo", 0)
+            or code_result.lower()
+            in {
+                "fail",
+                "failed",
+                "error",
+            }
+        ):
+            raise DeploymentError("腾讯云函数更新失败，请在 SCF 控制台查看函数状态")
+        if (
+            status == "Active"
+            and available in {"", "Available"}
+            and code_result.lower() in {"", "success"}
+        ):
+            return
+        if monotonic() - started >= timeout:
+            raise DeploymentError(f"等待腾讯云函数更新超时（{timeout:.0f}s）")
+        sleep(interval)
+
+
+def deploy_bundle(client: Any, namespace: str, bundle: bytes) -> None:
+    address = get_function_address(client, namespace)
+    original = download_package(address)
+    updated = replace_bundle(original, bundle)
+    update_function_code(client, namespace, updated)
+    wait_for_function_ready(client, namespace)
+    verified = download_package(get_function_address(client, namespace))
+    verify_package_update(original, verified, bundle)
+
+
+def deploy(bundle_path: Path, secret_id: str, secret_key: str, namespace: str) -> None:
+    if not secret_id or not secret_key:
+        raise DeploymentError("缺少 TENCENT_SECRET_ID 或 TENCENT_SECRET_KEY")
+    bundle = bundle_path.read_bytes()
+
+    from tencentcloud.common import credential
+    from tencentcloud.common.profile.client_profile import ClientProfile
+    from tencentcloud.common.profile.http_profile import HttpProfile
+    from tencentcloud.scf.v20180416 import scf_client
+
+    profile = ClientProfile(httpProfile=HttpProfile(reqTimeout=60))
+    client = scf_client.ScfClient(
+        credential.Credential(secret_id, secret_key), REGION, profile
+    )
+    deploy_bundle(client, namespace, bundle)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--bundle", type=Path, required=True, help="构建后的 dist/bundle.js 路径"
+    )
+    args = parser.parse_args(argv)
+    namespace = os.environ.get("SCF_NAMESPACE") or DEFAULT_NAMESPACE
+    try:
+        deploy(
+            args.bundle,
+            os.environ.get("TENCENT_SECRET_ID", ""),
+            os.environ.get("TENCENT_SECRET_KEY", ""),
+            namespace,
+        )
+    except DeploymentError as exc:
+        print(f"部署失败: {exc}", file=sys.stderr)
+        return 1
+    except Exception:
+        print(
+            "部署失败: 无法读取构建文件、加载 SDK 或处理代码包；未输出敏感异常详情",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"已更新 {REGION} / {namespace} / {FUNCTION_NAME} 的 {TARGET_BUNDLE}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

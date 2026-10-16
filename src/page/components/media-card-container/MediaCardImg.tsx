@@ -138,7 +138,14 @@ export class MediaCardImg extends Component<
           }}
         />
         {!compact && (
-          <div className="absolute text-white [text-shadow:1px_0_#000,-1px_0_#000,0_1px_#000,0_-1px_#000] bottom-6 right-6 left-6 text-right font-bold">{`${infoArea}`}</div>
+          <div
+            className="absolute text-white [text-shadow:1px_0_#000,-1px_0_#000,0_1px_#000,0_-1px_#000] bottom-6 right-6 left-6 text-right font-bold cursor-pointer"
+            onClick={() => {
+              window.open(platformData.websiteUrl || "");
+            }}
+          >
+            {`${infoArea}`}
+          </div>
         )}
       </div>
     );

@@ -53,8 +53,30 @@ https://cloud.ming295.com/s/XACQ
 
 ```bash
 npm run build
+node --test "cloud/sync/*.test.js"
 python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
 ```
+
+同步函数的门禁测试基于 Node 内置 `node:test`（零依赖、零网络）。注意 `node --test cloud/sync/` 这类目录写法在当前 Node 下不会展开目录内的测试文件，因此命令显式给出 glob。
+
+## 自动部署同步云函数（IIROSE-MEDIA-SYNC）
+
+同一 workflow 的 `deploy` job 在 `IIROSE-MEDIA-WEB` 之后执行 `python scripts/deploy_sync.py`，幂等地创建或更新收藏云同步后端。**本轮只交付后端**：插件侧的收藏同步客户端（`src/sync/`）尚未实现，前端不会调用这个端点，也没有任何 UI 入口。
+
+前置条件（脚本不创建这些资源；缺失时部署会失败）：
+
+- COS 桶 `iirose-media-sync-1309510434` 已创建，私有读写、**版本控制已开启**、生命周期规则以 `sync/` 前缀限定；
+- 角色 `IIROSE-MEDIA-SYNC-Role` 与只授该桶 `sync/` 前缀的策略 `IIROSE-MEDIA-SYNC-COS` 已存在（`PutObject`/`GetObject`/`HeadObject`）——不要复用 `SCF_QcsRole`；
+- 目标命名空间已存在（默认 `default`，可用 `SCF_NAMESPACE` 覆盖）；
+- 部署身份除函数基础 API 外，还需 `scf:CreateFunction`、`scf:ListTriggers`、`scf:CreateTrigger`、`scf:UpdateTrigger`、`scf:UpdateFunctionConfiguration`、`scf:PutReservedConcurrencyConfig` 权限。
+
+目标固定为广州 `ap-guangzhou` 的 `IIROSE-MEDIA-SYNC`；运行时 Nodejs24.11、128MB、30s、Handler `index.main_handler`；执行角色 `IIROSE-MEDIA-SYNC-Role`；环境变量 `COS_BUCKET=iirose-media-sync-1309510434`、`COS_REGION=ap-guangzhou`。函数每次调用都从 `TENCENTCLOUD_SECRETID`/`TENCENTCLOUD_SECRETKEY`/`TENCENTCLOUD_SESSIONTOKEN` 读取角色的临时凭据，仓库与函数配置里不出现任何长期密钥。
+
+函数不存在则一次性创建（角色、内存/超时、环境变量、代码），已存在则先收敛 `Role`/`Environment`/`MemorySize`/`Timeout`、再替换代码（`CodeSource=ZipFile`、`Publish=FALSE`，只更新 `$LATEST`），两次变更之间等函数就绪；就绪轮询期间把 `ResourceNotFound` 当作「尚未就绪」而不是失败。随后确保**函数 URL**（`Type=http` 触发器、开放鉴权 `AuthType=NONE`、开启公网访问）：刚创建或刚改鉴权会短暂重试，地址从触发器描述的 `NetConfig.ExtranetUrl` 回读，**读不到地址即部署失败**，不会静默通过。最后下发**函数最大独占配额 1280MB**（≈10 并发）——这一步只调用 `PutReservedConcurrencyConfig`，脚本不回读，是否生效需在控制台确认。
+
+地址形如 `https://<app-id>-<url-id>.ap-guangzhou.tencentscf.com`，浏览器直连、不经 CORS 代理。函数内部实现 `sync-protocol.md` 的 `GET`/`PUT`/`DELETE`/`OPTIONS` 与 `If-None-Match` 304 短路，四道闸（uid 白名单、信封字段白名单、512KB 体积、10 秒频率与 200 次/日配额）全部在函数内；日志只含状态码、uid 前 2 位、字节数与耗时，不含请求体、`ct` 或凭据。
+
+需要人工确认（脚本不做）：控制台里函数 URL 鉴权为「开放」、角色绑定与最大独占配额符合预期、费用与日调用量告警已配置（运维清单见后端架构文档）。函数 URL 绑定版本 `$LATEST`；本轮不发布版本、不配置告警。
 
 ## ☕ 支持我
 

@@ -29,6 +29,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Test sync function gates (no cloud calls)
+        run: node --test "cloud/sync/*.test.js"
+
       - name: Test deployment behavior (no cloud calls)
         run: python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
 
@@ -72,3 +75,10 @@ jobs:
           TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
           SCF_NAMESPACE: ${{ vars.SCF_NAMESPACE }}
         run: python scripts/deploy_scf.py --bundle dist/bundle.js
+
+      - name: Deploy sync function to Tencent Cloud SCF
+        env:
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          SCF_NAMESPACE: ${{ vars.SCF_NAMESPACE }}
+        run: python scripts/deploy_sync.py

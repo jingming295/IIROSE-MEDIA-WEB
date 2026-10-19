@@ -56,6 +56,46 @@ export interface SyncResult {
 }
 
 /**
+ * 首次启用预览的结果：`cloudEmpty` 为真时没有可确认的合并（云端为空），UI 直接提交即可。
+ * 成功时 `stats` 必有值——确认框要显示的就是这三个数字。
+ */
+export type SyncPreviewResult =
+  | { ok: true; message: string; stats: MergeStats; cloudEmpty: boolean }
+  | { ok: false; message: string };
+
+/** 防抖上传的放行条件（抽成纯函数，便于单测「预览期间零 PUT」） */
+export interface UploadGate {
+  /** 同步已启用 */
+  enabled: boolean;
+  /** 当前 uid 已有解锁句柄 */
+  hasContext: boolean;
+  /** 首次启用的合并结果仍待用户确认 */
+  previewPending: boolean;
+}
+
+/**
+ * 防抖上传是否放行：预览待确认期间一律不放行。
+ * 「确认前不得有任何上传」只能靠这道门——不能用提前置 `enabled` 的方式来表达预览中。
+ */
+export function shouldUpload(gate: UploadGate): boolean {
+  return gate.enabled && gate.hasContext && !gate.previewPending;
+}
+
+/** 预览之后走哪一步：中止 / 直接提交（云端为空）/ 等用户确认（云端有数据） */
+export type EnableStep = "abort" | "commit" | "confirm";
+
+/**
+ * 「云端为空 → 直接提交 / 云端非空 → 弹确认框 / 预览失败 → 中止」的唯一分支点。
+ * 抽成纯函数是因为分支写反就等于把未经确认的合并直接写进云端，必须有测试盯着。
+ */
+export function chooseEnableStep(
+  preview: Pick<SyncPreviewResult, "ok"> & { cloudEmpty?: boolean },
+): EnableStep {
+  if (!preview.ok) return "abort";
+  return preview.cloudEmpty ? "commit" : "confirm";
+}
+
+/**
  * 已解锁的同步上下文。`uid` 与句柄绑定：页内换了 iirose 账号即视为未解锁，
  * 绝不用 A 账号的密钥去读写 B 账号的分区。
  */
@@ -93,6 +133,19 @@ type RemoteState =
       snapshot: SyncSnapshot | null;
     };
 
+/**
+ * 首次启用的预览结果：确认时直接复用这里的已解密上下文与云端快照，
+ * 因此「确认合并」不会再发第二次 GET，也不会重新解密。
+ *
+ * 不记录预览时刻的变更代数：`commitEnable` 走的是 `performSync`，它在上传前会重新读一遍
+ * 本地收藏，所以预览停留期间新增/删除的条目自然进入合并结果，不需要补传第二步。
+ */
+interface PendingEnable {
+  ctx: UnlockedSync;
+  prefetched: PrefetchedRemote;
+  stats: MergeStats;
+}
+
 // —— 模块级内存状态（页面刷新即全部消失；句柄另在本机缓存在 IndexedDB） ——
 let unlocked: UnlockedSync | null = null;
 let remoteRev: string | null = null;
@@ -102,6 +155,30 @@ let changeGeneration = 0;
 let pendingAfterBusy = false;
 let listenerRegistered = false;
 let runController: AbortController | null = null;
+/** 预览完成、等待用户确认的合并结果（存在期间抑制一切自动上传） */
+let pendingEnable: PendingEnable | null = null;
+
+/**
+ * 当前 uid 对应的已解锁上下文；uid 变了即视为未解锁。
+ * 提到模块级是因为上传门（`canAutoUpload`）也要用它，判定只有这一份。
+ */
+function activeContext(): UnlockedSync | null {
+  const uid = SyncManager.getUid();
+  if (!unlocked || !uid || unlocked.uid !== uid) return null;
+  return unlocked;
+}
+
+/**
+ * 当前是否放行任何自动上传。「确认前不得有任何上传」只靠这道门：
+ * 预览待确认期间（`pendingEnable` 非空）一律不放行，与 `enabled` 无关。
+ */
+function canAutoUpload(): boolean {
+  return shouldUpload({
+    enabled: getSyncSettings().enabled,
+    hasContext: !!activeContext(),
+    previewPending: pendingEnable !== null,
+  });
+}
 
 /** 事件触发的自动拉取之间的最小间隔（避免反复切标签页时连发） */
 const AUTO_PULL_COOLDOWN_MS = 60_000;
@@ -130,7 +207,6 @@ export function shouldAutoPull(gate: AutoPullGate): boolean {
   const cooldown = gate.cooldownMs ?? AUTO_PULL_COOLDOWN_MS;
   return gate.now - gate.lastPullAt >= cooldown;
 }
-
 
 /**
  * `remoteRev` 的唯一写入口：同时落盘，保证重开页面后的首个 GET 也能走 304。
@@ -179,10 +255,17 @@ function cancelDebounce(): void {
 
 function scheduleUpload(): void {
   cancelDebounce();
+  // 预览待确认期间连定时器都不排：任何一次自动上传都会把未经确认的合并结果写进云端
+  if (!canAutoUpload()) return;
   debounceTimer = window.setTimeout(() => {
     debounceTimer = null;
     void SyncManager.uploadPendingChanges();
   }, UPLOAD_DEBOUNCE_MS);
+}
+
+/** 「云端 N / 本地 M / 合并后 K」的统一口径：确认框与提示条共用 */
+export function formatMergeStats(stats: MergeStats): string {
+  return `云端 ${stats.cloud} / 本地 ${stats.local} / 合并后 ${stats.merged}`;
 }
 
 /** 首次启用（云端为空）时的提示口径 */
@@ -190,7 +273,7 @@ function describeStats(stats: MergeStats): string {
   if (stats.cloud === 0) {
     return `已同步 ${stats.merged} 条收藏`;
   }
-  return `同步完成：云端 ${stats.cloud} / 本地 ${stats.local} / 合并后 ${stats.merged}`;
+  return `同步完成：${formatMergeStats(stats)}`;
 }
 
 /** 口令入口统一做 Unicode 归一化：不同 IME 输入的等价字形必须派生同一把密钥 */
@@ -220,9 +303,7 @@ export class SyncManager {
 
   /** 当前 uid 对应的已解锁上下文；uid 变了即视为未解锁 */
   private static currentContext(): UnlockedSync | null {
-    const uid = this.getUid();
-    if (!unlocked || !uid || unlocked.uid !== uid) return null;
-    return unlocked;
+    return activeContext();
   }
 
   public static getState(): SyncStateView {
@@ -316,7 +397,8 @@ export class SyncManager {
 
   /** 防抖到期后的实际上传；失败只提示，本地数据不受影响 */
   public static async uploadPendingChanges(): Promise<void> {
-    if (!getSyncSettings().enabled || !this.currentContext()) return;
+    // 预览待确认期间零 PUT：这道门比 `enabled` 更强，仅靠 enabled 表达预览中是不够的
+    if (!canAutoUpload()) return;
     if (busy) {
       pendingAfterBusy = true;
       return;
@@ -326,12 +408,16 @@ export class SyncManager {
   }
 
   /**
-   * 启用同步并完成首次同步：
-   * - 云端为空 → 本地全量加密上传；
-   * - 云端有数据（v2）→ 用口令解开 DEK 后并集合并、上传，并报告三个数字；
-   * - 云端有 v1 历史数据 → 一次性迁移为 v2 后上传（云端旧对象不删，靠版本控制可回滚）。
+   * 首次启用第 1 段：**纯读**预览。
+   *
+   * 只做 GET → 解密 → 并集合并，算出「云端 / 本地 / 合并后」三个数字就停手：
+   * 不 PUT、不翻转 `enabled`、不写 salt、不写本机密钥缓存。
+   * 已解密的上下文与云端快照暂存在内存里，`commitEnable()` 直接复用（确认后不再二次 GET）。
+   * 云端为空时没有可确认的合并，调用方可以直接 `commitEnable()`（`cloudEmpty` 为真）。
    */
-  public static async enable(passphrase: string): Promise<SyncResult> {
+  public static async previewEnable(
+    passphrase: string,
+  ): Promise<SyncPreviewResult> {
     const phrase = normalizePassphrase(passphrase);
     const rawPhrase = typeof passphrase === "string" ? passphrase : "";
     const uid = this.getUid();
@@ -350,7 +436,10 @@ export class SyncManager {
     if (busy) return { ok: false, message: "同步正在进行，请稍候" };
 
     const settings = getSyncSettings();
-    const deviceId = ensureDeviceId();
+    // 预览是纯读：缺 deviceId 时只在本轮内生成候选值，**不落盘**（确认时才随 enabled/salt 一起写）
+    const deviceId = settings.deviceId || SyncCrypto.generateDeviceId();
+    // 重新预览先丢掉上一次的暂存，避免确认时用上过期的云端快照
+    pendingEnable = null;
     busy = true;
     const controller = this.beginRun();
     try {
@@ -368,17 +457,7 @@ export class SyncManager {
       );
       if (!resolved.ok) return resolved;
 
-      unlocked = resolved.ctx;
-      restoreRemoteRev();
-      updateSyncSettings({
-        enabled: true,
-        salt: resolved.ctx.salt,
-        deviceId,
-      });
-      await this.rememberUnlocked(resolved.ctx);
-
-      return await this.performSync(
-        resolved.ctx,
+      const prefetched: PrefetchedRemote =
         envelope && resolved.snapshot
           ? {
               kind: "snapshot",
@@ -386,8 +465,31 @@ export class SyncManager {
               rev: remote.notModified ? null : remote.rev,
               snapshot: resolved.snapshot,
             }
-          : { kind: "empty" },
-      );
+          : { kind: "empty" };
+
+      // dryRun：算完三个数字就返回，不加密、不上传（见 performSync 的提前返回点）
+      const preview = await this.performSync(resolved.ctx, prefetched, {
+        dryRun: true,
+      });
+      if (!preview.ok || !preview.stats) {
+        return { ok: false, message: preview.message };
+      }
+
+      pendingEnable = {
+        ctx: resolved.ctx,
+        prefetched,
+        stats: preview.stats,
+      };
+      return {
+        ok: true,
+        // 预览阶段什么都没写，提示语只描述「将会发生什么」，不要复用上传成功的文案
+        message:
+          prefetched.kind === "empty"
+            ? `云端暂无收藏，确认后将上传本地 ${preview.stats.merged} 条`
+            : `合并预览：${formatMergeStats(preview.stats)}`,
+        stats: preview.stats,
+        cloudEmpty: prefetched.kind === "empty",
+      };
     } catch (error) {
       return { ok: false, message: describeSyncError(error) };
     } finally {
@@ -395,6 +497,81 @@ export class SyncManager {
       busy = false;
       this.flushPendingUpload();
     }
+  }
+
+  /**
+   * 首次启用第 2 段：用户确认后真正写入。
+   *
+   * 复用预览阶段已解密的上下文与云端快照，**不再二次 GET**；上传成功后才置 `enabled`、
+   * 写 salt 与密钥缓存。上传失败则作废预览（保持未启用），重试会重新走一次预览。
+   */
+  public static async commitEnable(): Promise<SyncResult> {
+    const pending = pendingEnable;
+    if (!pending) {
+      return { ok: false, message: "没有待确认的合并结果，请重新启用云端同步" };
+    }
+    const uid = this.getUid();
+    if (!uid) {
+      pendingEnable = null;
+      return { ok: false, message: "未登录蔷薇账号，无法启用云端同步" };
+    }
+    if (busy) return { ok: false, message: "同步正在进行，请稍候" };
+    if (uid !== pending.ctx.uid) {
+      pendingEnable = null;
+      return { ok: false, message: "账号已切换，请重新启用云端同步" };
+    }
+
+    const generation = changeGeneration;
+    busy = true;
+    const controller = this.beginRun();
+    try {
+      const result = await this.performSync(pending.ctx, pending.prefetched);
+      if (!result.ok) {
+        // 上传失败：本地与云端都没落地新状态，作废预览即可（重试重新预览）
+        pendingEnable = null;
+        return result;
+      }
+
+      pendingEnable = null;
+      unlocked = pending.ctx;
+      updateSyncSettings({
+        enabled: true,
+        salt: pending.ctx.salt,
+        deviceId: pending.ctx.deviceId,
+      });
+      // 本机密钥缓存只是「免重复输口令」的便利，写失败不影响本次会话与已落地的云端结果，
+      // 不能让它把一次成功的启用报成失败。
+      try {
+        await this.rememberUnlocked(pending.ctx);
+      } catch (cacheError) {
+        console.warn(
+          "[SyncManager] 本机密钥缓存写入失败，本次会话仍可继续使用",
+          cacheError,
+        );
+      }
+
+      // 上传窗口内又有收藏增删：performSync 只在 enabled 后才会自己补传，这里补排一次防抖
+      if (changeGeneration !== generation) scheduleUpload();
+      return result;
+    } catch (error) {
+      pendingEnable = null;
+      return { ok: false, message: describeSyncError(error) };
+    } finally {
+      this.endRun(controller);
+      busy = false;
+      this.flushPendingUpload();
+    }
+  }
+
+  /**
+   * 取消首次启用：丢掉预览暂存，本地与云端都不发生任何变化，同步保持未启用。
+   * 预览期间新增/删除的收藏仍留在本地（预览是纯读的）。
+   */
+  public static cancelEnable(): SyncResult {
+    pendingEnable = null;
+    cancelDebounce();
+    pendingAfterBusy = false;
+    return { ok: true, message: "已取消合并，本地与云端均未改动" };
   }
 
   /**
@@ -501,6 +678,7 @@ export class SyncManager {
   public static disable(): SyncResult {
     cancelDebounce();
     pendingAfterBusy = false;
+    pendingEnable = null; // 未确认的预览在这里一并作废，绝不会因为关闭而落地
     runController?.abort();
     runController = null;
     unlocked = null;
@@ -518,6 +696,7 @@ export class SyncManager {
     const uid = this.getUid();
     cancelDebounce();
     pendingAfterBusy = false;
+    pendingEnable = null;
     unlocked = null;
     setRemoteRev(null);
     if (uid) await SyncKeyCache.forget(uid);
@@ -573,7 +752,7 @@ export class SyncManager {
   private static flushPendingUpload(): void {
     if (!pendingAfterBusy) return;
     pendingAfterBusy = false;
-    if (getSyncSettings().enabled && this.currentContext()) scheduleUpload();
+    if (canAutoUpload()) scheduleUpload();
   }
 
   /** 拉取云端状态（首次尝试带 If-None-Match 短路） */
@@ -759,11 +938,12 @@ export class SyncManager {
    * 稳态同步：GET（带 If-None-Match 短路）→ 解密 → 并集合并 → PUT → 落地。
    * 上传成功后才把合并结果写回本地，因此上传失败时本地的 dirty 标记完好无损。
    * `pullOnly` 用于插件激活时的静默拉取：本地没有可上传的改动就不写回云端。
+   * `dryRun` 用于首次启用的预览：只算 `items`/`stats`，不加密、不上传、不落地。
    */
   private static async performSync(
     ctx: UnlockedSync,
     prefetched?: PrefetchedRemote,
-    options?: { pullOnly?: boolean },
+    options?: { pullOnly?: boolean; dryRun?: boolean },
   ): Promise<SyncResult> {
     const generation = changeGeneration;
     const controller = runController ?? this.beginRun();
@@ -852,6 +1032,12 @@ export class SyncManager {
               return { ok: true, message: "已拉取云端收藏", stats };
             }
           }
+        }
+
+        if (options?.dryRun) {
+          // 预览的纯读出口：三条分支都已算出 items/stats，到这里就返回——
+          // 不加密、不上传、不落地，也不碰 dirty / remoteRev
+          return { ok: true, message: describeStats(stats), stats };
         }
 
         const updatedAt = Math.max(Date.now(), clockFloor);

@@ -8,7 +8,12 @@ import { JOOXSettings } from "../../settings/jooxSettings/JOOXSettings";
 import { NetEaseSettings } from "../../settings/neteaseSettings/NetEaseSettings";
 import { PluginSettings } from "../../settings/pluginSettings/PluginSettings";
 import { RadioSettings } from "../../settings/radioSettings/RadioSettings";
-import { SyncManager } from "../../sync/SyncManager";
+import {
+  chooseEnableStep,
+  formatMergeStats,
+  SyncManager,
+} from "../../sync/SyncManager";
+import type { MergeStats } from "../../sync/SyncMerge";
 
 export class SettingsService {
   /**
@@ -243,10 +248,7 @@ export class SettingsService {
           promptPassphrase(
             "设置同步口令（忘记口令将无法找回云端收藏，建议至少 8 位）",
             (passphrase) => {
-              void SyncManager.enable(passphrase).then((res) => {
-                ShowMessage.show(res.message);
-                refresh();
-              });
+              void this.previewThenEnable(ctx, passphrase);
             },
           );
         },
@@ -336,6 +338,96 @@ export class SettingsService {
         },
       },
     ];
+  }
+
+  /**
+   * 首次启用第 1 段：先纯读预览，云端有数据时弹「合并并上传 / 取消」确认框。
+   * 确认前不会写云端（`previewEnable` 不翻转 enabled、不写密钥缓存）。
+   */
+  private static async previewThenEnable(
+    ctx: MainAppContainerActionContext,
+    passphrase: string,
+  ): Promise<void> {
+    const preview = await SyncManager.previewEnable(passphrase);
+    const step = chooseEnableStep(preview);
+    if (step === "abort") {
+      ShowMessage.show(preview.message);
+      await this.showSyncSettings(ctx);
+      return;
+    }
+    if (step === "commit") {
+      // 云端为空：没有可确认的合并，直接上传
+      const result = await SyncManager.commitEnable();
+      ShowMessage.show(result.message);
+      await this.showSyncSettings(ctx);
+      return;
+    }
+    // 仅为类型收窄：chooseEnableStep 已经排除失败，走到这里必定是成功预览
+    if (!preview.ok) return;
+    // 口令输入框刚关闭，宿站随后还要 fadeOut + empty() 选择器容器：
+    // 立刻开新弹窗会被它清掉，必须让出 300ms（见 AGENTS.md 的弹窗流转坑）
+    window.setTimeout(() => {
+      this.confirmMerge(
+        preview.stats,
+        () => {
+          void SyncManager.commitEnable().then((result) => {
+            ShowMessage.show(result.message);
+            void this.showSyncSettings(ctx);
+          });
+        },
+        () => {
+          ShowMessage.show(SyncManager.cancelEnable().message);
+          void this.showSyncSettings(ctx);
+        },
+      );
+    }, 300);
+  }
+
+  /**
+   * 「合并并上传 / 取消」两选项确认框：范式同 NetEasePlatform.buildOrderConfirmSelect。
+   * 点空白/关闭一律按取消处理，避免预览结果悬空。
+   */
+  private static confirmMerge(
+    stats: MergeStats,
+    onMerge: () => void,
+    onCancel: () => void,
+  ): void {
+    let answered = false;
+    const choose = (merge: boolean) => {
+      if (answered) return;
+      answered = true;
+      if (merge) onMerge();
+      else onCancel();
+    };
+
+    const iconStyle =
+      "font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;";
+    const options: (string | number)[][] = [
+      [
+        0,
+        "合并并上传",
+        `<div class="mdi-cloud-upload" style="${iconStyle}"></div>`,
+      ],
+      [1, "取消", `<div class="mdi-close" style="${iconStyle}"></div>`],
+    ];
+    const topHtml =
+      `<div style="padding:14px 18px 6px;line-height:1.7;font-size:15px;">` +
+      `<div style="font-weight:600;">首次启用需要合并云端与本地收藏</div>` +
+      `<div>${formatMergeStats(stats)}</div>` +
+      `<div style="opacity:.7;font-size:13px;margin-top:4px;">确认后才会把合并结果上传到云端；取消则本地与云端都不改动。</div>` +
+      `</div>`;
+
+    IIROSEUtils.buildSelect2(
+      null,
+      options,
+      (_t: HTMLElement, value: string) => choose(Number(value) === 0),
+      false,
+      true,
+      topHtml,
+      false,
+      null,
+      () => choose(false),
+    );
   }
 
   static setState = (

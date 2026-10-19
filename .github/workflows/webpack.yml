@@ -29,6 +29,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Test client sync and storage logic
+        run: npm test
+
       - name: Test sync function gates (no cloud calls)
         run: node --test "cloud/sync/*.test.js"
 

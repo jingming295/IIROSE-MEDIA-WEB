@@ -19,6 +19,9 @@ export interface PluginSyncSettings {
 export const DEFAULT_SYNC_SERVER_URL =
   "https://1309510434-0wsqedndx7.ap-guangzhou.tencentscf.com";
 
+/** 信封 writer 字段的设备 id 形态，与服务端 cloud/sync/logic.js 的 WRITER_PATTERN 一致 */
+const DEVICE_ID_PATTERN = /^[0-9a-f]{16}$/;
+
 export interface PluginSettingsInterface {
   chatBox: {
     isProxyAtInput: boolean;
@@ -164,7 +167,12 @@ export class PluginSettings {
       enabled: raw.enabled === true,
       salt: typeof raw.salt === "string" && raw.salt ? raw.salt : null,
       lastSyncAt: typeof raw.lastSyncAt === "number" ? raw.lastSyncAt : null,
-      deviceId: typeof raw.deviceId === "string" ? raw.deviceId : "",
+      // 服务端强制 ^[0-9a-f]{16}$：非法值会让每次 PUT 400，因此直接清空，
+      // 由 SyncManager.ensureDeviceId() 重新生成并落盘（设置面板没有重置入口）。
+      deviceId:
+        typeof raw.deviceId === "string" && DEVICE_ID_PATTERN.test(raw.deviceId)
+          ? raw.deviceId
+          : "",
       serverUrl:
         typeof raw.serverUrl === "string" && raw.serverUrl
           ? raw.serverUrl

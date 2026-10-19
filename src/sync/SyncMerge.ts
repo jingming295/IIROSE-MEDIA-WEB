@@ -60,7 +60,7 @@ export function countLiveItems(items: FavoriteSyncItem[]): number {
   return count;
 }
 
-/** FavoriteRecord → 快照条目（剥离本地同步元数据，缩小密文体积） */
+/** FavoriteRecord → 快照条目（剥离本地专属元数据，缩小密文体积） */
 export function toSnapshotItem(record: FavoriteRecord): FavoriteSyncItem {
   if (record.deletedAt) {
     return { key: record.id, record: null, deletedAt: record.deletedAt };
@@ -69,6 +69,7 @@ export function toSnapshotItem(record: FavoriteRecord): FavoriteSyncItem {
     dirty: _dirty,
     syncedAt: _syncedAt,
     deletedAt: _deletedAt,
+    ownerUid: _ownerUid,
     ...rest
   } = record;
   return {

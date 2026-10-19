@@ -13,6 +13,8 @@ export type SyncErrorKind =
   | "rateLimited"
   | "unavailable"
   | "invalid"
+  | "timeout"
+  | "aborted"
   | "unknown";
 
 export class SyncClientError extends Error {
@@ -41,8 +43,16 @@ const SYNC_ERROR_MESSAGES: Record<SyncErrorKind, string> = {
   rateLimited: "操作太快，请稍后再试",
   unavailable: "同步服务暂时不可用；本地收藏不受影响，请稍后重试",
   invalid: "同步请求异常，已停止本次同步",
+  timeout: "同步请求超时；本地收藏不受影响，请稍后重试",
+  aborted: "同步已取消",
   unknown: "同步失败，请稍后重试",
 };
+
+/**
+ * 单次出网请求的超时上限。没有它，一个挂起的请求会让 SyncManager 的 busy 永不复位，
+ * 之后所有同步入口都只回「同步正在进行」——功能永久卡死直到刷新页面。
+ */
+export const SYNC_REQUEST_TIMEOUT_MS = 15000;
 
 /** 把任意异常翻译成可直接展示给用户的中文提示 */
 export function describeSyncError(error: unknown): string {
@@ -91,25 +101,68 @@ export class SyncClient {
     return `${this.baseUrl}${SNAPSHOT_PATH}?uid=${encodeURIComponent(this.uid)}`;
   }
 
-  private async request(
+  /**
+   * 出网 + 消费响应体。`consume` 在同一个超时/中止作用域内执行：只包住响应头不够，
+   * body 卡住时 busy 同样会永不复位（功能永久卡死直到刷新页面）。
+   */
+  private async request<T>(
     init: RequestInit,
-    signal?: AbortSignal,
-  ): Promise<Response> {
+    signal: AbortSignal | undefined,
+    consume: (response: Response) => Promise<T>,
+  ): Promise<T> {
+    // 每次出网都带超时；调用方的 signal（如「关闭同步」）会一并中止本次请求。
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, SYNC_REQUEST_TIMEOUT_MS);
+    const onExternalAbort = () => controller.abort();
+    if (signal) {
+      if (signal.aborted) controller.abort();
+      else signal.addEventListener("abort", onExternalAbort);
+    }
+
     try {
-      return await fetch(this.buildUrl(), { ...init, signal });
+      const response = await fetch(this.buildUrl(), {
+        ...init,
+        signal: controller.signal,
+      });
+      return await consume(response);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new SyncClientError("network", "同步已取消", 0);
+      // 业务错误（400/409/格式不合法等）原样抛出，不要被误翻成网络错误
+      if (error instanceof SyncClientError) throw error;
+      if (controller.signal.aborted) {
+        if (timedOut) {
+          throw new SyncClientError("timeout", SYNC_ERROR_MESSAGES.timeout, 0);
+        }
+        throw new SyncClientError("aborted", SYNC_ERROR_MESSAGES.aborted, 0);
       }
       throw new SyncClientError("network", SYNC_ERROR_MESSAGES.network, 0);
+    } finally {
+      window.clearTimeout(timer);
+      signal?.removeEventListener("abort", onExternalAbort);
     }
   }
 
   private async failFromResponse(response: Response): Promise<never> {
     let message = "";
+    let serverUpdatedAt: number | undefined;
     try {
-      const body = (await response.json()) as { message?: unknown };
+      const body = (await response.json()) as {
+        message?: unknown;
+        updatedAt?: unknown;
+      };
       if (body && typeof body.message === "string") message = body.message;
+      // 409 会回带服务端当前的 updatedAt：本机时钟慢时靠它把重试推过服务端时间戳
+      if (
+        body &&
+        typeof body.updatedAt === "number" &&
+        Number.isInteger(body.updatedAt) &&
+        body.updatedAt > 0
+      ) {
+        serverUpdatedAt = body.updatedAt;
+      }
     } catch {
       message = "";
     }
@@ -119,6 +172,7 @@ export class SyncClient {
         "conflict",
         message || SYNC_ERROR_MESSAGES.conflict,
         409,
+        serverUpdatedAt,
       );
     }
     if (response.status === 413) {
@@ -164,37 +218,46 @@ export class SyncClient {
     const headers = new Headers();
     if (rev) headers.set("If-None-Match", rev);
 
-    const response = await this.request({ method: "GET", headers }, signal);
-    if (response.status === 304) {
-      return { notModified: true };
-    }
-    if (response.status !== 200) {
-      await this.failFromResponse(response);
-    }
+    return this.request(
+      { method: "GET", headers },
+      signal,
+      async (response) => {
+        if (response.status === 304) {
+          return { notModified: true };
+        }
+        if (response.status !== 200) {
+          await this.failFromResponse(response);
+        }
 
-    let payload: { snapshot?: unknown };
-    try {
-      payload = (await response.json()) as { snapshot?: unknown };
-    } catch {
-      throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
-    }
+        let payload: { snapshot?: unknown };
+        try {
+          payload = (await response.json()) as { snapshot?: unknown };
+        } catch (error) {
+          // body 读取被超时/中止打断：交给 request() 翻译成 timeout/aborted
+          if (error instanceof DOMException && error.name === "AbortError") {
+            throw error;
+          }
+          throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
+        }
 
-    const snapshot = payload?.snapshot ?? null;
-    if (snapshot === null) {
-      return { notModified: false, envelope: null, rev: null };
-    }
-    if (!SyncCrypto.isValidEnvelope(snapshot)) {
-      throw new SyncClientError(
-        "invalid",
-        "云端数据格式不合法，已停止同步",
-        200,
-      );
-    }
-    return {
-      notModified: false,
-      envelope: snapshot,
-      rev: stripEtag(response.headers.get("ETag")),
-    };
+        const snapshot = payload?.snapshot ?? null;
+        if (snapshot === null) {
+          return { notModified: false, envelope: null, rev: null };
+        }
+        if (!SyncCrypto.isValidEnvelope(snapshot)) {
+          throw new SyncClientError(
+            "invalid",
+            "云端数据格式不合法，已停止同步",
+            200,
+          );
+        }
+        return {
+          notModified: false,
+          envelope: snapshot,
+          rev: stripEtag(response.headers.get("ETag")),
+        };
+      },
+    );
   }
 
   /** 整包覆盖式写入；服务端拒绝时间戳倒退（409） */
@@ -205,41 +268,48 @@ export class SyncClient {
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
 
-    const response = await this.request(
+    return this.request(
       { method: "PUT", headers, body: JSON.stringify(envelope) },
       signal,
+      async (response) => {
+        if (response.status !== 200) {
+          await this.failFromResponse(response);
+        }
+
+        let payload: { updatedAt?: unknown; rev?: unknown };
+        try {
+          payload = (await response.json()) as {
+            updatedAt?: unknown;
+            rev?: unknown;
+          };
+        } catch (error) {
+          // body 读取被超时/中止打断：交给 request() 翻译成 timeout/aborted
+          if (error instanceof DOMException && error.name === "AbortError") {
+            throw error;
+          }
+          throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
+        }
+
+        return {
+          updatedAt:
+            typeof payload.updatedAt === "number"
+              ? payload.updatedAt
+              : envelope.updatedAt,
+          rev:
+            typeof payload.rev === "string" && payload.rev
+              ? payload.rev
+              : stripEtag(response.headers.get("ETag")),
+        };
+      },
     );
-    if (response.status !== 200) {
-      await this.failFromResponse(response);
-    }
-
-    let payload: { updatedAt?: unknown; rev?: unknown };
-    try {
-      payload = (await response.json()) as {
-        updatedAt?: unknown;
-        rev?: unknown;
-      };
-    } catch {
-      throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
-    }
-
-    return {
-      updatedAt:
-        typeof payload.updatedAt === "number"
-          ? payload.updatedAt
-          : envelope.updatedAt,
-      rev:
-        typeof payload.rev === "string" && payload.rev
-          ? payload.rev
-          : stripEtag(response.headers.get("ETag")),
-    };
   }
 
   /** 清空云端：服务端写空快照，保留版本历史 */
   public async removeCloud(signal?: AbortSignal): Promise<void> {
-    const response = await this.request({ method: "DELETE" }, signal);
-    if (response.status !== 200) {
-      await this.failFromResponse(response);
-    }
+    await this.request({ method: "DELETE" }, signal, async (response) => {
+      if (response.status !== 200) {
+        await this.failFromResponse(response);
+      }
+    });
   }
 }

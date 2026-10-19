@@ -198,19 +198,21 @@ export class SettingsService {
   /**
    * 收藏云同步设置面板（唯一入口，全部改动都发生在这里）
    */
-  static showSyncSettings(ctx: MainAppContainerActionContext) {
-    this.setState(ctx, this.buildSyncSettings(ctx));
+  static async showSyncSettings(ctx: MainAppContainerActionContext) {
+    this.setState(ctx, await this.buildSyncSettings(ctx));
   }
 
-  private static buildSyncSettings(
+  private static async buildSyncSettings(
     ctx: MainAppContainerActionContext,
-  ): SettingData[] {
-    const refresh = () => this.setState(ctx, this.buildSyncSettings(ctx));
+  ): Promise<SettingData[]> {
+    const refresh = () => void this.showSyncSettings(ctx);
 
     const uid = SyncManager.getUid();
     const state = SyncManager.getState();
     const enabled = state.enabled;
     const unlocked = state.unlocked;
+    // 「忘记本机密钥」按缓存是否存在判定：关闭同步后缓存仍在，也必须能清除
+    const hasLocalKey = await SyncManager.hasLocalKey();
 
     const promptPassphrase = (
       title: string,
@@ -259,7 +261,7 @@ export class SettingsService {
             return;
           }
           promptPassphrase(
-            "输入同步口令解锁（口令只存在于内存，刷新页面后需重新输入）",
+            "输入同步口令解锁（本机已缓存密钥时无需输入；换设备或清除本机密钥后才需要）",
             (passphrase) => {
               void SyncManager.unlock(passphrase).then((res) => {
                 ShowMessage.show(res.message);
@@ -297,19 +299,36 @@ export class SettingsService {
       },
       {
         title: "清空云端",
-        actionTitle: enabled ? "清空云端" : "未启用",
+        actionTitle: "清空云端",
         icon: "syncDeleteIcon",
         action: () => {
-          if (!SyncManager.getState().enabled) {
-            ShowMessage.show("请先启用云端同步");
-            return;
-          }
           const content =
             "确认清空云端收藏？\n\n" +
             "云端保存的收藏密文将被清空（服务端保留历史版本以供回滚），本地收藏不受影响。\n" +
-            "注意：只要本地仍保留收藏，之后的收藏增删仍会上传并重建云端副本。";
+            "注意：只要本地仍保留收藏且同步处于启用状态，之后的收藏增删仍会上传并重建云端副本。";
           IIROSEUtils.sync(0, [content], () => {
             void SyncManager.clearCloud().then((res) => {
+              ShowMessage.show(res.message);
+              refresh();
+            });
+          });
+        },
+      },
+      {
+        title: "忘记本机密钥",
+        actionTitle: hasLocalKey ? "清除本机密钥" : "无本机密钥",
+        icon: "syncKeyIcon",
+        action: () => {
+          if (!hasLocalKey) {
+            ShowMessage.show("本机没有可清除的密钥缓存");
+            return;
+          }
+          const content =
+            "确认清除本机密钥？\n\n" +
+            "清除后本机不再缓存解密的密钥句柄，下次进入插件需要重新输入同步口令。\n" +
+            "云端收藏密文与本地收藏都不受影响；没有口令就再也解不开云端副本。";
+          IIROSEUtils.sync(0, [content], () => {
+            void SyncManager.forgetLocalKey().then((res) => {
               ShowMessage.show(res.message);
               refresh();
             });

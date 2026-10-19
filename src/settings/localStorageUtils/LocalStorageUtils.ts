@@ -143,8 +143,10 @@ export class LocalStorageUtils {
         TOSAgree: false,
       },
       Privacy: {
-        // 1.0.1 → 1.0.2：新增「收藏密文上传」说明，老用户会被强制重新同意一次
-        PrivacyVersion: "1.0.2",
+        // 1.0.1 → 1.0.2：新增「收藏密文上传」说明；
+        // 1.0.2 → 1.0.3：文案自洽化 + 新增「本机缓存不可导出密钥句柄」的告知。
+        // 版本变化会强制把同意状态重置为未同意，老用户必须重新确认一次（有意为之）。
+        PrivacyVersion: "1.0.3",
         PrivacyAgree: false,
       },
     };

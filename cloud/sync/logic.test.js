@@ -8,6 +8,8 @@
 
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const logic = require("./logic.js");
 const { createHandler } = require("./index.js");
@@ -36,6 +38,21 @@ function envelope(overrides) {
     writer: "0123456789abcdef",
     ...(overrides || {}),
   };
+}
+
+/**
+ * v2 信封（两级密钥）：比 v1 多一个 `wrapped`（被 KEK 包裹的 DEK）。
+ * 客户端当前写入的就是这种；服务端必须与 v1 同时接受。
+ */
+function envelope2(overrides) {
+  return envelope({
+    v: 2,
+    wrapped: {
+      iv: Buffer.alloc(12, 5).toString("base64"),
+      ct: Buffer.alloc(48, 6).toString("base64"),
+    },
+    ...(overrides || {}),
+  });
 }
 
 /** 信封体积可用 ct 的长度精确调档（每多一个 base64 组即多 4 字节）。 */
@@ -267,15 +284,40 @@ test("PUT 信封非法（白名单外字段、未知版本、缺字段、坏 bas
   const nestedExtra = envelope();
   nestedExtra.kdf = { ...nestedExtra.kdf, extra: true };
 
+  const shortWrappedCt = envelope2({
+    wrapped: {
+      iv: Buffer.alloc(12, 5).toString("base64"),
+      ct: Buffer.alloc(47, 6).toString("base64"),
+    },
+  });
+
   const cases = [
     { ...envelope(), extra: 1 },
-    envelope({ v: 2 }),
+    envelope({ v: 3 }),
+    envelope({ v: 2 }), // v2 缺 wrapped
+    // v1 不得出现 wrapped（按版本取白名单）
+    envelope({ wrapped: envelope2().wrapped }),
     envelope({ alg: "AES-CBC" }),
     envelope({ writer: "xyz" }),
     envelope({ updatedAt: "1792357121000" }),
     envelope({ itemCount: 1.5 }),
     envelope({ ct: "not-base64" }),
     envelope({ iv: Buffer.alloc(8, 1).toString("base64") }),
+    envelope2({
+      wrapped: {
+        iv: Buffer.alloc(8, 1).toString("base64"),
+        ct: Buffer.alloc(48, 6).toString("base64"),
+      },
+    }),
+    shortWrappedCt,
+    envelope2({
+      wrapped: {
+        iv: Buffer.alloc(12, 5).toString("base64"),
+        ct: Buffer.alloc(48, 6).toString("base64"),
+        extra: 1,
+      },
+    }),
+    envelope2({ wrapped: null }),
     missingCt,
     nestedExtra,
   ];
@@ -636,17 +678,26 @@ test("写频率与日配额判定覆盖跨日重置", () => {
   assert.equal(logic.dayKey(Date.UTC(2026, 9, 18, 16, 30)), "2026-10-19");
 });
 
-test("信封白名单对每个字段独立生效", () => {
+test("信封白名单对每个字段独立生效（v1 与 v2 各自一套）", () => {
   assert.equal(logic.validateEnvelope(envelope()), null);
+  assert.equal(logic.validateEnvelope(envelope2()), null, "v2 信封合法");
   assert.equal(
     logic.validateEnvelope(envelope({ v: 1.0 })),
     null,
     "1.0 仍是整数 1",
   );
-  for (const key of logic.ENVELOPE_FIELDS) {
+  // 版本号决定用哪套白名单，因此缺 `v` 时先被判为未知版本
+  for (const key of logic.ENVELOPE_FIELDS_V1) {
     const value = envelope();
     delete value[key];
-    assert.equal(logic.validateEnvelope(value), "missing_field", `缺少 ${key}`);
+    const expected = key === "v" ? "unsupported_version" : "missing_field";
+    assert.equal(logic.validateEnvelope(value), expected, `缺少 ${key}`);
+  }
+  for (const key of logic.ENVELOPE_FIELDS_V2) {
+    const value = envelope2();
+    delete value[key];
+    const expected = key === "v" ? "unsupported_version" : "missing_field";
+    assert.equal(logic.validateEnvelope(value), expected, `v2 缺少 ${key}`);
   }
   assert.equal(logic.validateEnvelope([]), "not_an_object");
   assert.equal(logic.validateEnvelope(null), "not_an_object");
@@ -872,5 +923,169 @@ test("kdf.iter 有下限：弱信封返回 400 且不写入", async () => {
     ),
     null,
     "刚好到下限时接受",
+  );
+});
+
+test("v2 信封（两级密钥）可写入可读回，v1 仍被接受", async () => {
+  const store = createStore();
+  const handler = createHandler(store);
+  const v2 = envelope2();
+  const put = await handler(event("PUT", { body: JSON.stringify(v2) }));
+  assert.equal(put.statusCode, 200, "v2 必须被接受");
+  assert.equal(store.bodyOf(OBJECT_KEY), JSON.stringify(v2));
+  assert.equal(json(put).rev, "v1");
+
+  const get = await handler(event("GET"));
+  assert.equal(get.statusCode, 200);
+  assert.deepEqual(json(get).snapshot, v2, "原样回带，服务端不解析 wrapped");
+
+  // v1 历史信封（线上仍有真实用户）必须继续被接受，直到客户端迁移完成
+  const legacy = createStore();
+  const legacyPut = await createHandler(legacy)(
+    event("PUT", { body: JSON.stringify(envelope()) }),
+  );
+  assert.equal(legacyPut.statusCode, 200, "v1 不得因升级 v2 而被拒绝");
+  assert.equal(logic.validateEnvelope(envelope()), null);
+});
+
+test("validateWrapped 逐字段独立生效", () => {
+  const ok = envelope2().wrapped;
+  assert.equal(logic.validateWrapped(ok), null);
+  assert.equal(logic.validateWrapped({ iv: ok.iv }), "invalid_wrapped");
+  assert.equal(logic.validateWrapped({ ct: ok.ct }), "invalid_wrapped");
+  assert.equal(logic.validateWrapped(null), "invalid_wrapped");
+  assert.equal(logic.validateWrapped("x"), "invalid_wrapped");
+  assert.equal(logic.validateWrapped([ok]), "invalid_wrapped");
+  assert.equal(logic.validateWrapped({ iv: ok.iv, ct: ok.ct, x: 1 }), "invalid_wrapped");
+  assert.equal(
+    logic.validateWrapped({ iv: "AAAA", ct: ok.ct }),
+    "invalid_wrapped",
+    "iv 必须 12 字节",
+  );
+  assert.equal(
+    logic.validateWrapped({
+      iv: ok.iv,
+      ct: Buffer.alloc(logic.WRAPPED_MIN_BYTES - 1, 1).toString("base64"),
+    }),
+    "invalid_wrapped",
+    "包裹块密文下限 = DEK(32B) + tag(16B)",
+  );
+  assert.equal(
+    logic.validateWrapped({
+      iv: ok.iv,
+      ct: Buffer.alloc(logic.WRAPPED_MIN_BYTES, 1).toString("base64"),
+    }),
+    null,
+    "刚好到下限时接受",
+  );
+});
+
+// 客户端 src/sync/SyncCrypto.ts 与服务端 logic.js 各自维护一套信封常量。
+// 单边改一个常量就会让全体用户同步不可用（PUT 400 / GET 判为格式不合法），
+// 而 build 与 CI 全绿——所以这里做一次跨端比对（零依赖：只读文件文本）。
+const CLIENT_CRYPTO_PATH = path.join(
+  __dirname,
+  "..",
+  "..",
+  "src",
+  "sync",
+  "SyncCrypto.ts",
+);
+
+function clientConstSource(name) {
+  const raw = fs.readFileSync(CLIENT_CRYPTO_PATH, "utf8");
+  const match = raw.match(
+    new RegExp(`export const ${name}\\s*=\\s*([^;]+);`),
+  );
+  assert.ok(match, `客户端 SyncCrypto.ts 缺少常量 ${name}`);
+  return match[1].trim();
+}
+
+function clientConst(name) {
+  return JSON.parse(clientConstSource(name));
+}
+
+function clientConstList(name) {
+  const items = [...clientConstSource(name).matchAll(/"([^"]+)"/g)].map(
+    (m) => m[1],
+  );
+  assert.ok(items.length > 0, `客户端常量 ${name} 未解析出列表项`);
+  return items;
+}
+
+const CLIENT_SETTINGS_PATH = path.join(
+  __dirname,
+  "..",
+  "..",
+  "src",
+  "settings",
+  "pluginSettings",
+  "PluginSettings.ts",
+);
+const CLIENT_STORAGE_PATH = path.join(
+  __dirname,
+  "..",
+  "..",
+  "src",
+  "storage",
+  "FavoritesStorageService.ts",
+);
+
+/** 从客户端 TS 源里取 `const NAME = /.../flags;` 的正则主体 */
+function clientRegexSource(filePath, name) {
+  const raw = fs.readFileSync(filePath, "utf8");
+  const match = raw.match(
+    new RegExp(`const ${name}\\s*=\\s*/(.+?)/[gimsuy]*;`),
+  );
+  assert.ok(match, `${path.basename(filePath)} 缺少正则常量 ${name}`);
+  return match[1];
+}
+
+test("跨端正则常量一致（uid / writer 形态）", () => {
+  // uid 是云端分区键、writer 是信封字段：两侧形态一旦漂移，服务端会直接 400
+  assert.equal(
+    clientRegexSource(CLIENT_STORAGE_PATH, "UID_PATTERN"),
+    logic.UID_PATTERN.source,
+  );
+  assert.equal(
+    clientRegexSource(CLIENT_SETTINGS_PATH, "DEVICE_ID_PATTERN"),
+    logic.WRITER_PATTERN.source,
+  );
+});
+
+test("跨端信封常量一致（客户端 SyncCrypto.ts ↔ 服务端 logic.js）", () => {
+  assert.equal(clientConst("ENVELOPE_ALG"), logic.ENVELOPE_ALG);
+  assert.equal(clientConst("KDF_ALG"), logic.KDF_ALG);
+  assert.equal(clientConst("SALT_BYTES"), logic.SALT_BYTES);
+  assert.equal(clientConst("IV_BYTES"), logic.IV_BYTES);
+  assert.equal(clientConst("GCM_TAG_BYTES"), logic.GCM_TAG_BYTES);
+  assert.equal(clientConst("MIN_KDF_ITERATIONS"), logic.MIN_KDF_ITER);
+  assert.equal(clientConst("DEK_BYTES"), logic.DEK_BYTES);
+  assert.equal(clientConst("WRAPPED_IV_BYTES"), logic.WRAPPED_IV_BYTES);
+  assert.equal(clientConst("WRAPPED_MIN_BYTES"), logic.WRAPPED_MIN_BYTES);
+
+  assert.deepEqual(clientConstList("ENVELOPE_FIELDS_V1"), logic.ENVELOPE_FIELDS_V1);
+  assert.deepEqual(clientConstList("ENVELOPE_FIELDS_V2"), logic.ENVELOPE_FIELDS_V2);
+  assert.deepEqual(clientConstList("WRAPPED_FIELDS"), logic.WRAPPED_FIELDS);
+
+  // 客户端自身的关系也要成立（这两个常量在客户端是写死的字面量）
+  assert.equal(clientConst("WRAPPED_IV_BYTES"), clientConst("IV_BYTES"));
+  assert.equal(
+    clientConst("WRAPPED_MIN_BYTES"),
+    clientConst("DEK_BYTES") + clientConst("GCM_TAG_BYTES"),
+  );
+  assert.deepEqual(clientConstList("ENVELOPE_FIELDS_V2"), [
+    ...clientConstList("ENVELOPE_FIELDS_V1"),
+    "wrapped",
+  ]);
+
+  assert.equal(
+    clientConst("ENVELOPE_VERSION_V1"),
+    logic.ENVELOPE_VERSION,
+    "客户端认为的 v1 必须就是服务端的历史版本号",
+  );
+  assert.ok(
+    logic.ENVELOPE_VERSIONS.includes(clientConst("ENVELOPE_VERSION")),
+    "客户端当前写入的版本号必须被服务端接受",
   );
 });

@@ -15,10 +15,15 @@ const SNAPSHOT_PATH = "/v1/favorites";
 const OBJECT_PREFIX = "sync/";
 
 // sync-protocol.md 第 1 节：信封字段与版本白名单。
+// v1 是历史格式（无 `wrapped`，快照由口令派生的密钥直接加密）；v2 是当前格式（两级密钥：
+// 口令派生的 KEK 包裹随机 DEK）。**两个版本都必须接受**——线上仍有真实用户的 v1 快照，
+// 客户端读到 v1 后会自行迁移为 v2 再上传。
 const ENVELOPE_VERSION = 1;
+const ENVELOPE_VERSION_V2 = 2;
+const ENVELOPE_VERSIONS = [ENVELOPE_VERSION, ENVELOPE_VERSION_V2];
 const ENVELOPE_ALG = "AES-GCM-256";
 const KDF_ALG = "PBKDF2-SHA256";
-const ENVELOPE_FIELDS = [
+const ENVELOPE_FIELDS_V1 = [
   "v",
   "alg",
   "kdf",
@@ -28,11 +33,29 @@ const ENVELOPE_FIELDS = [
   "itemCount",
   "writer",
 ];
+const ENVELOPE_FIELDS_V2 = [
+  "v",
+  "alg",
+  "kdf",
+  "iv",
+  "ct",
+  "updatedAt",
+  "itemCount",
+  "writer",
+  "wrapped",
+];
+// 兼容旧名：默认（v1）白名单。
+const ENVELOPE_FIELDS = ENVELOPE_FIELDS_V1;
+const WRAPPED_FIELDS = ["iv", "ct"];
 const KDF_FIELDS = ["alg", "iter", "salt"];
 const SALT_BYTES = 32;
 const IV_BYTES = 12;
 // AES-GCM 128 位 tag 随密文一并 base64，所以 ct 至少 16 字节。
 const GCM_TAG_BYTES = 16;
+// 被包裹的 DEK 是 32 字节，加上 tag 后包裹块密文至少 48 字节。
+const DEK_BYTES = 32;
+const WRAPPED_IV_BYTES = IV_BYTES;
+const WRAPPED_MIN_BYTES = DEK_BYTES + GCM_TAG_BYTES;
 // crypto-spec.md 的 PBKDF2 迭代次数是 OWASP 量级（310000）；不接受明显偏弱的信封。
 const MIN_KDF_ITER = 100000;
 // 允许的客户端时钟偏移：updatedAt 不能跑到未来太远——uid 是半公开标识，一个超大值
@@ -90,20 +113,40 @@ function decodeBase64(value) {
 }
 
 /**
+ * 校验 `wrapped`（v2 才有的「被 KEK 包裹的 DEK」块）。返回 null 表示合法。
+ * 只做结构与白名单校验：不解密、不解析。
+ */
+function validateWrapped(value) {
+  if (!isPlainObject(value)) return "invalid_wrapped";
+  const keys = Object.keys(value);
+  if (keys.length !== WRAPPED_FIELDS.length) return "invalid_wrapped";
+  for (const key of WRAPPED_FIELDS) {
+    if (!keys.includes(key)) return "invalid_wrapped";
+  }
+  const iv = decodeBase64(value.iv);
+  if (iv === null || iv.length !== WRAPPED_IV_BYTES) return "invalid_wrapped";
+  const ct = decodeBase64(value.ct);
+  if (ct === null || ct.length < WRAPPED_MIN_BYTES) return "invalid_wrapped";
+  return null;
+}
+
+/**
  * 校验信封。返回 null 表示合法，否则返回面向调用方的原因码。
- * 只做结构与白名单校验：不解密、不解析 ct。
+ * 只做结构与白名单校验：不解密、不解析 ct。v1 与 v2 都接受（字段白名单按版本取）。
  */
 function validateEnvelope(value, nowMs = Date.now()) {
   if (!isPlainObject(value)) return "not_an_object";
-  for (const key of Object.keys(value)) {
-    if (!ENVELOPE_FIELDS.includes(key)) return "unknown_field";
+  if (!Number.isInteger(value.v) || !ENVELOPE_VERSIONS.includes(value.v)) {
+    return "unsupported_version";
   }
-  for (const key of ENVELOPE_FIELDS) {
+  const isV2 = value.v === ENVELOPE_VERSION_V2;
+  const fields = isV2 ? ENVELOPE_FIELDS_V2 : ENVELOPE_FIELDS_V1;
+  for (const key of Object.keys(value)) {
+    if (!fields.includes(key)) return "unknown_field";
+  }
+  for (const key of fields) {
     if (!Object.prototype.hasOwnProperty.call(value, key))
       return "missing_field";
-  }
-  if (!Number.isInteger(value.v) || value.v !== ENVELOPE_VERSION) {
-    return "unsupported_version";
   }
   if (value.alg !== ENVELOPE_ALG) return "unsupported_alg";
 
@@ -120,6 +163,11 @@ function validateEnvelope(value, nowMs = Date.now()) {
     return "invalid_kdf";
   const salt = decodeBase64(value.kdf.salt);
   if (salt === null || salt.length !== SALT_BYTES) return "invalid_kdf";
+
+  if (isV2) {
+    const wrappedReason = validateWrapped(value.wrapped);
+    if (wrappedReason !== null) return wrappedReason;
+  }
 
   const iv = decodeBase64(value.iv);
   if (iv === null || iv.length !== IV_BYTES) return "invalid_iv";
@@ -275,10 +323,25 @@ function logPayload(status, uid, bytes, ms) {
 
 module.exports = {
   UID_PATTERN,
+  WRITER_PATTERN,
   SNAPSHOT_PATH,
   OBJECT_PREFIX,
   ENVELOPE_VERSION,
+  ENVELOPE_VERSION_V2,
+  ENVELOPE_VERSIONS,
   ENVELOPE_FIELDS,
+  ENVELOPE_FIELDS_V1,
+  ENVELOPE_FIELDS_V2,
+  ENVELOPE_ALG,
+  KDF_ALG,
+  KDF_FIELDS,
+  WRAPPED_FIELDS,
+  DEK_BYTES,
+  WRAPPED_IV_BYTES,
+  WRAPPED_MIN_BYTES,
+  SALT_BYTES,
+  IV_BYTES,
+  GCM_TAG_BYTES,
   MAX_BODY_BYTES,
   MIN_KDF_ITER,
   MAX_CLOCK_SKEW_MS,
@@ -289,6 +352,7 @@ module.exports = {
   objectKey,
   metaKey,
   validateEnvelope,
+  validateWrapped,
   parseEnvelopeBody,
   normalizeMeta,
   nextMeta,

@@ -4,6 +4,33 @@ import { JOOXPlatform } from "../../platforms/JOOXPlatform";
 import { BilibiliPlatform } from "../../platforms/BilibiliPlatform";
 
 export class FavoritesService {
+  /** 最近一次收藏查询条件：云端拉取落地后按同一条件刷新已渲染的列表 */
+  private static lastQuery: {
+    platform: "netease" | "joox" | "bilibili";
+    type: "all" | "song" | "album" | "playlist" | "video";
+    itemsPerPage: number;
+  } | null = null;
+
+  /** 用最近一次的条件重新加载收藏列表（供「外部变更」通知使用） */
+  public static async reloadLastQuery(
+    ctx: MainAppContainerActionContext,
+    attempt: number = 0,
+  ): Promise<void> {
+    const last = this.lastQuery;
+    if (!last) return;
+    if (ctx.getState().isCurrentInMultiPage) {
+      // 正在看选集/多集：现在刷新会覆盖当前列表，顺延一次再来（有上限，不无限轮询）
+      if (attempt < 10) {
+        window.setTimeout(
+          () => void this.reloadLastQuery(ctx, attempt + 1),
+          1000,
+        );
+      }
+      return;
+    }
+    await this.loadFavorites(ctx, last.platform, last.type, last.itemsPerPage);
+  }
+
   /**
    * 通用收藏加载器：连接 IndexedDB、分页与同构点播分发
    */
@@ -26,6 +53,8 @@ export class FavoritesService {
     if (isCurrentInMultiPage) {
       return;
     }
+
+    this.lastQuery = { platform, type, itemsPerPage };
 
     const effectiveKeyword = (
       favoritesMode ? favoritesSearchKeyword : searchKeyword

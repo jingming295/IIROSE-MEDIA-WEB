@@ -64,7 +64,12 @@ export class MainAppContainer extends Component<
 
   componentDidMount() {
     FavoritesStorageService.init();
-    SyncManager.init();
+    // 云端拉取落地后刷新已渲染的收藏列表（外部变更通知，不会反向触发上传）
+    FavoritesStorageService.onExternalChange(() => {
+      if (!this.state.favoritesMode) return;
+      void FavoritesService.reloadLastQuery(this.getActionContext());
+    });
+    void SyncManager.init();
   }
 
   sleep(ms: number): Promise<void> {

@@ -22,6 +22,7 @@ import { JOOXService } from "./MainAppContainerServices/JOOXService";
 import { RadioService } from "./MainAppContainerServices/RadioService";
 import { FavoritesService } from "./MainAppContainerServices/FavoritesService";
 import { FavoritesStorageService } from "../storage/FavoritesStorageService";
+import { SyncManager } from "../sync/SyncManager";
 
 export class MainAppContainer extends Component<
   MainAppContainerProps,
@@ -63,6 +64,7 @@ export class MainAppContainer extends Component<
 
   componentDidMount() {
     FavoritesStorageService.init();
+    SyncManager.init();
   }
 
   sleep(ms: number): Promise<void> {
@@ -1057,6 +1059,12 @@ export class MainAppContainer extends Component<
                   this.props.changeSearchKeyword,
                   this.props.ShowOrHideIMC,
                 );
+              },
+            },
+            {
+              title: "云端同步",
+              searchAction: () => {
+                SettingsService.showSyncSettings(this.getActionContext());
               },
             },
           ],

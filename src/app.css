@@ -123,7 +123,12 @@
 .playIcon::before,
 .playlistPlusIcon::before,
 .starOutlineIcon::before,
-.starSolidIcon::before {
+.starSolidIcon::before,
+.syncCloudIcon::before,
+.syncKeyIcon::before,
+.syncClockIcon::before,
+.syncRefreshIcon::before,
+.syncDeleteIcon::before {
   font-family: "md";
 }
 
@@ -209,6 +214,27 @@
 
 .starSolidIcon::before {
   content: "\F04CE"; /* star */
+}
+
+/* 云端同步设置卡片图标（码点对 @mdi/font 7.3.67 核实） */
+.syncCloudIcon::before {
+  content: "\F063F"; /* cloud-sync */
+}
+
+.syncKeyIcon::before {
+  content: "\F030B"; /* key-variant */
+}
+
+.syncClockIcon::before {
+  content: "\F0150"; /* clock-outline */
+}
+
+.syncRefreshIcon::before {
+  content: "\F0450"; /* refresh */
+}
+
+.syncDeleteIcon::before {
+  content: "\F09E7"; /* delete-outline */
 }
 
 /* --- 6. 移动端小屏交互增强 --- */

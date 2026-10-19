@@ -4,7 +4,10 @@ import {
   CommonSettingsInterface,
 } from "../commonSettings/CommonSettings";
 import { JOOXSetting } from "../jooxSettings/JOOXSettings";
-import { PluginSettingsInterface } from "../pluginSettings/PluginSettings";
+import {
+  PluginSettings,
+  PluginSettingsInterface,
+} from "../pluginSettings/PluginSettings";
 
 export class LocalStorageUtils {
   public static Init() {
@@ -34,11 +37,18 @@ export class LocalStorageUtils {
       // 注意：如果存在深层嵌套（如 chatBox），需要手动处理深层合并
       const merged = { ...defaultSetting, ...currentSetting };
 
-      // 针对你代码中存在的深层对象特殊处理（例如 imwPluginSetting.chatBox）
+      // 针对你代码中存在的深层对象特殊处理（例如 imwPluginSetting.chatBox / sync）
       if (key === "imwPluginSetting" && currentSetting.chatBox) {
         (merged as any).chatBox = {
           ...(defaultSetting as any).chatBox,
           ...currentSetting.chatBox,
+        };
+      }
+
+      if (key === "imwPluginSetting" && currentSetting.sync) {
+        (merged as any).sync = {
+          ...(defaultSetting as any).sync,
+          ...currentSetting.sync,
         };
       }
 
@@ -133,7 +143,8 @@ export class LocalStorageUtils {
         TOSAgree: false,
       },
       Privacy: {
-        PrivacyVersion: "1.0.1",
+        // 1.0.1 → 1.0.2：新增「收藏密文上传」说明，老用户会被强制重新同意一次
+        PrivacyVersion: "1.0.2",
         PrivacyAgree: false,
       },
     };
@@ -153,6 +164,8 @@ export class LocalStorageUtils {
       },
       defaultPage: 0, // 0 为音乐, 1 为视频
       searchViewMode: "card", // 搜索结果视图：card 卡片网格 / list 列表
+      // 云同步默认值（与 PluginSettings.getPluginSetting 保持两处一致）
+      sync: PluginSettings.defaultSyncSettings(),
     };
     this.mergeSetting("imwPluginSetting", defaultPlugin);
   }

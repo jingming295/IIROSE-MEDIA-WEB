@@ -1,11 +1,14 @@
 // SettingsService.ts
 
 import { GetBiliBiliAccount } from "../../Account/BiliBili/GetBiliBili";
+import { ShowMessage } from "../../iirose_func/ShowMessage";
+import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 import { BiliBiliSettings } from "../../settings/bilibiliSettings/BiliBiliSettings";
 import { JOOXSettings } from "../../settings/jooxSettings/JOOXSettings";
 import { NetEaseSettings } from "../../settings/neteaseSettings/NetEaseSettings";
 import { PluginSettings } from "../../settings/pluginSettings/PluginSettings";
 import { RadioSettings } from "../../settings/radioSettings/RadioSettings";
+import { SyncManager } from "../../sync/SyncManager";
 
 export class SettingsService {
   /**
@@ -190,6 +193,130 @@ export class SettingsService {
     ];
 
     this.setState(ctx, data);
+  }
+
+  /**
+   * 收藏云同步设置面板（唯一入口，全部改动都发生在这里）
+   */
+  static showSyncSettings(ctx: MainAppContainerActionContext) {
+    this.setState(ctx, this.buildSyncSettings(ctx));
+  }
+
+  private static buildSyncSettings(
+    ctx: MainAppContainerActionContext,
+  ): SettingData[] {
+    const refresh = () => this.setState(ctx, this.buildSyncSettings(ctx));
+
+    const uid = SyncManager.getUid();
+    const state = SyncManager.getState();
+    const enabled = state.enabled;
+    const unlocked = state.unlocked;
+
+    const promptPassphrase = (
+      title: string,
+      onConfirm: (passphrase: string) => void,
+    ) => {
+      IIROSEUtils.sync(2, [title, "", 64], (value) => {
+        const passphrase = typeof value === "string" ? value.trim() : "";
+        if (!passphrase) return;
+        onConfirm(passphrase);
+      });
+    };
+
+    return [
+      {
+        title: "云端同步",
+        actionTitle: !uid ? "未登录账号" : enabled ? "已启用" : "未启用",
+        icon: "syncCloudIcon",
+        action: () => {
+          if (!SyncManager.getUid()) {
+            ShowMessage.show("未登录蔷薇账号，无法启用云端同步");
+            return;
+          }
+          if (SyncManager.getState().enabled) {
+            ShowMessage.show(SyncManager.disable().message);
+            refresh();
+            return;
+          }
+          promptPassphrase(
+            "设置同步口令（忘记口令将无法找回云端收藏，建议至少 8 位）",
+            (passphrase) => {
+              void SyncManager.enable(passphrase).then((res) => {
+                ShowMessage.show(res.message);
+                refresh();
+              });
+            },
+          );
+        },
+      },
+      {
+        title: "同步口令（忘记不可找回）",
+        actionTitle: !enabled ? "未启用" : unlocked ? "已解锁" : "未解锁",
+        icon: "syncKeyIcon",
+        action: () => {
+          if (!SyncManager.getState().enabled) {
+            ShowMessage.show("请先启用云端同步");
+            return;
+          }
+          promptPassphrase(
+            "输入同步口令解锁（口令只存在于内存，刷新页面后需重新输入）",
+            (passphrase) => {
+              void SyncManager.unlock(passphrase).then((res) => {
+                ShowMessage.show(res.message);
+                refresh();
+              });
+            },
+          );
+        },
+      },
+      {
+        title: "上次同步时间",
+        actionTitle: SyncManager.formatLastSyncAt(state.lastSyncAt),
+        icon: "syncClockIcon",
+        action: () => refresh(),
+      },
+      {
+        title: "立即同步",
+        actionTitle: !enabled ? "未启用" : unlocked ? "立即同步" : "需先解锁",
+        icon: "syncRefreshIcon",
+        action: () => {
+          const current = SyncManager.getState();
+          if (!current.enabled) {
+            ShowMessage.show("请先启用云端同步");
+            return;
+          }
+          if (!current.unlocked) {
+            ShowMessage.show("请先输入同步口令解锁");
+            return;
+          }
+          void SyncManager.syncNow().then((res) => {
+            ShowMessage.show(res.message);
+            refresh();
+          });
+        },
+      },
+      {
+        title: "清空云端",
+        actionTitle: enabled ? "清空云端" : "未启用",
+        icon: "syncDeleteIcon",
+        action: () => {
+          if (!SyncManager.getState().enabled) {
+            ShowMessage.show("请先启用云端同步");
+            return;
+          }
+          const content =
+            "确认清空云端收藏？\n\n" +
+            "云端保存的收藏密文将被清空（服务端保留历史版本以供回滚），本地收藏不受影响。\n" +
+            "注意：只要本地仍保留收藏，之后的收藏增删仍会上传并重建云端副本。";
+          IIROSEUtils.sync(0, [content], () => {
+            void SyncManager.clearCloud().then((res) => {
+              ShowMessage.show(res.message);
+              refresh();
+            });
+          });
+        },
+      },
+    ];
   }
 
   static setState = (

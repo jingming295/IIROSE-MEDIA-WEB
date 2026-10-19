@@ -4,6 +4,17 @@ declare global
     {
         _alert?: (message: string) => void;
 
+        /**
+         * 宿站账号标识；实测在 messages.html 上下文可直接读取，13 位 hex，
+         * 跨登出/重登稳定不变。收藏云同步以它作为分区键（非凭据）。
+         */
+        uid?: string;
+
+        /**
+         * 宿站展示昵称（可改，仅供展示，禁止用作任何键）
+         */
+        myself?: string;
+
         functionBtnDo(e: number, t?: undefined, o?: undefined): void;
 
         /**

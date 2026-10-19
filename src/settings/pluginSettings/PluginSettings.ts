@@ -3,12 +3,29 @@ import { Input_Behavior_Module } from "../../input-behavior-module/Input-Behavio
 
 export type SearchViewMode = "card" | "list";
 
+/** 云同步设置；口令**绝不**入此结构（只存内存，刷新即失锁） */
+export interface PluginSyncSettings {
+  enabled: boolean;
+  /** base64 盐，首次启用时生成并固定保存 */
+  salt: string | null;
+  lastSyncAt: number | null;
+  /** 设备随机 hex id，用于信封 writer 字段 */
+  deviceId: string;
+  /** 同步函数 URL 基址 */
+  serverUrl: string;
+}
+
+/** IIROSE-MEDIA-SYNC 函数 URL（ap-guangzhou，开放鉴权，自带 CORS 头） */
+export const DEFAULT_SYNC_SERVER_URL =
+  "https://1309510434-0wsqedndx7.ap-guangzhou.tencentscf.com";
+
 export interface PluginSettingsInterface {
   chatBox: {
     isProxyAtInput: boolean;
   };
   defaultPage: number;
   searchViewMode: SearchViewMode;
+  sync: PluginSyncSettings;
 }
 
 export class PluginSettings {
@@ -110,6 +127,7 @@ export class PluginSettings {
       // 单点归一化：手改 localStorage 产生的非法值一律回退 "card"
       parsed.searchViewMode =
         parsed.searchViewMode === "list" ? "list" : "card";
+      parsed.sync = PluginSettings.normalizeSyncSettings(parsed.sync);
       return parsed;
     }
     return {
@@ -118,6 +136,39 @@ export class PluginSettings {
       },
       defaultPage: 0,
       searchViewMode: "card",
+      sync: PluginSettings.defaultSyncSettings(),
+    };
+  }
+
+  /**
+   * 云同步设置的两处默认值之一（另一处是 LocalStorageUtils.setPluginSetting）：
+   * 漏一处老用户就会读到 undefined。
+   */
+  public static defaultSyncSettings(): PluginSyncSettings {
+    return {
+      enabled: false,
+      salt: null,
+      lastSyncAt: null,
+      deviceId: "",
+      serverUrl: DEFAULT_SYNC_SERVER_URL,
+    };
+  }
+
+  /** 归一化：手改/残留的非法值一律回退默认，键永不为 undefined */
+  public static normalizeSyncSettings(
+    raw: Partial<PluginSyncSettings> | undefined | null,
+  ): PluginSyncSettings {
+    const fallback = PluginSettings.defaultSyncSettings();
+    if (!raw || typeof raw !== "object") return fallback;
+    return {
+      enabled: raw.enabled === true,
+      salt: typeof raw.salt === "string" && raw.salt ? raw.salt : null,
+      lastSyncAt: typeof raw.lastSyncAt === "number" ? raw.lastSyncAt : null,
+      deviceId: typeof raw.deviceId === "string" ? raw.deviceId : "",
+      serverUrl:
+        typeof raw.serverUrl === "string" && raw.serverUrl
+          ? raw.serverUrl
+          : fallback.serverUrl,
     };
   }
 }

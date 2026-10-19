@@ -1,5 +1,4 @@
 import { Component } from "preact";
-import { SyncStatusIndicator } from "./SyncStatusIndicator";
 
 interface MainNavigationBarProps {
   switchCategories: (index: number) => void;
@@ -63,8 +62,6 @@ export class MainNavigationBar extends Component<
               IIROSE - MEDIA{" "}
             </div>
           </div>
-
-          <SyncStatusIndicator />
         </div>
 
         <div className="flex">

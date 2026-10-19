@@ -25,7 +25,6 @@ import {
   endRun,
   getSyncStatus,
   getUid,
-  notifySyncState,
   rt,
   setBusy,
 } from "./SyncRuntime";
@@ -211,7 +210,6 @@ export function disable(): SyncResult {
   setRemoteRev(null);
   rt.lastPullAt = 0; // 重新启用后可以立刻拉一次
   updateSyncSettings({ enabled: false });
-  notifySyncState();
   return { ok: true, message: "已关闭云端同步，本地收藏保持不变" };
 }
 

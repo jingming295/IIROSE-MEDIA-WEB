@@ -53,3 +53,7 @@
 
 <!-- /bmad:context -->
 
+
+## BMAD 流程约定
+
+- **defer 一项能力必须同轮改契约**：把某条能力推迟、降级或标为非目标时，必须在同一轮内同步改写 `_bmad-output/specs/**` 下的 SPEC 与 companion（例如 `sync-protocol.md`），写清「未实现 / 非目标 / 计划轮次」。只在代码或 deferred-work 里记一句，会让下一轮复盘把「文档已承诺、代码未实现」重新判成缺陷（见 `spec-favorites-cloud-sync` 第 2 轮复盘 R2-2/R2-8）。

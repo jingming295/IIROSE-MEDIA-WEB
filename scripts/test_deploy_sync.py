@@ -170,6 +170,22 @@ class DeploySyncTests(unittest.TestCase):
             with self.assertRaisesRegex(deploy_sync.DeploymentError, "为空"):
                 deploy_sync.build_package(source)
 
+    def test_package_entry_actually_loads_in_node(self):
+        # 不是清单自证：把包解开后真的 require 一次入口
+        deploy_sync.verify_package_loads(self.package)
+
+    def test_missing_require_target_fails_load_check(self):
+        # 清单漏掉 logic.js：打包与 namelist 断言都过得去，只有真加载会失败
+        with patch.object(
+            deploy_sync,
+            "PACKAGE_ENTRIES",
+            ("package.json", "cos.js", "index.js"),
+        ):
+            with self.assertRaisesRegex(
+                deploy_sync.DeploymentError, "校验函数代码包失败"
+            ):
+                deploy_sync.build_package()
+
     # --- upsert -------------------------------------------------------------
 
     def test_creates_function_with_role_memory_environment_and_zip(self):
@@ -631,7 +647,9 @@ class DeploySyncTests(unittest.TestCase):
         """仓库里确实能读到地址，且形态是 https 的 tencentscf 域名。"""
 
         url = deploy_sync.read_client_server_url()
-        self.assertRegex(url, r"^https://[0-9]+-[a-z0-9]+\.ap-guangzhou\.tencentscf\.com$")
+        self.assertRegex(
+            url, r"^https://[0-9]+-[a-z0-9]+\.ap-guangzhou\.tencentscf\.com$"
+        )
 
     def test_deploy_rejects_missing_credentials_before_touching_cloud(self):
         with self.assertRaisesRegex(deploy_sync.DeploymentError, "缺少"):

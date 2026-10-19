@@ -55,3 +55,40 @@ describe("normalizeSyncSettings", () => {
     ]);
   });
 });
+
+describe("搜索结果视图切换", () => {
+  it("卡片 → 列表 → 卡片：翻转并落盘", () => {
+    localStorage.clear();
+    localStorage.setItem(
+      "imwPluginSetting",
+      JSON.stringify({ searchViewMode: "card" }),
+    );
+
+    expect(PluginSettings.toggleSearchViewMode()).toBe("list");
+    expect(
+      JSON.parse(localStorage.getItem("imwPluginSetting")!).searchViewMode,
+    ).toBe("list");
+
+    expect(PluginSettings.toggleSearchViewMode()).toBe("card");
+    expect(
+      JSON.parse(localStorage.getItem("imwPluginSetting")!).searchViewMode,
+    ).toBe("card");
+  });
+
+  it("缺省或非法值一律按卡片处理，再切换一次得到列表", () => {
+    localStorage.clear();
+    expect(PluginSettings.toggleSearchViewMode()).toBe("list");
+
+    localStorage.setItem(
+      "imwPluginSetting",
+      JSON.stringify({ searchViewMode: "grid" }),
+    );
+    expect(PluginSettings.getPluginSetting().searchViewMode).toBe("card");
+    expect(PluginSettings.toggleSearchViewMode()).toBe("list");
+  });
+
+  it("展示文案与设置值一一对应", () => {
+    expect(PluginSettings.parseSearchViewMode("list")).toBe("列表");
+    expect(PluginSettings.parseSearchViewMode("card")).toBe("卡片");
+  });
+});

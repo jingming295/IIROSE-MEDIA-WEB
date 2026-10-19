@@ -15,7 +15,10 @@ import io
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 from collections.abc import Callable, Mapping
@@ -92,7 +95,39 @@ def build_package(source_dir: Path = SOURCE_DIR) -> bytes:
     package = output.getvalue()
     if len(package) > MAX_PACKAGE_BYTES:
         raise DeploymentError("函数代码包过大，无法通过 UpdateFunctionCode 上传")
+    verify_package_loads(package)
     return package
+
+
+def verify_package_loads(package: bytes) -> None:
+    """把包解到临时目录并用 Node 真加载一次入口。
+
+    清单自证（namelist == PACKAGE_ENTRIES）挡不住「清单少了一个 require 目标」——
+    那样打包与测试都全绿，线上却在每次调用时模块加载失败。这里以运行时行为为准：
+    `require('./index.js')` 成功才算产物可上线。
+    """
+
+    node = shutil.which("node")
+    if node is None:
+        raise DeploymentError("校验函数代码包失败：找不到 node")
+    with tempfile.TemporaryDirectory(prefix="iirose-sync-pkg-") as workdir:
+        with zipfile.ZipFile(io.BytesIO(package)) as archive:
+            archive.extractall(workdir)
+        try:
+            result = subprocess.run(
+                [node, "-e", "require('./index.js')"],
+                cwd=workdir,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise DeploymentError("校验函数代码包失败：加载入口超时") from exc
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "").strip().splitlines()
+            tail = detail[-1] if detail else f"退出码 {result.returncode}"
+            raise DeploymentError(f"校验函数代码包失败：{tail}")
 
 
 def _field(response: Any, name: str, default: Any = None) -> Any:

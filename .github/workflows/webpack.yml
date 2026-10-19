@@ -46,8 +46,14 @@ jobs:
           path: dist/bundle.js
           if-no-files-found: error
 
-  deploy:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+  # 两个云函数独立部署，各自一把锁、各自失败：
+  # - 前端 bundle 部署失败不该阻断同步函数的修复；
+  # - 同步函数部署失败也不该让「新 bundle + 旧函数」这种半上线状态无人察觉。
+  # 只在 main 上自动部署：任意分支 push 会把分支上的代码直接发到生产。
+  deploy-bundle:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -79,6 +85,29 @@ jobs:
           SCF_NAMESPACE: ${{ vars.SCF_NAMESPACE }}
         run: python scripts/deploy_scf.py --bundle dist/bundle.js
 
+  deploy-sync:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: scf-ap-guangzhou-iirose-media-sync
+      cancel-in-progress: false
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install deployment dependencies
+        run: python -m pip install --requirement scripts/requirements-scf.txt
+
+      # 同步函数的代码包由 scripts/deploy_sync.py 从 cloud/sync 现打，不需要前端产物
       - name: Deploy sync function to Tencent Cloud SCF
         env:
           TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}

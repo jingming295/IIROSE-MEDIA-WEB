@@ -65,6 +65,8 @@ export class MainNavigationBar extends Component<
               IIROSE - MEDIA{" "}
             </div>
           </div>
+
+          <SyncStatusIndicator onOpenSync={this.props.openSyncSettings} />
         </div>
 
         <div className="flex">
@@ -115,8 +117,6 @@ export class MainNavigationBar extends Component<
               设置{" "}
             </div>
           </div>
-
-          <SyncStatusIndicator onOpenSync={this.props.openSyncSettings} />
 
           <div
             className={this.navButtonClass(activeButtonIndex === 3)}

@@ -14,6 +14,7 @@ import base64
 import io
 import json
 import os
+import re
 import sys
 import time
 import zipfile
@@ -50,6 +51,14 @@ URL_TRIGGER_DESC = {
 URL_TRIGGER_ATTEMPTS = 5
 URL_TRIGGER_DELAY_SECONDS = 1.0
 SOURCE_DIR = Path(__file__).resolve().parent.parent / "cloud" / "sync"
+# 客户端硬编码的函数 URL 所在地；部署后必须与真实地址一致，否则全体客户端会打旧地址
+CLIENT_SETTINGS_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "src"
+    / "settings"
+    / "pluginSettings"
+    / "PluginSettings.ts"
+)
 # 进包的文件：入口、依赖与模块类型声明；测试与仓库其余内容不入包。
 PACKAGE_ENTRIES = ("package.json", "cos.js", "logic.js", "index.js")
 # base64 后约 20 MiB，即 UpdateFunctionCode ZipFile 的上限。
@@ -409,6 +418,44 @@ def ensure_concurrency(client: Any, namespace: str) -> None:
     call_api(client, "PutReservedConcurrencyConfig", request)
 
 
+def read_client_server_url(path: Path = CLIENT_SETTINGS_PATH) -> str:
+    """读出客户端硬编码的函数 URL（`DEFAULT_SYNC_SERVER_URL`）。读不到返回空串。"""
+
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    match = re.search(
+        r"DEFAULT_SYNC_SERVER_URL\s*=\s*[\"']([^\"']+)[\"']",
+        raw,
+    )
+    return match.group(1).strip() if match else ""
+
+
+def verify_client_server_url(
+    deployed_url: str,
+    client_url: str,
+) -> None:
+    """函数 URL 与客户端常量必须一致。
+
+    函数被重建时 URL 的实例 id 会变，而客户端把它编译进 bundle——不同步就是
+    「全体客户端打旧地址、所有检查全绿」。宁可让部署失败。
+    """
+
+    if not deployed_url:
+        raise DeploymentError("未能从函数 URL 触发器读到地址，无法校验与客户端一致")
+    if not client_url:
+        raise DeploymentError(
+            "未能从 src/settings/pluginSettings/PluginSettings.ts 读到 "
+            "DEFAULT_SYNC_SERVER_URL，无法校验函数 URL 一致性"
+        )
+    if deployed_url.rstrip("/") != client_url.rstrip("/"):
+        raise DeploymentError(
+            "函数 URL 与客户端硬编码的 DEFAULT_SYNC_SERVER_URL 不一致："
+            "请把客户端常量更新为本次部署的地址后重新提交"
+        )
+
+
 def deploy_package(client: Any, namespace: str, package: bytes) -> str:
     if function_exists(client, namespace):
         # 先收敛配置再换代码，两次变更之间等就绪：平台的并发更新会被拒绝。
@@ -465,6 +512,11 @@ def main(argv: list[str] | None = None) -> int:
             "部署失败: 无法读取源码、加载 SDK 或处理代码包；未输出敏感异常详情",
             file=sys.stderr,
         )
+        return 1
+    try:
+        verify_client_server_url(url, read_client_server_url())
+    except DeploymentError as exc:
+        print(f"部署失败: {exc}", file=sys.stderr)
         return 1
     print(
         f"已确保 {REGION} / {namespace} / {FUNCTION_NAME} 的代码与函数 URL（开放鉴权），"

@@ -550,6 +550,12 @@ class DeploySyncTests(unittest.TestCase):
                 "deploy",
                 return_value="https://1-abc.ap-guangzhou.tencentscf.com",
             ),
+            # 客户端常量必须与部署地址一致，否则 main 会拒绝（见 addCleanup 后的用例）
+            patch.object(
+                deploy_sync,
+                "read_client_server_url",
+                return_value="https://1-abc.ap-guangzhou.tencentscf.com",
+            ),
             patch.dict(
                 deploy_sync.os.environ,
                 {
@@ -567,6 +573,65 @@ class DeploySyncTests(unittest.TestCase):
         self.assertIn("tencentscf.com", printed)
         self.assertNotIn("secret-id", printed)
         self.assertNotIn("secret-key", printed)
+
+    def test_main_fails_when_client_url_drifted_from_deployed(self):
+        """函数 URL 变了而客户端常量没改：必须让部署失败，否则全体客户端打旧地址。"""
+
+        output = io.StringIO()
+        with (
+            patch.object(
+                deploy_sync,
+                "deploy",
+                return_value="https://9-new.ap-guangzhou.tencentscf.com",
+            ),
+            patch.object(
+                deploy_sync,
+                "read_client_server_url",
+                return_value="https://1-old.ap-guangzhou.tencentscf.com",
+            ),
+            patch.dict(
+                deploy_sync.os.environ,
+                {
+                    "TENCENT_SECRET_ID": "secret-id",
+                    "TENCENT_SECRET_KEY": "secret-key",
+                },
+            ),
+            redirect_stderr(output),
+            redirect_stdout(output),
+        ):
+            result = deploy_sync.main(["--source", "cloud/sync"])
+        self.assertEqual(result, 1)
+        self.assertIn("DEFAULT_SYNC_SERVER_URL", output.getvalue())
+        self.assertNotIn("secret-id", output.getvalue())
+
+    def test_main_fails_when_client_url_is_unreadable(self):
+        output = io.StringIO()
+        with (
+            patch.object(
+                deploy_sync,
+                "deploy",
+                return_value="https://1-abc.ap-guangzhou.tencentscf.com",
+            ),
+            patch.object(deploy_sync, "read_client_server_url", return_value=""),
+            patch.dict(
+                deploy_sync.os.environ,
+                {
+                    "TENCENT_SECRET_ID": "secret-id",
+                    "TENCENT_SECRET_KEY": "secret-key",
+                },
+            ),
+            redirect_stderr(output),
+            redirect_stdout(output),
+        ):
+            result = deploy_sync.main(["--source", "cloud/sync"])
+        self.assertEqual(result, 1)
+        self.assertIn("无法校验", output.getvalue())
+
+    def test_read_client_server_url_reads_the_real_repo_constant(self):
+        """仓库里确实能读到地址，且形态是 https 的 tencentscf 域名。"""
+
+        url = deploy_sync.read_client_server_url()
+        self.assertRegex(url, r"^https://[0-9]+-[a-z0-9]+\.ap-guangzhou\.tencentscf\.com$")
 
     def test_deploy_rejects_missing_credentials_before_touching_cloud(self):
         with self.assertRaisesRegex(deploy_sync.DeploymentError, "缺少"):

@@ -1081,8 +1081,13 @@ test("跨端信封常量一致（客户端 SyncCrypto.ts ↔ 服务端 logic.js�
 
   assert.equal(
     clientConst("ENVELOPE_VERSION_V1"),
-    logic.ENVELOPE_VERSION,
+    logic.ENVELOPE_VERSION_V1,
     "客户端认为的 v1 必须就是服务端的历史版本号",
+  );
+  assert.equal(
+    clientConst("ENVELOPE_VERSION"),
+    logic.ENVELOPE_VERSION_CURRENT,
+    "客户端当前写入的版本号必须等于服务端认定的当前版本（同名常量曾被写反过）",
   );
   assert.ok(
     logic.ENVELOPE_VERSIONS.includes(clientConst("ENVELOPE_VERSION")),

@@ -61,7 +61,7 @@ python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
 
 ## 自动部署同步云函数（IIROSE-MEDIA-SYNC）
 
-同一 workflow 的 `deploy` job 在 `IIROSE-MEDIA-WEB` 之后执行 `python scripts/deploy_sync.py`，幂等地创建或更新收藏云同步后端。插件侧的同步客户端（`src/sync/`）已经就绪：两级密钥（随机 DEK + 口令派生的 KEK）在本机完成加解密，请求直连该函数 URL，入口在设置面板的「插件设置 → 云端同步」（默认关闭，需用户主动启用并设置同步口令；启用后每次进入插件会自动拉取一次）。
+同一 workflow 的 `deploy` job 在 `IIROSE-MEDIA-WEB` 之后执行 `python scripts/deploy_sync.py`，幂等地创建或更新收藏云同步后端。插件侧的同步客户端（`src/sync/`）已经就绪：两级密钥（随机 DEK + 口令派生的 KEK）在本机完成加解密，请求直连该函数 URL，入口在设置面板的「插件设置 → 云端同步」（默认关闭，需用户主动启用并设置同步口令；启用后：插件激活时拉取一次、打开面板/切回标签页/窗口获得焦点时按 60 秒冷却即时拉取、面板打开期间每 5 分钟兜底拉取）。
 
 前置条件（脚本不创建这些资源；缺失时部署会失败）：
 

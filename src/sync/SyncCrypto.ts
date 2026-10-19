@@ -51,6 +51,12 @@ export const ENVELOPE_FIELDS_V2 = [
   "wrapped",
 ];
 export const WRAPPED_FIELDS = ["iv", "ct"];
+/** `kdf` 的字段闭集（与 cloud/sync/logic.js 的 KDF_FIELDS 对齐：多一个键即拒） */
+export const KDF_FIELDS = ["alg", "iter", "salt"];
+/** 服务端允许的时钟偏移上限（cloud/sync/logic.js 的 MAX_CLOCK_SKEW_MS） */
+export const MAX_CLOCK_SKEW_MS = 10 * 60 * 1000;
+/** 写入设备 id 的形态（cloud/sync/logic.js 的 WRITER_PATTERN） */
+export const WRITER_PATTERN = /^[0-9a-f]{16}$/;
 /** 包裹块的 iv 长度（= IV_BYTES，逐字写死以便跨端断言比对） */
 export const WRAPPED_IV_BYTES = 12;
 /** 包裹块的密文下限：DEK(32B) + GCM tag(16B)（逐字写死，跨端断言会校验与 DEK_BYTES/tag 的关系） */
@@ -450,6 +456,9 @@ export class SyncCrypto {
     const kdf = envelope.kdf as SyncEnvelope["kdf"] | undefined;
     if (
       !isPlainObject(kdf) ||
+      // 闭集：多一个键服务端就拒，客户端也必须拒，否则会写出必然 400 的信封
+      Object.keys(kdf).length !== KDF_FIELDS.length ||
+      !KDF_FIELDS.every((field) => field in kdf) ||
       kdf.alg !== KDF_ALG ||
       !Number.isInteger(kdf.iter) ||
       (kdf.iter as number) < MIN_KDF_ITERATIONS ||
@@ -461,8 +470,11 @@ export class SyncCrypto {
       typeof envelope.iv !== "string" ||
       typeof envelope.ct !== "string" ||
       typeof envelope.writer !== "string" ||
+      !WRITER_PATTERN.test(envelope.writer) ||
       !Number.isInteger(envelope.updatedAt) ||
       (envelope.updatedAt as number) <= 0 ||
+      // 上界：未来时间戳能把别人的同步永久锁死，服务端已经不收，客户端也要提前拦住
+      (envelope.updatedAt as number) > Date.now() + MAX_CLOCK_SKEW_MS ||
       !Number.isInteger(envelope.itemCount) ||
       (envelope.itemCount as number) < 0
     ) {

@@ -18,9 +18,12 @@ const OBJECT_PREFIX = "sync/";
 // v1 是历史格式（无 `wrapped`，快照由口令派生的密钥直接加密）；v2 是当前格式（两级密钥：
 // 口令派生的 KEK 包裹随机 DEK）。**两个版本都必须接受**——线上仍有真实用户的 v1 快照，
 // 客户端读到 v1 后会自行迁移为 v2 再上传。
-const ENVELOPE_VERSION = 1;
+// 命名刻意显式：曾经的 `ENVELOPE_VERSION` 指向 1（历史格式），与客户端同名常量（=2）
+// 语义相反，是个只要照名字直觉引用就会踩的陷阱。现在「当前版本」只有一个名字。
+const ENVELOPE_VERSION_V1 = 1;
 const ENVELOPE_VERSION_V2 = 2;
-const ENVELOPE_VERSIONS = [ENVELOPE_VERSION, ENVELOPE_VERSION_V2];
+const ENVELOPE_VERSION_CURRENT = ENVELOPE_VERSION_V2;
+const ENVELOPE_VERSIONS = [ENVELOPE_VERSION_V1, ENVELOPE_VERSION_V2];
 const ENVELOPE_ALG = "AES-GCM-256";
 const KDF_ALG = "PBKDF2-SHA256";
 const ENVELOPE_FIELDS_V1 = [
@@ -45,7 +48,6 @@ const ENVELOPE_FIELDS_V2 = [
   "wrapped",
 ];
 // 兼容旧名：默认（v1）白名单。
-const ENVELOPE_FIELDS = ENVELOPE_FIELDS_V1;
 const WRAPPED_FIELDS = ["iv", "ct"];
 const KDF_FIELDS = ["alg", "iter", "salt"];
 const SALT_BYTES = 32;
@@ -326,10 +328,10 @@ module.exports = {
   WRITER_PATTERN,
   SNAPSHOT_PATH,
   OBJECT_PREFIX,
-  ENVELOPE_VERSION,
+  ENVELOPE_VERSION_V1,
   ENVELOPE_VERSION_V2,
+  ENVELOPE_VERSION_CURRENT,
   ENVELOPE_VERSIONS,
-  ENVELOPE_FIELDS,
   ENVELOPE_FIELDS_V1,
   ENVELOPE_FIELDS_V2,
   ENVELOPE_ALG,

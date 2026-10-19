@@ -24,7 +24,7 @@ async function context(passphrase = PASSPHRASE, uid = UID) {
 function snapshot(): SyncSnapshot {
   return {
     version: 2,
-    updatedAt: 1_800_000_000_000,
+    updatedAt: Date.now(),
     items: [
       {
         key: "netease:song:1",
@@ -163,7 +163,7 @@ describe("信封校验", () => {
       },
       iv: toB64(new Uint8Array(IV_BYTES)),
       ct: toB64(new Uint8Array(64)),
-      updatedAt: 1_800_000_000_000,
+      updatedAt: Date.now(),
       itemCount: 1,
       writer: "0123456789abcdef",
       ...over,

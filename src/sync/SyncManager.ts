@@ -103,6 +103,34 @@ let pendingAfterBusy = false;
 let listenerRegistered = false;
 let runController: AbortController | null = null;
 
+/** 事件触发的自动拉取之间的最小间隔（避免反复切标签页时连发） */
+const AUTO_PULL_COOLDOWN_MS = 60_000;
+/** 插件 UI 打开期间的兜底拉取间隔：聊天站里页面常驻可见，光靠可见性事件不会触发 */
+const UI_PULL_INTERVAL_MS = 5 * 60_000;
+/** 上次成功发出 GET 的时间（含 304）；只存内存，刷新后归零 */
+let lastPullAt = 0;
+let uiPullTimer: number | null = null;
+let activateTriggersRegistered = false;
+
+export interface AutoPullGate {
+  enabled: boolean;
+  hasContext: boolean;
+  busy: boolean;
+  lastPullAt: number;
+  now: number;
+  cooldownMs?: number;
+}
+
+/**
+ * 「现在该不该为一次事件触发去拉云端」——只做判定，不碰网络，便于单测。
+ * 三道条件缺一不可：同步已启用、本机已解锁、当前没有在跑。
+ */
+export function shouldAutoPull(gate: AutoPullGate): boolean {
+  if (!gate.enabled || !gate.hasContext || gate.busy) return false;
+  const cooldown = gate.cooldownMs ?? AUTO_PULL_COOLDOWN_MS;
+  return gate.now - gate.lastPullAt >= cooldown;
+}
+
 function getSyncSettings(): PluginSyncSettings {
   return PluginSettings.normalizeSyncSettings(
     PluginSettings.getPluginSetting().sync,
@@ -217,7 +245,58 @@ export class SyncManager {
         scheduleUpload();
       });
     }
+    this.registerActivateTriggers();
     await this.autoUnlockFromCache();
+  }
+
+  /**
+   * 注册「用户回到页面」类触发：切回标签页、窗口获得焦点。
+   * 聊天站里页面常驻可见，光靠这些事件不够，因此插件 UI 打开期间另有兜底定时器
+   * （见 onUiOpened），两条路都只发一次 GET，命中 304 时出网约 200 字节。
+   */
+  private static registerActivateTriggers(): void {
+    if (activateTriggersRegistered) return;
+    if (typeof document === "undefined" || typeof window === "undefined")
+      return;
+    activateTriggersRegistered = true;
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") this.maybeAutoPull();
+    });
+    window.addEventListener("focus", () => this.maybeAutoPull());
+  }
+
+  /** 事件触发的静默拉取：只拉不写，失败不打扰用户 */
+  private static maybeAutoPull(): void {
+    const allowed = shouldAutoPull({
+      enabled: getSyncSettings().enabled,
+      hasContext: !!this.currentContext(),
+      busy,
+      lastPullAt,
+      now: Date.now(),
+    });
+    if (!allowed) return;
+    // 先占位再发请求，避免同一批事件（focus + visibilitychange）连发两次
+    lastPullAt = Date.now();
+    void this.pullOnly();
+  }
+
+  /** 插件 UI 打开：立刻尝试拉一次，并启动 UI 期间的兜底定时器 */
+  public static onUiOpened(): void {
+    if (uiPullTimer === null && typeof window !== "undefined") {
+      uiPullTimer = window.setInterval(
+        () => this.maybeAutoPull(),
+        UI_PULL_INTERVAL_MS,
+      );
+    }
+    this.maybeAutoPull();
+  }
+
+  /** 插件 UI 关闭：停掉兜底定时器，避免后台空转 */
+  public static onUiClosed(): void {
+    if (uiPullTimer !== null) {
+      clearInterval(uiPullTimer);
+      uiPullTimer = null;
+    }
   }
 
   /** 防抖到期后的实际上传；失败只提示，本地数据不受影响 */
@@ -409,6 +488,7 @@ export class SyncManager {
     runController = null;
     unlocked = null;
     remoteRev = null;
+    lastPullAt = 0; // 重新启用后可以立刻拉一次
     updateSyncSettings({ enabled: false });
     return { ok: true, message: "已关闭云端同步，本地收藏保持不变" };
   }
@@ -486,6 +566,8 @@ export class SyncManager {
     signal: AbortSignal,
   ): Promise<RemoteState> {
     const result = await ctx.client.get(useRev ? remoteRev : null, signal);
+    // 成功拿到响应（200 或 304）都算「刚拉过」，用于自动拉取的冷却判定
+    lastPullAt = Date.now();
     if (result.notModified) return { notModified: true };
     return {
       notModified: false,
@@ -581,7 +663,11 @@ export class SyncManager {
         //（口令派生 KEK 去解包缓存的 wrapped）：否则打错的口令也会被静默「启用」，
         // 而 wrapped 与真实口令不符，换设备就再也解不开。
         const cached = await SyncKeyCache.get(uid);
-        if (cached && cached.salt === salt && (await this.cacheMatchesPassphrase(cached, kek, uid))) {
+        if (
+          cached &&
+          cached.salt === salt &&
+          (await this.cacheMatchesPassphrase(cached, kek, uid))
+        ) {
           dek = cached.dek;
           wrapped = cached.wrapped;
         } else {

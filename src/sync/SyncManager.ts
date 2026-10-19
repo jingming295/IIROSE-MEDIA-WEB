@@ -9,7 +9,12 @@
 //   - SyncSettingsStore 设置持久化与 remoteRev 单一入口
 //   - SyncGate       纯判定与文案
 // UI 与宿主代码只通过本文件交互。
-import { getUid } from "./SyncRuntime";
+import {
+  getSyncStatus,
+  getUid,
+  onSyncStateChange,
+  type SyncStatus,
+} from "./SyncRuntime";
 import * as enableFlow from "./SyncEnableFlow";
 import * as lifecycle from "./SyncLifecycle";
 import * as transport from "./SyncTransport";
@@ -33,6 +38,17 @@ export class SyncManager {
 
   public static getState(): SyncStateView {
     return lifecycle.getState();
+  }
+
+  /** 订阅同步状态变化；返回取消订阅函数（面板离开时必须调用） */
+  public static onStateChange(
+    listener: (status: SyncStatus) => void,
+  ): () => void {
+    return onSyncStateChange(listener);
+  }
+
+  public static getStatus(): SyncStatus {
+    return getSyncStatus();
   }
 
   public static formatLastSyncAt(lastSyncAt: number | null): string {

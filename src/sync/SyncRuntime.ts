@@ -80,3 +80,76 @@ export function beginRun(): AbortController {
 export function endRun(controller: AbortController): void {
   if (rt.runController === controller) rt.runController = null;
 }
+
+// —— 同步状态（供设置面板常驻显示） —— //
+
+export type SyncPhase = "idle" | "syncing" | "error";
+
+export interface SyncStatus {
+  phase: SyncPhase;
+  /** 最近一次失败原因（成功后清空） */
+  message: string | null;
+  /** 状态变化时间戳 */
+  at: number;
+}
+
+let status: SyncStatus = { phase: "idle", message: null, at: 0 };
+const statusListeners = new Set<(next: SyncStatus) => void>();
+
+export function getSyncStatus(): SyncStatus {
+  return status;
+}
+
+/** 订阅状态变化；返回取消订阅函数（面板离开时必须调用，避免重复渲染） */
+export function onSyncStateChange(
+  listener: (next: SyncStatus) => void,
+): () => void {
+  statusListeners.add(listener);
+  return () => {
+    statusListeners.delete(listener);
+  };
+}
+
+function publish(next: SyncStatus): void {
+  status = next;
+  for (const listener of Array.from(statusListeners)) {
+    try {
+      listener(status);
+    } catch (error) {
+      console.error("[SyncManager] 状态订阅回调异常:", error);
+    }
+  }
+}
+
+/** 进入/离开同步流程：进入即「同步中」，离开时按有无失败原因回落 */
+export function setBusy(busy: boolean): void {
+  rt.busy = busy;
+  publish({
+    phase: busy ? "syncing" : status.message ? "error" : "idle",
+    message: status.message,
+    at: Date.now(),
+  });
+}
+
+/**
+ * 记录一次同步结果：成功清空失败原因并回到空闲，失败保留原因供面板显示「待重试」。
+ * 只在「已启用」的同步路径上调用——预览口令错误不是待重试状态。
+ */
+export function recordSyncResult(result: {
+  ok: boolean;
+  message: string;
+}): void {
+  if (result.ok) {
+    publish({
+      phase: rt.busy ? "syncing" : "idle",
+      message: null,
+      at: Date.now(),
+    });
+    return;
+  }
+  publish({
+    phase: "error",
+    message: result.message,
+    at: Date.now(),
+  });
+}

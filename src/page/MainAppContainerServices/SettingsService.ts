@@ -201,7 +201,12 @@ export class SettingsService {
    * 收藏云同步设置面板（唯一入口，全部改动都发生在这里）
    */
   static async showSyncSettings(ctx: MainAppContainerActionContext) {
-    this.setState(ctx, await this.buildSyncSettings(ctx));
+    // 直接 setState 会先清订阅；这里反过来：先渲染，再（重）订阅
+    ctx.setState({ settingsData: await this.buildSyncSettings(ctx) });
+    this.syncStatusUnsub?.();
+    this.syncStatusUnsub = SyncManager.onStateChange(() => {
+      void this.showSyncSettings(ctx);
+    });
   }
 
   private static async buildSyncSettings(
@@ -250,6 +255,28 @@ export class SettingsService {
           );
         },
       },
+      ...(enabled
+        ? [
+            {
+              title: "同步状态",
+              actionTitle:
+                state.status.phase === "syncing"
+                  ? "同步中…"
+                  : state.status.phase === "error"
+                    ? "待重试"
+                    : "正常",
+              icon: "syncRefreshIcon",
+              action: () => {
+                const current = SyncManager.getStatus();
+                if (current.message) {
+                  ShowMessage.show(current.message);
+                  return;
+                }
+                refresh();
+              },
+            } satisfies SettingData,
+          ]
+        : []),
       {
         title: "同步口令（忘记不可找回）",
         actionTitle: !enabled ? "未启用" : unlocked ? "已解锁" : "未解锁",
@@ -427,10 +454,15 @@ export class SettingsService {
     );
   }
 
+  /** 同步状态订阅：离开同步面板时必须释放，避免别处导航后仍被状态变化重绘 */
+  private static syncStatusUnsub: (() => void) | null = null;
+
   static setState = (
     ctx: MainAppContainerActionContext,
     settingsData: SettingData[],
   ) => {
+    this.syncStatusUnsub?.();
+    this.syncStatusUnsub = null;
     ctx.setState({ settingsData });
   };
 }

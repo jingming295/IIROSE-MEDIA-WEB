@@ -2,6 +2,7 @@
 // 同步层的公共类型。放在单独文件是为了让 runtime / transport / enable / lifecycle
 // 四个模块都能引用同一份定义，而不必互相依赖实现。
 import type { UnlockedSync } from "./SyncContext";
+import type { SyncStatus } from "./SyncRuntime";
 import type { MergeStats, SyncSnapshot } from "./SyncMerge";
 import type { SyncEnvelope } from "./SyncCrypto";
 
@@ -12,6 +13,8 @@ export interface SyncStateView {
   busy: boolean;
   lastSyncAt: number | null;
   serverUrl: string;
+  /** 常驻状态：空闲 / 同步中 / 待重试（含失败原因） */
+  status: SyncStatus;
 }
 
 export interface SyncResult {

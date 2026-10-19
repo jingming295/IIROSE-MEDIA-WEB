@@ -10,7 +10,14 @@ import {
 } from "./SyncContext";
 import { formatMergeStats } from "./SyncGate";
 import { getSyncSettings, updateSyncSettings } from "./SyncSettingsStore";
-import { beginRun, cancelDebounce, endRun, getUid, rt } from "./SyncRuntime";
+import {
+  beginRun,
+  cancelDebounce,
+  endRun,
+  getUid,
+  rt,
+  setBusy,
+} from "./SyncRuntime";
 import {
   flushPendingUpload,
   performSync,
@@ -55,7 +62,7 @@ export async function previewEnable(
   const deviceId = settings.deviceId || SyncCrypto.generateDeviceId();
   // 重新预览先丢掉上一次的暂存，避免确认时用上过期的云端快照
   rt.pendingEnable = null;
-  rt.busy = true;
+  setBusy(true);
   const controller = beginRun();
   try {
     const client = new SyncClient(settings.serverUrl, uid);
@@ -109,7 +116,7 @@ export async function previewEnable(
     return { ok: false, message: describeSyncError(error) };
   } finally {
     endRun(controller);
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }
@@ -137,7 +144,7 @@ export async function commitEnable(): Promise<SyncResult> {
   }
 
   const generation = rt.generation;
-  rt.busy = true;
+  setBusy(true);
   const controller = beginRun();
   try {
     const result = await performSync(pending.ctx, pending.prefetched);
@@ -173,7 +180,7 @@ export async function commitEnable(): Promise<SyncResult> {
     return { ok: false, message: describeSyncError(error) };
   } finally {
     endRun(controller);
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }

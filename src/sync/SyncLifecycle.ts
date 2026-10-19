@@ -23,8 +23,10 @@ import {
   beginRun,
   cancelDebounce,
   endRun,
+  getSyncStatus,
   getUid,
   rt,
+  setBusy,
 } from "./SyncRuntime";
 import {
   flushPendingUpload,
@@ -46,6 +48,7 @@ export function getState(): SyncStateView {
     busy: rt.busy,
     lastSyncAt: settings.lastSyncAt,
     serverUrl: settings.serverUrl,
+    status: getSyncStatus(),
   };
 }
 
@@ -142,7 +145,7 @@ export async function unlock(passphrase: string): Promise<SyncResult> {
   if (rt.busy) return { ok: false, message: "同步正在进行，请稍候" };
 
   const deviceId = ensureDeviceId();
-  rt.busy = true;
+  setBusy(true);
   const controller = beginRun();
   try {
     const client = new SyncClient(settings.serverUrl, uid);
@@ -181,7 +184,7 @@ export async function unlock(passphrase: string): Promise<SyncResult> {
     return { ok: false, message: describeSyncError(error) };
   } finally {
     endRun(controller);
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }
@@ -243,7 +246,7 @@ export async function clearCloud(): Promise<SyncResult> {
   // 否则 finally 的 flush 会在清空后 5 秒把云端重新写回去
   cancelDebounce();
   rt.pendingAfterBusy = false;
-  rt.busy = true;
+  setBusy(true);
   const controller = beginRun();
   try {
     const client = new SyncClient(getSyncSettings().serverUrl, uid);
@@ -254,7 +257,7 @@ export async function clearCloud(): Promise<SyncResult> {
     return { ok: false, message: describeSyncError(error) };
   } finally {
     endRun(controller);
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }

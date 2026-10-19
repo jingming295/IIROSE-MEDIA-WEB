@@ -35,7 +35,9 @@ import {
   cancelDebounce,
   endRun,
   getUid,
+  recordSyncResult,
   rt,
+  setBusy,
 } from "./SyncRuntime";
 import type { PrefetchedRemote, RemoteState, SyncResult } from "./SyncTypes";
 
@@ -102,13 +104,17 @@ export async function pullOnly(): Promise<SyncResult> {
   if (!ctx || rt.busy) {
     return { ok: false, message: "请先输入同步口令解锁" };
   }
-  rt.busy = true;
+  setBusy(true);
   try {
-    return await performSync(ctx, undefined, { pullOnly: true });
+    const result = await performSync(ctx, undefined, { pullOnly: true });
+    recordSyncResult(result);
+    return result;
   } catch (error) {
-    return { ok: false, message: describeSyncError(error) };
+    const result = { ok: false, message: describeSyncError(error) };
+    recordSyncResult(result);
+    return result;
   } finally {
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }
@@ -127,13 +133,17 @@ export async function syncNow(): Promise<SyncResult> {
   }
   if (rt.busy) return { ok: false, message: "同步正在进行，请稍候" };
 
-  rt.busy = true;
+  setBusy(true);
   try {
-    return await performSync(ctx);
+    const result = await performSync(ctx);
+    recordSyncResult(result);
+    return result;
   } catch (error) {
-    return { ok: false, message: describeSyncError(error) };
+    const result = { ok: false, message: describeSyncError(error) };
+    recordSyncResult(result);
+    return result;
   } finally {
-    rt.busy = false;
+    setBusy(false);
     flushPendingUpload();
   }
 }

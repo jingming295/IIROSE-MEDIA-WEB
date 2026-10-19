@@ -5,6 +5,12 @@ import {
   shouldAutoPull,
   shouldUpload,
 } from "./SyncGate";
+import {
+  getSyncStatus,
+  onSyncStateChange,
+  recordSyncResult,
+  setBusy,
+} from "./SyncRuntime";
 
 /**
  * 自动拉取的判定是纯函数，这里单独覆盖——它决定「B 设备到底会不会自己更新」，
@@ -97,5 +103,46 @@ describe("chooseEnableStep", () => {
 
   it("云端有数据 → 必须走确认框", () => {
     expect(chooseEnableStep({ ok: true, cloudEmpty: false })).toBe("confirm");
+  });
+});
+
+describe("同步状态（设置面板常驻显示）", () => {
+  it("进入同步 → 同步中；失败 → 待重试并保留原因；成功 → 清空原因", () => {
+    const seen: string[] = [];
+    const off = onSyncStateChange((s) => {
+      seen.push(`${s.phase}:${s.message ?? ""}`);
+    });
+
+    setBusy(true);
+    expect(getSyncStatus().phase).toBe("syncing");
+
+    recordSyncResult({ ok: false, message: "网络错误，请稍后重试" });
+    setBusy(false);
+    expect(getSyncStatus()).toEqual({
+      phase: "error",
+      message: "网络错误，请稍后重试",
+      at: expect.any(Number),
+    });
+
+    recordSyncResult({ ok: true, message: "同步完成" });
+    expect(getSyncStatus().phase).toBe("idle");
+    expect(getSyncStatus().message).toBeNull();
+
+    expect(seen.length).toBeGreaterThan(0);
+    off();
+  });
+
+  it("取消订阅后不再收到状态变化", () => {
+    let calls = 0;
+    const off = onSyncStateChange(() => {
+      calls += 1;
+    });
+    off();
+
+    setBusy(true);
+    setBusy(false);
+    recordSyncResult({ ok: true, message: "同步完成" });
+
+    expect(calls).toBe(0);
   });
 });

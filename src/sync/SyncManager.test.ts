@@ -4,7 +4,7 @@ import {
   formatMergeStats,
   shouldAutoPull,
   shouldUpload,
-} from "./SyncManager";
+} from "./SyncGate";
 
 /**
  * 自动拉取的判定是纯函数，这里单独覆盖——它决定「B 设备到底会不会自己更新」，

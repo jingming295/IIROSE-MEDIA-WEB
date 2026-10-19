@@ -8,11 +8,8 @@ import { JOOXSettings } from "../../settings/jooxSettings/JOOXSettings";
 import { NetEaseSettings } from "../../settings/neteaseSettings/NetEaseSettings";
 import { PluginSettings } from "../../settings/pluginSettings/PluginSettings";
 import { RadioSettings } from "../../settings/radioSettings/RadioSettings";
-import {
-  chooseEnableStep,
-  formatMergeStats,
-  SyncManager,
-} from "../../sync/SyncManager";
+import { SyncManager } from "../../sync/SyncManager";
+import { chooseEnableStep, formatMergeStats } from "../../sync/SyncGate";
 import type { MergeStats } from "../../sync/SyncMerge";
 
 export class SettingsService {

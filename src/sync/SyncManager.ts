@@ -11,19 +11,32 @@ import {
   FavoritesStorageService,
   type FavoriteSyncItem,
 } from "../storage/FavoritesStorageService";
+import { PluginSettings } from "../settings/pluginSettings/PluginSettings";
 import {
-  PluginSettings,
-  type PluginSyncSettings,
-} from "../settings/pluginSettings/PluginSettings";
+  ensureDeviceId,
+  getRemoteRev,
+  getSyncSettings,
+  restoreRemoteRev,
+  setRemoteRev,
+  updateSyncSettings,
+} from "./SyncSettingsStore";
 import { ShowMessage } from "../iirose_func/ShowMessage";
-import { SyncKeyCache } from "./SyncKeyCache";
 import { SyncClient, SyncClientError, describeSyncError } from "./SyncClient";
+import { SyncKeyCache } from "./SyncKeyCache";
+import { SyncCrypto, type SyncEnvelope } from "./SyncCrypto";
 import {
-  DEFAULT_KDF_ITERATIONS,
-  SyncCrypto,
-  type SyncEnvelope,
-  type SyncWrappedKey,
-} from "./SyncCrypto";
+  SYNC_MESSAGE_WRONG_PASSPHRASE,
+  normalizePassphrase,
+  rememberUnlocked,
+  resolveContext,
+  type UnlockedSync,
+} from "./SyncContext";
+import {
+  describeStats,
+  formatMergeStats,
+  shouldAutoPull,
+  shouldUpload,
+} from "./SyncGate";
 import {
   SNAPSHOT_VERSION,
   buildSnapshot,
@@ -33,12 +46,12 @@ import {
   type SyncSnapshot,
 } from "./SyncMerge";
 
+export { SYNC_MESSAGE_WRONG_PASSPHRASE } from "./SyncContext";
+
 /** 收藏增删后合并为一次上传的防抖窗口 */
 const UPLOAD_DEBOUNCE_MS = 5000;
 /** 与后端 cloud/sync/logic.js 的 UID_PATTERN 对齐（uid 是分区键，不是凭据） */
 const UID_PATTERN = /^[0-9a-f]{8,32}$/;
-
-export const SYNC_MESSAGE_WRONG_PASSPHRASE = "同步口令不正确，云端数据未被修改";
 
 export interface SyncStateView {
   uid: string | null;
@@ -62,52 +75,6 @@ export interface SyncResult {
 export type SyncPreviewResult =
   | { ok: true; message: string; stats: MergeStats; cloudEmpty: boolean }
   | { ok: false; message: string };
-
-/** 防抖上传的放行条件（抽成纯函数，便于单测「预览期间零 PUT」） */
-export interface UploadGate {
-  /** 同步已启用 */
-  enabled: boolean;
-  /** 当前 uid 已有解锁句柄 */
-  hasContext: boolean;
-  /** 首次启用的合并结果仍待用户确认 */
-  previewPending: boolean;
-}
-
-/**
- * 防抖上传是否放行：预览待确认期间一律不放行。
- * 「确认前不得有任何上传」只能靠这道门——不能用提前置 `enabled` 的方式来表达预览中。
- */
-export function shouldUpload(gate: UploadGate): boolean {
-  return gate.enabled && gate.hasContext && !gate.previewPending;
-}
-
-/** 预览之后走哪一步：中止 / 直接提交（云端为空）/ 等用户确认（云端有数据） */
-export type EnableStep = "abort" | "commit" | "confirm";
-
-/**
- * 「云端为空 → 直接提交 / 云端非空 → 弹确认框 / 预览失败 → 中止」的唯一分支点。
- * 抽成纯函数是因为分支写反就等于把未经确认的合并直接写进云端，必须有测试盯着。
- */
-export function chooseEnableStep(
-  preview: Pick<SyncPreviewResult, "ok"> & { cloudEmpty?: boolean },
-): EnableStep {
-  if (!preview.ok) return "abort";
-  return preview.cloudEmpty ? "commit" : "confirm";
-}
-
-/**
- * 已解锁的同步上下文。`uid` 与句柄绑定：页内换了 iirose 账号即视为未解锁，
- * 绝不用 A 账号的密钥去读写 B 账号的分区。
- */
-interface UnlockedSync {
-  uid: string;
-  deviceId: string;
-  salt: string;
-  iterations: number;
-  wrapped: SyncWrappedKey;
-  dek: CryptoKey;
-  client: SyncClient;
-}
 
 /**
  * 已经拉取到手的云端状态（避免二次 GET，也避免「用 remoteRev 短路后只上传本地」的数据丢失）。
@@ -148,7 +115,6 @@ interface PendingEnable {
 
 // —— 模块级内存状态（页面刷新即全部消失；句柄另在本机缓存在 IndexedDB） ——
 let unlocked: UnlockedSync | null = null;
-let remoteRev: string | null = null;
 let busy = false;
 let debounceTimer: number | null = null;
 let changeGeneration = 0;
@@ -180,71 +146,12 @@ function canAutoUpload(): boolean {
   });
 }
 
-/** 事件触发的自动拉取之间的最小间隔（避免反复切标签页时连发） */
-const AUTO_PULL_COOLDOWN_MS = 60_000;
 /** 插件 UI 打开期间的兜底拉取间隔：聊天站里页面常驻可见，光靠可见性事件不会触发 */
 const UI_PULL_INTERVAL_MS = 5 * 60_000;
 /** 上次成功发出 GET 的时间（含 304）；只存内存，刷新后归零 */
 let lastPullAt = 0;
 let uiPullTimer: number | null = null;
 let activateTriggersRegistered = false;
-
-export interface AutoPullGate {
-  enabled: boolean;
-  hasContext: boolean;
-  busy: boolean;
-  lastPullAt: number;
-  now: number;
-  cooldownMs?: number;
-}
-
-/**
- * 「现在该不该为一次事件触发去拉云端」——只做判定，不碰网络，便于单测。
- * 三道条件缺一不可：同步已启用、本机已解锁、当前没有在跑。
- */
-export function shouldAutoPull(gate: AutoPullGate): boolean {
-  if (!gate.enabled || !gate.hasContext || gate.busy) return false;
-  const cooldown = gate.cooldownMs ?? AUTO_PULL_COOLDOWN_MS;
-  return gate.now - gate.lastPullAt >= cooldown;
-}
-
-/**
- * `remoteRev` 的唯一写入口：同时落盘，保证重开页面后的首个 GET 也能走 304。
- * 注意只在「PUT 成功落地」或「已确认云端版本」时更新，不能用 GET 响应头提前写入，
- * 否则会出现「带着新 rev 短路成 304，于是只用本地覆盖云端」的数据丢失。
- */
-function setRemoteRev(rev: string | null): void {
-  remoteRev = rev;
-  updateSyncSettings({ lastRev: rev });
-}
-
-/** 从设置里恢复上次的云端版本号（页面加载/解锁时调用） */
-function restoreRemoteRev(): void {
-  remoteRev = getSyncSettings().lastRev;
-}
-function getSyncSettings(): PluginSyncSettings {
-  return PluginSettings.normalizeSyncSettings(
-    PluginSettings.getPluginSetting().sync,
-  );
-}
-
-function updateSyncSettings(
-  patch: Partial<PluginSyncSettings>,
-): PluginSyncSettings {
-  const pluginSettings = PluginSettings.getPluginSetting();
-  pluginSettings.sync = { ...pluginSettings.sync, ...patch };
-  localStorage.setItem("imwPluginSetting", JSON.stringify(pluginSettings));
-  return pluginSettings.sync;
-}
-
-/** deviceId 惰性生成，生成后不再变（归一化会把非法值清空，这里补生成并落盘） */
-function ensureDeviceId(): string {
-  const settings = getSyncSettings();
-  if (settings.deviceId) return settings.deviceId;
-  const deviceId = SyncCrypto.generateDeviceId();
-  updateSyncSettings({ deviceId });
-  return deviceId;
-}
 
 function cancelDebounce(): void {
   if (debounceTimer !== null) {
@@ -261,24 +168,6 @@ function scheduleUpload(): void {
     debounceTimer = null;
     void SyncManager.uploadPendingChanges();
   }, UPLOAD_DEBOUNCE_MS);
-}
-
-/** 「云端 N / 本地 M / 合并后 K」的统一口径：确认框与提示条共用 */
-export function formatMergeStats(stats: MergeStats): string {
-  return `云端 ${stats.cloud} / 本地 ${stats.local} / 合并后 ${stats.merged}`;
-}
-
-/** 首次启用（云端为空）时的提示口径 */
-function describeStats(stats: MergeStats): string {
-  if (stats.cloud === 0) {
-    return `已同步 ${stats.merged} 条收藏`;
-  }
-  return `同步完成：${formatMergeStats(stats)}`;
-}
-
-/** 口令入口统一做 Unicode 归一化：不同 IME 输入的等价字形必须派生同一把密钥 */
-function normalizePassphrase(passphrase: string): string {
-  return typeof passphrase === "string" ? passphrase.normalize("NFC") : "";
 }
 
 /** 两份条目集合是否逐条一致（用于「纯拉取时是否还需要写回云端」的判定） */
@@ -446,7 +335,7 @@ export class SyncManager {
       const client = new SyncClient(settings.serverUrl, uid);
       const remote = await client.get(null, controller.signal);
       const envelope = remote.notModified ? null : remote.envelope;
-      const resolved = await this.resolveContext(
+      const resolved = await resolveContext(
         uid,
         settings,
         deviceId,
@@ -542,7 +431,7 @@ export class SyncManager {
       // 本机密钥缓存只是「免重复输口令」的便利，写失败不影响本次会话与已落地的云端结果，
       // 不能让它把一次成功的启用报成失败。
       try {
-        await this.rememberUnlocked(pending.ctx);
+        await rememberUnlocked(pending.ctx);
       } catch (cacheError) {
         console.warn(
           "[SyncManager] 本机密钥缓存写入失败，本次会话仍可继续使用",
@@ -600,7 +489,7 @@ export class SyncManager {
       const client = new SyncClient(settings.serverUrl, uid);
       const remote = await client.get(null, controller.signal);
       const envelope = remote.notModified ? null : remote.envelope;
-      const resolved = await this.resolveContext(
+      const resolved = await resolveContext(
         uid,
         settings,
         deviceId,
@@ -616,7 +505,7 @@ export class SyncManager {
       if (settings.salt !== resolved.ctx.salt) {
         updateSyncSettings({ salt: resolved.ctx.salt });
       }
-      await this.rememberUnlocked(resolved.ctx);
+      await rememberUnlocked(resolved.ctx);
 
       return await this.performSync(
         resolved.ctx,
@@ -761,7 +650,7 @@ export class SyncManager {
     useRev: boolean,
     signal: AbortSignal,
   ): Promise<RemoteState> {
-    const result = await ctx.client.get(useRev ? remoteRev : null, signal);
+    const result = await ctx.client.get(useRev ? getRemoteRev() : null, signal);
     // 成功拿到响应（200 或 304）都算「刚拉过」，用于自动拉取的冷却判定
     lastPullAt = Date.now();
     if (result.notModified) return { notModified: true };
@@ -818,120 +707,6 @@ export class SyncManager {
       busy = false;
       this.flushPendingUpload();
     }
-  }
-
-  /**
-   * 用口令得到本次会话的同步上下文：
-   * - v2 信封：口令 → KEK → 解包 DEK → 解密快照；
-   * - v1 信封（历史格式）：口令派生的旧密钥直接解密快照，再生成新 DEK 用同一 KEK 包裹（迁移）；
-   * - 云端为空：复用本机缓存里同一 uid 的 DEK，否则新建。
-   * 解密/解包抛错即视为口令不正确或密文被篡改，调用方**禁止 PUT**。
-   */
-  private static async resolveContext(
-    uid: string,
-    settings: PluginSyncSettings,
-    deviceId: string,
-    client: SyncClient,
-    passphrase: string,
-    rawPassphrase: string,
-    envelope: SyncEnvelope | null,
-  ): Promise<
-    | { ok: true; ctx: UnlockedSync; snapshot: SyncSnapshot | null }
-    | { ok: false; message: string }
-  > {
-    const salt = envelope
-      ? envelope.kdf.salt
-      : settings.salt || SyncCrypto.generateSalt();
-    const iterations = envelope ? envelope.kdf.iter : DEFAULT_KDF_ITERATIONS;
-
-    let kek: CryptoKey;
-    try {
-      kek = await SyncCrypto.deriveKek(passphrase, salt, iterations);
-    } catch (error) {
-      return { ok: false, message: describeSyncError(error) };
-    }
-
-    let dek: CryptoKey;
-    let wrapped: SyncWrappedKey;
-    let snapshot: SyncSnapshot | null = null;
-    try {
-      if (!envelope) {
-        // 云端没有信封：本机缓存可以复用 DEK，但**必须先用显式口令校验**它
-        //（口令派生 KEK 去解包缓存的 wrapped）：否则打错的口令也会被静默「启用」，
-        // 而 wrapped 与真实口令不符，换设备就再也解不开。
-        const cached = await SyncKeyCache.get(uid);
-        if (
-          cached &&
-          cached.salt === salt &&
-          (await this.cacheMatchesPassphrase(cached, kek, uid))
-        ) {
-          dek = cached.dek;
-          wrapped = cached.wrapped;
-        } else {
-          const created = await SyncCrypto.createDek(kek, uid);
-          dek = created.dek;
-          wrapped = created.wrapped;
-        }
-      } else if (SyncCrypto.isLegacyEnvelope(envelope)) {
-        // v1 一次性迁移：旧密钥就是 KEK；云端旧对象不删，靠 COS 版本控制可回滚。
-        // 升级前写下的 v1 快照用的是**未归一化**的口令，含合成字符时 NFC 会派生出
-        // 不同密钥，因此归一化口令解不开时用原串再试一次。
-        try {
-          snapshot = await SyncCrypto.decrypt(kek, uid, envelope);
-        } catch (legacyError) {
-          if (rawPassphrase === passphrase) throw legacyError;
-          kek = await SyncCrypto.deriveKek(rawPassphrase, salt, iterations);
-          snapshot = await SyncCrypto.decrypt(kek, uid, envelope);
-        }
-        const created = await SyncCrypto.createDek(kek, uid);
-        dek = created.dek;
-        wrapped = created.wrapped;
-      } else {
-        if (!envelope.wrapped) {
-          return { ok: false, message: "云端密钥包裹块缺失，已停止同步" };
-        }
-        dek = await SyncCrypto.unwrapDek(kek, envelope.wrapped, uid);
-        wrapped = envelope.wrapped;
-        snapshot = await SyncCrypto.decrypt(dek, uid, envelope);
-      }
-    } catch {
-      return { ok: false, message: SYNC_MESSAGE_WRONG_PASSPHRASE };
-    }
-
-    return {
-      ok: true,
-      ctx: { uid, deviceId, salt, iterations, wrapped, dek, client },
-      snapshot,
-    };
-  }
-
-  /**
-   * 校验本机缓存的 DEK 是否属于这把口令：用口令派生的 KEK 解包缓存的 wrapped 块。
-   * 解不开就说明口令不对（或缓存已陈旧），调用方应改走新建 DEK。
-   */
-  private static async cacheMatchesPassphrase(
-    cached: { wrapped: SyncWrappedKey },
-    kek: CryptoKey,
-    uid: string,
-  ): Promise<boolean> {
-    try {
-      await SyncCrypto.unwrapDek(kek, cached.wrapped, uid);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /** 解锁成功后把 DEK 句柄（连同公开的包裹参数）写进本机缓存 */
-  private static async rememberUnlocked(ctx: UnlockedSync): Promise<void> {
-    await SyncKeyCache.set({
-      uid: ctx.uid,
-      salt: ctx.salt,
-      iterations: ctx.iterations,
-      dek: ctx.dek,
-      wrapped: ctx.wrapped,
-      cachedAt: Date.now(),
-    });
   }
 
   /**

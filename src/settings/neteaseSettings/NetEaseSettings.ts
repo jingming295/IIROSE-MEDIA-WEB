@@ -76,7 +76,7 @@ export class NetEaseSettings {
 
       if (neteaseSettings) {
         const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
-        neteaseSetting.api = s as "default";
+        neteaseSetting.api = s as "default" | "HK" | "Dev";
         localStorage.setItem("neteaseSetting", JSON.stringify(neteaseSetting));
       }
 
@@ -88,7 +88,11 @@ export class NetEaseSettings {
 
     const mdiClass = ["mdi-rocket-launch-outline", "mdi-grass", "mdi-firefox"];
 
-    const selectOption = [["default", "网易云默认API（最快）"]];
+    const selectOption = [
+      ["default", "广州-默认节点"],
+      ["HK", "香港-海外优化"],
+      ["Dev", "开发者模式"],
+    ];
 
     selectOption.forEach((item, index) => {
       item.push(
@@ -195,11 +199,15 @@ export class NetEaseSettings {
   }
 
   public static parseNetEaseMusicApi(api: string) {
-    const selectOption = [["default", "网易云默认API（最快）"]];
+    const selectOption = [
+      ["default", "广州-默认节点"],
+      ["HK", "香港-海外优化"],
+      ["Dev", "开发者模式"],
+    ];
 
     const optionInText = selectOption.find((option) => option[0] === api);
 
-    return optionInText ? optionInText[1] : "网易云默认API（最快）";
+    return optionInText ? optionInText[1] : "广州-默认节点";
   }
 
   public static parseNetEaseMusicLyricOption(lyricOption: string) {

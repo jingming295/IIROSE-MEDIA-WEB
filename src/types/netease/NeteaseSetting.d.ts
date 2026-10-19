@@ -1,6 +1,6 @@
 interface NeteaseSetting {
   quality: NeteaseSongQuality;
-  api: "default";
+  api: "default" | "HK" | "Dev";
   lyricOption: "off" | "original" | "translated" | "both";
 }
 

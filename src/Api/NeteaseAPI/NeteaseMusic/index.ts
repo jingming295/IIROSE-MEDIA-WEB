@@ -11,16 +11,15 @@ export class NeteaseMusicAPI extends SendFetch
      */
     public static async getSongListDetail(id: number)
     {
-        const url = `${this.cors}https://music.163.com/api/v6/playlist/detail`;
+        const url = `https://music.163.com/api/v6/playlist/detail`;
         const params = new URLSearchParams({
             id: id.toString(),
             n: '100000',
             s: '8'
         });
-        const response = await this.sendGet(url, params);
-        if (response && response.ok)
+        const data: SongList | null = await this.neteaseRequest(url, params, 'GET');
+        if (data && data.code === 200)
         {
-            const data: SongList = await response.json();
             return data;
         } else
         {
@@ -31,7 +30,7 @@ export class NeteaseMusicAPI extends SendFetch
 
     public static async getAlbumDetail(id: number)
     {
-        const url = `${this.cors}https://music.163.com/weapi/v1/album/${id}`
+        const url = `https://music.163.com/weapi/v1/album/${id}`
         const params = {
             csrf_token: ''
         }
@@ -43,11 +42,10 @@ export class NeteaseMusicAPI extends SendFetch
         }
         const encparams = new URLSearchParams(enc);
 
-        const response = await this.sendPost(url, encparams);
+        const data: AlbumData | null = await this.neteaseRequest(url, encparams, 'POST');
 
-        if (response && response.ok)
+        if (data && data.code === 200)
         {
-            const data: AlbumData = await response.json();
             console.log(data)
             return data;
         } else
@@ -75,17 +73,14 @@ export class NeteaseMusicAPI extends SendFetch
             // 逐个请求每个子数组
             for (const chunk of chunks)
             {
-                const url = new URL(`${this.cors}http://music.163.com/api/song/detail`);
-
                 const params = new URLSearchParams({
                     ids: `[${chunk.toString()}]`
                 });
 
-                const response = await this.sendGet(url.toString(), params, undefined, true);
+                const data: SongDetail | null = await this.neteaseRequest('http://music.163.com/api/song/detail', params, 'GET');
 
-                if (response && response.ok)
+                if (data && data.code === 200)
                 {
-                    const data: SongDetail = await response.json();
                     if (data.songs)
                     {
                         // 将当前请求的 songs 合并到最终结果中
@@ -97,7 +92,7 @@ export class NeteaseMusicAPI extends SendFetch
                     }
                 } else
                 {
-                    console.error('Request failed', response);
+                    console.error('Request failed', data);
                     return null;
                 }
             }
@@ -112,7 +107,7 @@ export class NeteaseMusicAPI extends SendFetch
 
     public static async getNeteaseMVDetail(id: number)
     {
-        const url = `${this.cors}https://music.163.com/weapi/v1/mv/detail`
+        const url = `https://music.163.com/weapi/v1/mv/detail`
         const params = {
             id: id.toString(),
             csrf_token: ''
@@ -129,11 +124,10 @@ export class NeteaseMusicAPI extends SendFetch
 
         headers.append('content-type', 'application/x-www-form-urlencoded')
 
-        const response = await this.sendPost(url, encparams, headers);
+        const data: MVDetail | null = await this.neteaseRequest(url, encparams, 'POST', headers);
 
-        if (response && response.ok)
+        if (data && data.code === 200)
         {
-            const data: MVDetail = await response.json();
             return data;
         } else
         {
@@ -168,7 +162,7 @@ export class NeteaseMusicAPI extends SendFetch
 
     public static async getLyric(id: number)
     {
-        const url = `${this.cors}https://music.163.com/api/song/lyric`;
+        const url = `https://music.163.com/api/song/lyric`;
         const params = new URLSearchParams({
             id: id.toString(),
             tv: '-1',
@@ -179,11 +173,10 @@ export class NeteaseMusicAPI extends SendFetch
 
         const headers = new Headers();
 
-        const response = await this.sendGet(url, params, headers);
+        const lyric: Lyric | null = await this.neteaseRequest(url, params, 'GET', headers);
 
-        if (response && response.ok)
+        if (lyric && lyric.code === 200)
         {
-            const lyric: Lyric = await response.json();
             return lyric;
         } else
         {
@@ -193,7 +186,7 @@ export class NeteaseMusicAPI extends SendFetch
 
     public static async getMVPlayURL(id: number)
     {
-        const url = `${this.cncors}https://music.163.com/weapi/song/enhance/play/mv/url`;
+        const url = `https://music.163.com/weapi/song/enhance/play/mv/url`;
         const params = {
             id: id,
             r: 1080,
@@ -211,11 +204,10 @@ export class NeteaseMusicAPI extends SendFetch
 
         headers.append('content-type', 'application/x-www-form-urlencoded')
 
-        const response = await this.sendPost(url, encparams, headers);
+        const data: MVPlayURLData | null = await this.neteaseRequest(url, encparams, 'POST', headers);
 
-        if (response && response.ok)
+        if (data && data.code === 200)
         {
-            const data: MVPlayURLData = await response.json();
             return data;
         } else
         {

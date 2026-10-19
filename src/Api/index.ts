@@ -84,7 +84,7 @@ export class SendFetch
         });
     }
 
-    public static async sendPost(url: string, params: URLSearchParams | string, headers?: Headers)
+    public static async sendPost(url: string, params: URLSearchParams | string, headers?: Headers, warn: boolean = true, signal?: AbortSignal)
     {
         try
         {
@@ -102,10 +102,11 @@ export class SendFetch
                     ...headers,
                     Origin: 'https://iirose.com'
                 },
-                body: params
+                body: params,
+                signal: signal
             });
 
-            if (!response.ok)
+            if (!response.ok && warn)
             {
                 ShowMessage.show(`POST请求失败，url: ${url} 状态码：${response.status}, 信息：${response.statusText}, params: ${params.toString()}`);
             }
@@ -113,7 +114,10 @@ export class SendFetch
             return response;
         } catch (error)
         {
-            ShowMessage.show(`POST请求失败，url: ${url} 信息：${error}`);
+            if (warn)
+            {
+                ShowMessage.show(`POST请求失败，url: ${url} 信息：${error}`);
+            }
             return null;
         }
 
@@ -309,6 +313,131 @@ export class SendFetch
             return this.devcors;
         }
         return this.cors;
+    }
+
+    /**
+     * 读取用户选择的网易云优先节点（请求时读取，仿 getBilibiliCors）
+     * 'HK' -> 香港 SCF；'Dev' -> 本地开发代理；其余（含 'default'）-> 广州 SCF
+     */
+    protected static getNeteaseCors()
+    {
+        let api = 'default';
+        try
+        {
+            const ls = typeof localStorage !== 'undefined' ? localStorage.getItem('neteaseSetting') : null;
+            if (ls)
+            {
+                const parsed = JSON.parse(ls);
+                if (parsed.api) api = parsed.api;
+            }
+        } catch { /* ignore */ }
+
+        if (api === 'HK')
+        {
+            return this.malaysiacors;
+        } else if (api === 'Dev')
+        {
+            return this.devcors;
+        }
+        return this.cncors;
+    }
+
+    /**
+     * 网易云统一请求入口：优先节点失败后当次换其余节点重试，每节点 5 秒超时。
+     * 仅当全部节点失败时提示一次；重试过程中的单次失败静默。
+     * @param url 不含代理前缀的完整网易云 URL
+     * @param params POST body / GET query
+     * @param method 请求方法
+     * @param headers 额外请求头（POST 用）
+     * @returns 解析后的 JSON；全部节点失败返回 null
+     */
+    protected static async neteaseRequest(
+        url: string,
+        params: URLSearchParams | string,
+        method: 'GET' | 'POST',
+        headers?: Headers
+    ): Promise<any | null>
+    {
+        const TIMEOUT_MS = 5000;
+        const primary = this.getNeteaseCors();
+        // Dev 模式下仅本地开发节点可用；其余情况优先节点在前，另一个 SCF 兜底
+        const nodes = primary === this.devcors
+            ? [primary]
+            : primary === this.malaysiacors ? [primary, this.cncors] : [primary, this.malaysiacors];
+
+        let lastError: 'risk' | 'timeout' | 'http' | 'network' = 'http';
+        let lastStatus: number | undefined;
+
+        for (const node of nodes)
+        {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+            try
+            {
+                const response = method === 'GET'
+                    ? await this.sendGet(`${node}${url}`, params as URLSearchParams, headers, false, controller.signal)
+                    : await this.sendPost(`${node}${url}`, params, headers, false, controller.signal);
+
+                if (controller.signal.aborted)
+                {
+                    lastError = 'timeout';
+                    continue;
+                }
+
+                if (!response)
+                {
+                    lastError = 'network';
+                    continue;
+                }
+
+                if (!response.ok)
+                {
+                    // 433 为腾讯云函数网关执行超时，归入超时
+                    lastStatus = response.status;
+                    lastError = (response.status === 433 || response.status === 408 || response.status === 504)
+                        ? 'timeout'
+                        : 'http';
+                    continue;
+                }
+
+                let data: any;
+                try
+                {
+                    data = await response.json();
+                } catch
+                {
+                    // 假 200：body 不是 JSON
+                    lastError = 'http';
+                    continue;
+                }
+
+                if (data && data.code === 200)
+                {
+                    return data;
+                }
+
+                // 假 200：业务码失败（-462 / -460 / 460 为网易云风控）
+                lastStatus = data && typeof data.code === 'number' ? data.code : undefined;
+                lastError = lastStatus === -462 || lastStatus === -460 || lastStatus === 460 ? 'risk' : 'http';
+            } catch
+            {
+                lastError = controller.signal.aborted ? 'timeout' : 'network';
+            } finally
+            {
+                clearTimeout(timer);
+            }
+        }
+
+        const reason = lastError === 'risk'
+            ? '网易云风控校验，请稍后重试或切换节点'
+            : lastError === 'timeout'
+                ? '网易云请求超时，请稍后重试或切换节点'
+                : lastError === 'network'
+                    ? '网易云网络请求失败，请检查网络后重试'
+                    : `网易云请求失败${lastStatus !== undefined ? `（${lastStatus}）` : ''}`;
+
+        ShowMessage.show(reason);
+        return null;
     }
 
 }

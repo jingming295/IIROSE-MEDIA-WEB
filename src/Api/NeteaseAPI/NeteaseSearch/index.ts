@@ -14,7 +14,7 @@ export class NeteaseSearchAPI extends SendFetch
      */
     public static async getNeteaseMusicSearchData(keyWord: string, type: number, offset: number, limit: number = 100)
     {
-        const url = `${this.cors}https://music.163.com/weapi/search/get`;
+        const url = `https://music.163.com/weapi/search/get`;
         const params = {
             s: keyWord, // 关键词
             type: type, // 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
@@ -27,10 +27,9 @@ export class NeteaseSearchAPI extends SendFetch
             encSecKey: we.encSecKey
         }
         const encparams = new URLSearchParams(enc);
-        const response = await this.sendPost(url, encparams);
-        if (response && response.ok)
+        const data: SearchData | null = await this.neteaseRequest(url, encparams, 'POST');
+        if (data && data.code === 200)
         {
-            const data: SearchData = await response.json();
             return data;
         } else
         {

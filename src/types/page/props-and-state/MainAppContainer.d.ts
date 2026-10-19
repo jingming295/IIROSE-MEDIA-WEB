@@ -6,6 +6,7 @@ interface MainAppContainerProps {
   active: boolean;
   changeSearchKeyword: (keyword: string | null) => void;
   ShowOrHideIMC: () => Promise<void>;
+  syncOpenToken: number;
 }
 
 interface MainAppContainerState {

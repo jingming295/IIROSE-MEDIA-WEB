@@ -8,6 +8,8 @@ interface MainAppState {
   CategoriesIndex: number;
   needOutFromMultiPage: boolean;
   needOutFromSettings: boolean;
+  /** 每次点状态灯自增：让 MainAppContainer 打开同步卡片 */
+  syncOpenToken: number;
 }
 
 interface MainAppProps {
@@ -25,6 +27,7 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
       CategoriesIndex: PluginSettings.getPluginSetting().defaultPage,
       needOutFromMultiPage: false,
       needOutFromSettings: false,
+      syncOpenToken: 0,
     };
   }
 
@@ -42,6 +45,14 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
     }
   }
 
+  /** 状态灯点击：切到设置并请求打开同步卡片（token 自增，避免重复点击失效） */
+  private openSyncSettings = () => {
+    this.setState({
+      CategoriesIndex: 2,
+      syncOpenToken: this.state.syncOpenToken + 1,
+    });
+  };
+
   render() {
     const { CategoriesIndex, needOutFromMultiPage, needOutFromSettings } =
       this.state;
@@ -52,6 +63,7 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
           switchCategories={this.switchCategories}
           ShowHideMainApp={this.props.ShowHideMainApp}
           activeButtonIndex={CategoriesIndex}
+          openSyncSettings={this.openSyncSettings}
         />
         <MainAppContainer
           CategoriesIndex={CategoriesIndex}
@@ -61,6 +73,7 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
           searchKeyword={searchKeyword}
           changeSearchKeyword={changeSearchKeyword}
           active={mainAppDisplay}
+          syncOpenToken={this.state.syncOpenToken}
         />
       </div>
     );

@@ -121,6 +121,11 @@ function publish(next: SyncStatus): void {
   }
 }
 
+/** 设置状态（启用/停用）变化时补发一次，供常驻指示器刷新可见性 */
+export function notifySyncState(): void {
+  publish({ ...status, at: Date.now() });
+}
+
 /** 进入/离开同步流程：进入即「同步中」，离开时按有无失败原因回落 */
 export function setBusy(busy: boolean): void {
   rt.busy = busy;

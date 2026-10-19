@@ -15,6 +15,7 @@ import {
   cancelDebounce,
   endRun,
   getUid,
+  notifySyncState,
   rt,
   setBusy,
 } from "./SyncRuntime";
@@ -161,6 +162,7 @@ export async function commitEnable(): Promise<SyncResult> {
       salt: pending.ctx.salt,
       deviceId: pending.ctx.deviceId,
     });
+    notifySyncState();
     // 本机密钥缓存只是「免重复输口令」的便利，写失败不影响本次会话与已落地的云端结果，
     // 不能让它把一次成功的启用报成失败。
     try {

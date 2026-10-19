@@ -7,6 +7,7 @@ import {
 } from "./SyncGate";
 import {
   getSyncStatus,
+  notifySyncState,
   onSyncStateChange,
   recordSyncResult,
   setBusy,
@@ -144,5 +145,17 @@ describe("同步状态（设置面板常驻显示）", () => {
     recordSyncResult({ ok: true, message: "同步完成" });
 
     expect(calls).toBe(0);
+  });
+});
+
+describe("状态广播（常驻指示器依赖）", () => {
+  it("设置变化时主动补发一次，订阅者能刷新可见性", () => {
+    let calls = 0;
+    const off = onSyncStateChange(() => {
+      calls += 1;
+    });
+    notifySyncState();
+    off();
+    expect(calls).toBe(1);
   });
 });

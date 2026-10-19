@@ -5,8 +5,6 @@ interface MainNavigationBarProps {
   switchCategories: (index: number) => void;
   ShowHideMainApp: () => void;
   activeButtonIndex: number;
-  /** 点状态灯：跳到设置里的云端同步卡片 */
-  openSyncSettings: () => void;
 }
 
 interface MainNavigationBarState {}
@@ -66,7 +64,7 @@ export class MainNavigationBar extends Component<
             </div>
           </div>
 
-          <SyncStatusIndicator onOpenSync={this.props.openSyncSettings} />
+          <SyncStatusIndicator />
         </div>
 
         <div className="flex">

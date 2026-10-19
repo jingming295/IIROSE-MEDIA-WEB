@@ -2,10 +2,7 @@ import { Component } from "preact";
 import { SyncManager } from "../../../../sync/SyncManager";
 import type { SyncStatus } from "../../../../sync/SyncRuntime";
 
-interface SyncStatusIndicatorProps {
-  /** 点击后跳到设置里的「云端同步」卡片 */
-  onOpenSync: () => void;
-}
+interface SyncStatusIndicatorProps {}
 
 interface SyncStatusIndicatorState {
   enabled: boolean;
@@ -72,10 +69,9 @@ export class SyncStatusIndicator extends Component<
 
     return (
       <div
-        className="relative min-w-[40px] min-h-[40px] max-[768px]:min-w-[44px] max-[768px]:min-h-[44px] max-[768px]:w-[44px] max-[768px]:h-[44px] flex items-center justify-center cursor-pointer text-white bg-[#fff3] transition-all duration-100! hov:hover:opacity-70 active:scale-95"
+        className="relative min-w-[40px] min-h-[40px] max-[768px]:min-w-[44px] max-[768px]:min-h-[44px] max-[768px]:w-[44px] max-[768px]:h-[44px] flex items-center justify-center cursor-default select-none text-white bg-[#fff3]"
         title={this.title()}
         aria-label={this.title()}
-        onClick={this.props.onOpenSync}
       >
         <div
           className={`${iconClass} ${

@@ -80,13 +80,6 @@ export class MainAppContainer extends Component<
     prevProps: Readonly<MainAppContainerProps>,
     prevState: Readonly<MainAppContainerState>,
   ): void {
-    // 状态灯请求：必须在下面的「切分类」早退之前处理，并让出一拍等分类渲染完成
-    if (this.props.syncOpenToken !== prevProps.syncOpenToken) {
-      window.setTimeout(() => {
-        void SettingsService.showSyncSettings(this.getActionContext());
-      }, 0);
-    }
-
     if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
       this.discoveryOldItems = null;
       this.setState({

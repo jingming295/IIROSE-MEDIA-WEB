@@ -40,6 +40,7 @@ description: 在真实站点上运行时验证 IIROSE-MEDIA-WEB 插件：构建 
    - 播放按钮点 `.MediaCardButtonContainer`（真实点击）
    - **判定是否发出**：控制台出现 `m__4@0>...`（@0=网易云）或 `m__4@2>...`（@2=JOOX）的 socket 日志，以及 `&1{"s":...,"d":...}` 事件——`d` 是时长（秒），`s:""` 或 `d:0` 即异常
    - 插件的用户提示走 `window._alert`（站内提示条）；hook 它（包一层记录调用）可捕获错误提示
+9b. **multiPage 条目在列表视图**（专辑 / 歌单 / B 站分 P）：搜索结果切到**列表视图**再验证 —— 未解析期播放按钮应为置灰不可点（`multiPage` 尚未 resolve），解析完成后按钮恢复，点播/选集表现与卡片视图一致。只测卡片视图会漏掉列表行对异步 `multiPage` 的处理。
 10. **坑：GD Studio API 限流**——`music-api.gdstudio.xyz` 按 **IP** 限流（types=url 端点全源共享），连续几次请求即触发，恢复窗口长（>10 分钟）。**限流时返回 HTTP 200 + `{"url":"","br":-1}`**——判失败必须看 `data.url` 是否为空，不能只看 HTTP 状态。要验证限流处理逻辑，先 curl 连发烧掉配额再测。
 11. **坑：搜索输入框旧选择器**——旧流程文档的 `.inputWrapper` 已不存在；当前触发搜索要点 `.inputIcon` 的父级 div（`MediaSearchBar.tsx` 的 searchInput onClick）。
 12. **视觉动效检查单(每轮 UI 改动后必跑)**——本仓无测试,`npm run build` 与功能清单都看不见纯视觉/交互动效缺陷(2026-10 搜索视图特性复盘教训,三类返工全由此盲区产生):

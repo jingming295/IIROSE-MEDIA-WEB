@@ -131,6 +131,21 @@ export function shouldAutoPull(gate: AutoPullGate): boolean {
   return gate.now - gate.lastPullAt >= cooldown;
 }
 
+
+/**
+ * `remoteRev` 的唯一写入口：同时落盘，保证重开页面后的首个 GET 也能走 304。
+ * 注意只在「PUT 成功落地」或「已确认云端版本」时更新，不能用 GET 响应头提前写入，
+ * 否则会出现「带着新 rev 短路成 304，于是只用本地覆盖云端」的数据丢失。
+ */
+function setRemoteRev(rev: string | null): void {
+  remoteRev = rev;
+  updateSyncSettings({ lastRev: rev });
+}
+
+/** 从设置里恢复上次的云端版本号（页面加载/解锁时调用） */
+function restoreRemoteRev(): void {
+  remoteRev = getSyncSettings().lastRev;
+}
 function getSyncSettings(): PluginSyncSettings {
   return PluginSettings.normalizeSyncSettings(
     PluginSettings.getPluginSetting().sync,
@@ -354,6 +369,7 @@ export class SyncManager {
       if (!resolved.ok) return resolved;
 
       unlocked = resolved.ctx;
+      restoreRemoteRev();
       updateSyncSettings({
         enabled: true,
         salt: resolved.ctx.salt,
@@ -419,6 +435,7 @@ export class SyncManager {
       if (!resolved.ok) return resolved;
 
       unlocked = resolved.ctx;
+      restoreRemoteRev();
       if (settings.salt !== resolved.ctx.salt) {
         updateSyncSettings({ salt: resolved.ctx.salt });
       }
@@ -487,7 +504,7 @@ export class SyncManager {
     runController?.abort();
     runController = null;
     unlocked = null;
-    remoteRev = null;
+    setRemoteRev(null);
     lastPullAt = 0; // 重新启用后可以立刻拉一次
     updateSyncSettings({ enabled: false });
     return { ok: true, message: "已关闭云端同步，本地收藏保持不变" };
@@ -502,7 +519,7 @@ export class SyncManager {
     cancelDebounce();
     pendingAfterBusy = false;
     unlocked = null;
-    remoteRev = null;
+    setRemoteRev(null);
     if (uid) await SyncKeyCache.forget(uid);
     return {
       ok: true,
@@ -530,7 +547,7 @@ export class SyncManager {
     try {
       const client = new SyncClient(getSyncSettings().serverUrl, uid);
       await client.removeCloud(controller.signal);
-      remoteRev = null;
+      setRemoteRev(null);
       return { ok: true, message: "云端收藏已清空，本地收藏不受影响" };
     } catch (error) {
       return { ok: false, message: describeSyncError(error) };
@@ -595,6 +612,7 @@ export class SyncManager {
       dek: cached.dek,
       client: new SyncClient(settings.serverUrl, uid),
     };
+    restoreRemoteRev();
 
     const result = await this.pullOnly();
     if (!result.ok && result.message === SYNC_MESSAGE_WRONG_PASSPHRASE) {
@@ -830,7 +848,7 @@ export class SyncManager {
                 snapshot.updatedAt,
                 Date.now(),
               );
-              remoteRev = remote.rev;
+              setRemoteRev(remote.rev);
               return { ok: true, message: "已拉取云端收藏", stats };
             }
           }
@@ -873,7 +891,7 @@ export class SyncManager {
             updatedAt,
             written.updatedAt,
           );
-          remoteRev = written.rev;
+          setRemoteRev(written.rev);
           updateSyncSettings({ lastSyncAt: written.updatedAt });
           return { ok: true, message: describeStats(stats), stats };
         } catch (error) {

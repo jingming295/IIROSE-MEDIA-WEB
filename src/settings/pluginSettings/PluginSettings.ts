@@ -9,6 +9,12 @@ export interface PluginSyncSettings {
   /** base64 盐，首次启用时生成并固定保存 */
   salt: string | null;
   lastSyncAt: number | null;
+  /**
+   * 上次成功写入/拉取到的云端版本号（COS VersionId）。
+   * 落盘是为了让「重开页面后的第一次 GET」也能带 If-None-Match 走 304，
+   * 而不是每次都整包下载一遍密文。
+   */
+  lastRev: string | null;
   /** 设备随机 hex id，用于信封 writer 字段 */
   deviceId: string;
   /** 同步函数 URL 基址 */
@@ -152,6 +158,7 @@ export class PluginSettings {
       enabled: false,
       salt: null,
       lastSyncAt: null,
+      lastRev: null,
       deviceId: "",
       serverUrl: DEFAULT_SYNC_SERVER_URL,
     };
@@ -167,6 +174,7 @@ export class PluginSettings {
       enabled: raw.enabled === true,
       salt: typeof raw.salt === "string" && raw.salt ? raw.salt : null,
       lastSyncAt: typeof raw.lastSyncAt === "number" ? raw.lastSyncAt : null,
+      lastRev: typeof raw.lastRev === "string" && raw.lastRev ? raw.lastRev : null,
       // 服务端强制 ^[0-9a-f]{16}$：非法值会让每次 PUT 400，因此直接清空，
       // 由 SyncManager.ensureDeviceId() 重新生成并落盘（设置面板没有重置入口）。
       deviceId:

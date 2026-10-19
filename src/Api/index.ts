@@ -370,6 +370,8 @@ export class SendFetch
 
         for (const node of nodes)
         {
+            // 每个节点独立判定，避免上一节点的状态码污染最终提示
+            lastStatus = undefined;
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
             try

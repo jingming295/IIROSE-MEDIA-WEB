@@ -17,7 +17,7 @@ let resizePanel: () => void;
 const entry = () => document.getElementById("imw-media-progress-entry")!;
 const panel = () => document.getElementById("imw-media-progress");
 function key(value: string, repeat = false) {
-  act(() =>
+  act(() => {
     range.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: value,
@@ -25,8 +25,8 @@ function key(value: string, repeat = false) {
         bubbles: true,
         cancelable: true,
       }),
-    ),
-  );
+    );
+  });
 }
 function value(type: "input" | "change", target: number) {
   act(() => {
@@ -42,7 +42,9 @@ function pointer(type: string, x = 40) {
     button: 0,
     clientX: x,
   });
-  act(() => range.dispatchEvent(event));
+  act(() => {
+    range.dispatchEvent(event);
+  });
 }
 
 beforeEach(() => {
@@ -69,13 +71,15 @@ beforeEach(() => {
   });
   document.body.innerHTML =
     '<div id="mainContainer"></div><div id="functionHolder"><div id="functionHolderExtBox"><div class="functionButtonExt"><div id="shareMediaBox"></div></div></div></div>';
-  act(() =>
-    IMCInit.init(document.getElementById("mainContainer") as HTMLDivElement),
-  );
+  act(() => {
+    IMCInit.init(document.getElementById("mainContainer") as HTMLDivElement);
+  });
   vi.spyOn(entry(), "getClientRects").mockReturnValue([
     new DOMRect(0, 0, 100, 44),
   ] as unknown as DOMRectList);
-  act(() => entry().click());
+  act(() => {
+    entry().click();
+  });
   range = document.querySelector("#imw-media-progress input")!;
   range.setPointerCapture = vi.fn();
   vi.spyOn(range, "getBoundingClientRect").mockReturnValue(
@@ -83,11 +87,11 @@ beforeEach(() => {
   );
 });
 afterEach(() => {
-  act(() =>
+  act(() => {
     window.dispatchEvent(
       new PageTransitionEvent("pagehide", { persisted: false }),
-    ),
-  );
+    );
+  });
   document.body.innerHTML = "";
   vi.unstubAllGlobals();
   vi.useRealTimers();
@@ -204,7 +208,9 @@ describe("浮窗原生交互与页面生命周期", () => {
   });
   it("原生 input 保持预览，change 只提交一次", () => {
     value("input", 120);
-    act(() => vi.advanceTimersByTime(250));
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
     expect(range.value).toBe("120");
     expect(send).not.toHaveBeenCalled();
     value("change", 120);
@@ -261,36 +267,38 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(document.activeElement).toBe(entry());
   });
   it("关闭按钮恢复焦点，但隐藏入口不抢焦点", () => {
-    act(() =>
+    act(() => {
       document
         .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
-        .click(),
-    );
+        .click();
+    });
     expect(document.activeElement).toBe(entry());
-    act(() => entry().click());
+    act(() => {
+      entry().click();
+    });
     vi.mocked(entry().getClientRects).mockReturnValue(
       [] as unknown as DOMRectList,
     );
     const focus = vi.spyOn(entry(), "focus");
-    act(() =>
+    act(() => {
       document
         .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
-        .click(),
-    );
+        .click();
+    });
     expect(focus).not.toHaveBeenCalled();
   });
   it("bfcache pagehide/pageshow 保留唯一可用实例，离开页面清理监听", () => {
     const original = panel();
-    act(() =>
+    act(() => {
       window.dispatchEvent(
         new PageTransitionEvent("pagehide", { persisted: true }),
-      ),
-    );
-    act(() =>
+      );
+    });
+    act(() => {
       window.dispatchEvent(
         new PageTransitionEvent("pageshow", { persisted: true }),
-      ),
-    );
+      );
+    });
     expect(panel()).toBe(original);
     expect(document.querySelectorAll("#imw-media-progress-root")).toHaveLength(
       1,
@@ -298,15 +306,17 @@ describe("浮窗原生交互与页面生命周期", () => {
     value("change", 120);
     expect(send).toHaveBeenCalledOnce();
     const remove = vi.spyOn(window, "removeEventListener");
-    act(() =>
+    act(() => {
       window.dispatchEvent(
         new PageTransitionEvent("pagehide", { persisted: false }),
-      ),
-    );
+      );
+    });
     expect(document.getElementById("imw-media-progress-root")).toBeNull();
     expect(remove).toHaveBeenCalledWith("pagehide", expect.any(Function));
     // Preact 已排队的渲染调度可在卸载后完成；业务超时与轮询不得继续。
-    act(() => vi.runOnlyPendingTimers());
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
     expect(vi.getTimerCount()).toBe(0);
     expect(send).toHaveBeenCalledOnce();
   });

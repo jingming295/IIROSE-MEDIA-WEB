@@ -13,6 +13,7 @@ export class AboutService {
   ) {
     const aboutData: SettingData[] = [
       {
+        key: "aboutAuthor",
         title: "作者",
         actionTitle: "铭", // 这里对应你的名字 Ming
         icon: "mdi-account-tie",
@@ -22,6 +23,7 @@ export class AboutService {
         },
       },
       {
+        key: "aboutSource",
         title: "项目源代码地址",
         actionTitle: "GitHub 🔗",
         icon: "mdi-github",
@@ -30,6 +32,7 @@ export class AboutService {
         },
       },
       {
+        key: "aboutDonate",
         title: "投喂我",
         actionTitle: "投喂",
         icon: "mdi-coffee-outline",
@@ -38,6 +41,7 @@ export class AboutService {
         },
       },
       {
+        key: "aboutSponsorList",
         title: "赞助列表",
         actionTitle: "感谢名单",
         icon: "mdi-account-group",

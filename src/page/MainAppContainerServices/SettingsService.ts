@@ -23,6 +23,7 @@ export class SettingsService {
 
     const data: SettingData[] = [
       {
+        key: "bilibiliAccount",
         title: "账号",
         actionTitle: accData?.uname || "未登录",
         icon: "mdi-account-child-circle",
@@ -42,30 +43,35 @@ export class SettingsService {
 
     const data: SettingData[] = [
       {
+        key: "bilibiliVideoQn",
         title: "点播的视频画质",
         actionTitle: settings.parseBilibiliVideoQn(s.qn),
         icon: "mdi-video",
         action: settings.setBilibiliVideoQuality.bind(settings),
       },
       {
+        key: "bilibiliLiveQn",
         title: "点播的直播画质",
         actionTitle: settings.parseBilibiliLiveQn(s.streamqn),
         icon: "mdi-video-wireless",
         action: settings.setBilibiliLiveQuality.bind(settings),
       },
       {
+        key: "bilibiliStreamSeconds",
         title: "点播的直播播放时长",
         actionTitle: `${s.streamSeconds / 60} 分钟`,
         icon: "mdi-clock-outline",
         action: settings.setBilibiliStreamSeconds.bind(settings),
       },
       {
+        key: "bilibiliVideoStreamFormat",
         title: "点播视频的获取格式",
         actionTitle: settings.parseGetVideoFormat(s.videoStreamFormat),
         icon: "mdi-hammer-wrench",
         action: settings.setGetVideoFormat.bind(settings),
       },
       {
+        key: "bilibiliDefaultApi",
         title: "默认API",
         actionTitle: settings.parseBilibiliApi(s.api),
         icon: "mdi-code-braces",
@@ -84,6 +90,7 @@ export class SettingsService {
 
     const data: SettingData[] = [
       {
+        key: "neteaseLyric",
         title: "歌词",
         actionTitle: NetEaseSettings.parseNetEaseMusicLyricOption(
           s.lyricOption,
@@ -92,12 +99,14 @@ export class SettingsService {
         action: NetEaseSettings.setNeteaseMusicLyric.bind(NetEaseSettings),
       },
       {
+        key: "neteaseDefaultApi",
         title: "默认API",
         actionTitle: NetEaseSettings.parseNetEaseMusicApi(s.api),
         icon: "mdi-code-braces",
         action: NetEaseSettings.setNeteaseDefaultApi.bind(NetEaseSettings),
       },
       {
+        key: "neteaseQuality",
         title: "音乐的音质 - 已废弃",
         actionTitle: NetEaseSettings.parseNetEaseMusicQuality(s.quality),
         icon: "mdi-music",
@@ -112,6 +121,7 @@ export class SettingsService {
     const s = JOOXSettings.getJOOXSetting();
     const data: SettingData[] = [
       {
+        key: "jooxDefaultApi",
         title: "默认API",
         actionTitle: JOOXSettings.parseJOOXApi(s.api),
         icon: "mdi-code-braces",
@@ -127,6 +137,7 @@ export class SettingsService {
 
     const data: SettingData[] = [
       {
+        key: "radioDuration",
         title: "默认播放时长",
         actionTitle: `${s.duration / 60} 分钟`,
         icon: "mdi-clock-outline",
@@ -152,12 +163,14 @@ export class SettingsService {
 
     const data: SettingData[] = [
       {
+        key: "defaultPage",
         title: "插件启动默认页面",
         actionTitle: PluginSettings.parseDefaultPage(ps.defaultPage),
         icon: "mdi-page-layout-header-footer",
         action: (doSomethings) => PluginSettings.setDefaultPage(doSomethings),
       },
       {
+        key: "searchViewMode",
         title: "搜索结果视图",
         actionTitle: PluginSettings.parseSearchViewMode(ps.searchViewMode),
         icon: ps.searchViewMode === "list" ? "listViewIcon" : "cardViewIcon",
@@ -169,7 +182,7 @@ export class SettingsService {
           ctx.setState({
             searchViewMode: newMode,
             settingsData: data.map((item) =>
-              item.title === "搜索结果视图"
+              item.key === "searchViewMode"
                 ? {
                     ...item,
                     actionTitle: PluginSettings.parseSearchViewMode(newMode),
@@ -181,6 +194,7 @@ export class SettingsService {
         },
       },
       {
+        key: "announceMode",
         title: "点播播报",
         actionTitle: PluginSettings.parseAnnounceMode(ps.announceMode),
         icon:
@@ -197,7 +211,7 @@ export class SettingsService {
             const mode = PluginSettings.getPluginSetting().announceMode;
             ctx.setState({
               settingsData: data.map((item) =>
-                item.title === "点播播报"
+                item.key === "announceMode"
                   ? {
                       ...item,
                       actionTitle: actionTitle ?? item.actionTitle,
@@ -215,6 +229,7 @@ export class SettingsService {
         },
       },
       {
+        key: "proxyAtInput",
         title: "代理蔷薇@输入",
         actionTitle: isProxyAtInputInText,
         icon: "mdi-at",
@@ -268,6 +283,7 @@ export class SettingsService {
 
     return [
       {
+        key: "syncEnabled",
         title: "云端同步",
         actionTitle: !uid ? "未登录账号" : enabled ? "已启用" : "未启用",
         icon: "syncCloudIcon",
@@ -292,6 +308,7 @@ export class SettingsService {
       ...(enabled
         ? [
             {
+              key: "syncStatus",
               title: "同步状态",
               actionTitle:
                 state.status.phase === "syncing"
@@ -312,6 +329,7 @@ export class SettingsService {
           ]
         : []),
       {
+        key: "syncPassphrase",
         title: "同步口令（忘记不可找回）",
         actionTitle: !enabled ? "未启用" : unlocked ? "已解锁" : "未解锁",
         icon: "syncKeyIcon",
@@ -332,12 +350,14 @@ export class SettingsService {
         },
       },
       {
+        key: "syncLastSyncAt",
         title: "上次同步时间",
         actionTitle: SyncManager.formatLastSyncAt(state.lastSyncAt),
         icon: "syncClockIcon",
         action: () => refresh(),
       },
       {
+        key: "syncNow",
         title: "立即同步",
         actionTitle: !enabled ? "未启用" : unlocked ? "立即同步" : "需先解锁",
         icon: "syncRefreshIcon",
@@ -358,6 +378,7 @@ export class SettingsService {
         },
       },
       {
+        key: "syncClearCloud",
         title: "清空云端",
         actionTitle: "清空云端",
         icon: "syncDeleteIcon",
@@ -375,6 +396,7 @@ export class SettingsService {
         },
       },
       {
+        key: "syncForgetKey",
         title: "忘记本机密钥",
         actionTitle: hasLocalKey ? "清除本机密钥" : "无本机密钥",
         icon: "syncKeyIcon",

@@ -39,6 +39,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   delete (window as unknown as Record<string, unknown>).socket;
   delete (window as unknown as Record<string, unknown>).WebSocket;
   delete (window as unknown as Record<string, unknown>)._alert;
@@ -296,16 +297,19 @@ describe("批次作用域：单曲窗口 / 批次快照 / 逐项失败（spec-an
       batchRest = Announce.shouldSendCard();
     });
 
-    // 批量挂起中用户手动点播单曲（如 @直链/MOD/MVOD）：单曲窗口内卡片立即发送
-    await Announce.runSingleAnnounce(async () => {
-      Announce.sendMediaCard(new Socket(), "SINGLE_CARD");
-    });
+    try {
+      // 批量挂起中用户手动点播单曲（如 @直链/MOD/MVOD）：单曲窗口内卡片立即发送
+      await Announce.runSingleAnnounce(async () => {
+        Announce.sendMediaCard(new Socket(), "SINGLE_CARD");
+      });
 
-    // 一条总结 + 一张单曲卡片
-    expect(sendMock).toHaveBeenCalledTimes(2);
-    expect(sendMock).toHaveBeenLastCalledWith("SINGLE_CARD");
-
-    releaseBatch();
+      // 一条总结 + 一张单曲卡片
+      expect(sendMock).toHaveBeenCalledTimes(2);
+      expect(sendMock).toHaveBeenLastCalledWith("SINGLE_CARD");
+    } finally {
+      // 断言失败也先放行批量并收尾窗口，避免状态泄漏级联污染后续用例
+      releaseBatch();
+    }
     await batch;
     // 批量其余曲目仍无卡片（单曲窗口不泄漏到批量判定）
     expect(batchRest).toBe(false);
@@ -337,14 +341,44 @@ describe("批次作用域：单曲窗口 / 批次快照 / 逐项失败（spec-an
       batchRest = Announce.shouldSendCard();
     });
 
-    releaseBatch();
-    await batch;
+    try {
+      releaseBatch();
+      await batch;
+    } finally {
+      // 断言失败也确保批量已收尾、窗口已关，不污染后续用例
+    }
 
     // 快照生效：本批剩余曲目不逐个发卡片，无「总结+逐卡」分裂
     expect(batchRest).toBe(false);
     expect(sendMock).toHaveBeenCalledTimes(1);
     // 批量结束后读实时档位：card → 放行（下一次点播立即按新档）
     expect(Announce.shouldSendCard()).toBe(true);
+  });
+
+  it("CAP-3 silent 读实时档：批量挂起中切 silent，剩余曲目立即静默（优先于批次快照）", async () => {
+    setMode("summary");
+    let releaseBatch!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      releaseBatch = resolve;
+    });
+    let batchRest = true;
+
+    const batch = Announce.runBatchAnnounce("歌单", 5, async () => {
+      await gate;
+      setMode("silent"); // 中途切静默档
+      batchRest = Announce.shouldSendCard();
+    });
+
+    try {
+      releaseBatch();
+      await batch;
+    } finally {
+      // 断言失败也确保批量已收尾、窗口已关，不污染后续用例
+    }
+
+    // 刻意不对称：silent 读实时档且优先于批次快照，切静默立即生效
+    expect(batchRest).toBe(false);
+    expect(sendMock).toHaveBeenCalledTimes(1); // 仍只有一条总结
   });
 
   it("CAP-2 逐项失败：逐项 catch 跳过失败曲、剩余照播、同因只提示一次、关窗", async () => {
@@ -383,6 +417,25 @@ describe("批次作用域：单曲窗口 / 批次快照 / 逐项失败（spec-an
     });
     expect(alertMock).toHaveBeenCalledTimes(2);
     expect(alertMock).toHaveBeenLastCalledWith("另一原因");
+  });
+
+  it("CAP-2 同因去重：10 秒窗口到期后，同因失败再次提示", async () => {
+    vi.useFakeTimers();
+    setMode("summary");
+    await Announce.runBatchAnnounce("歌单A", 2, async () => {
+      throw new Error("到期同因");
+    });
+    await Announce.runBatchAnnounce("歌单B", 2, async () => {
+      throw new Error("到期同因");
+    });
+    expect(alertMock).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(10_500);
+
+    await Announce.runBatchAnnounce("歌单C", 2, async () => {
+      throw new Error("到期同因");
+    });
+    expect(alertMock).toHaveBeenCalledTimes(2);
   });
 
   it("CAP-1 单曲窗口 try/finally：loop 抛异常也会关闭窗口", async () => {

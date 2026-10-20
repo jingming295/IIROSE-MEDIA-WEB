@@ -12,16 +12,12 @@ import { Socket } from "../index";
  */
 
 /**
- * 批量抑制窗口深度：>0 表示仍有批量循环在执行（多批可交错），
- * 循环内跳过逐项卡片。用深度计数而非单布尔：先结束的一批只递减自己的深度，
- * 不会把仍在执行的另一批的窗口提前关掉。
- */
-let batchDepth = 0;
-
-/**
- * 打开中的批量窗口的入口档位快照栈，与 batchDepth 同步入栈/出栈。
- * 窗口只在 summary 档开启，故栈内快照恒为 summary；逐卡判定只消费快照，
- * 不读实时档位——批次中途切档不影响进行中的批次（CAP-3）。
+ * 打开中的批量窗口的入口档位快照栈：栈深即批量抑制窗口深度（>0 表示仍有
+ * 批量循环在执行，多批可交错）。每个批量窗口开启时把入口档位压栈、结束时
+ * 弹栈——先结束的一批只弹自己的快照，不会把仍在执行的另一批的窗口提前
+ * 关掉（LIFO pop 与「各批只关自己的窗口」语义一致，单一状态无对账裂缝）。
+ * 窗口只在 summary 档开启，故栈内快照恒为 summary；逐卡判定只消费栈顶
+ * 快照，不读实时档位——批次中途切档不影响进行中的批次（CAP-3）。
  */
 const batchModeSnapshots: AnnounceMode[] = [];
 
@@ -39,9 +35,9 @@ export class Announce {
     const mode = PluginSettings.getPluginSetting().announceMode;
     if (mode === "silent") return false;
     if (forceDepth > 0) return true;
-    if (batchDepth > 0) {
+    if (batchModeSnapshots.length > 0) {
       // 消费入口快照：summary 批次执行中切到 card，本批剩余曲目仍不逐个发卡片
-      return batchModeSnapshots[batchDepth - 1] !== "summary";
+      return batchModeSnapshots[batchModeSnapshots.length - 1] !== "summary";
     }
     return true;
   }
@@ -55,7 +51,11 @@ export class Announce {
   /**
    * 单曲点播窗口：手动点播单曲的入口用这个包住发送（或整个点播动作），
    * try/finally 开关 forceDepth，使其卡片不被并行的批量抑制窗口吞掉。
-   * 窗口越窄越好：能只包发送动作就不要包整个网络请求过程。
+   * 窗口越窄越好：能只包发送动作就不要包整个网络请求过程。受发送点深层
+   * 嵌套限制（如 playBiliPage→prepareAndSendMedia 深两层，禁止穿参），
+   * 部分入口只能包整个点播动作（含网络请求）——force-before-batch 判定
+   * 序下，窗口开启期间并行批量的逐卡发送会被一并放行，这是该设计下已
+   * 接受的竞态代价。
    */
   public static async runSingleAnnounce(
     loop: () => Promise<void> | void,
@@ -101,16 +101,15 @@ export class Announce {
       if (quote) lines.push(quote);
       new Socket().sendMessage(lines.join("\n"));
 
-      batchDepth++;
       batchModeSnapshots.push(mode);
       try {
         await loop();
       } finally {
-        batchDepth--;
         batchModeSnapshots.pop();
       }
     } catch (error) {
-      // 兜底 catch：消除 void 调用点的 unhandled rejection，终止本批并提示一次
+      // 兜底 catch 契约：本函数任何路径均不上抛，异常一律转为提示
+      // （同因 10 秒去重），消除 void 调用点的 unhandled rejection
       Announce.showBatchItemError(error);
     }
   }
@@ -124,7 +123,14 @@ export class Announce {
   private static batchItemErrorToastMessage = "";
 
   public static showBatchItemError(error: unknown): void {
-    const message = error instanceof Error ? error.message : String(error);
+    // 非 Error 抛出物：字符串原样，其余 JSON 序列化兜底——避免 String()
+    // 把不同对象都渲染成 "[object Object]" 撞成同因
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : JSON.stringify(error);
     const now = Date.now();
     if (
       message === Announce.batchItemErrorToastMessage &&

@@ -570,7 +570,7 @@ export class BilibiliPlatform extends Platform {
                         aid,
                         bvid,
                       ),
-                    );
+                    ).catch((e) => Announce.showBatchItemError(e));
                     return;
                   }
 

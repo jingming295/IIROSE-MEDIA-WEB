@@ -62,7 +62,11 @@ export class RadioPlatform extends Platform {
 
   static MOD = async (platformData: PlatformData) => {
     // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
-    await Announce.runSingleAnnounce(() => this.finalODSONG([platformData]));
+    try {
+      await Announce.runSingleAnnounce(() => this.finalODSONG([platformData]));
+    } catch (error) {
+      ShowMessage.show((error as Error).message);
+    }
   };
 
   private static finalODSONG = async (data: PlatformData[]) => {

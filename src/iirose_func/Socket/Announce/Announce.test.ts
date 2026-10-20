@@ -4,7 +4,9 @@ import { Socket } from "../index";
 import { PluginSettings } from "../../../settings/pluginSettings/PluginSettings";
 
 /**
- * 点播播报三档模式的矩阵行覆盖（spec-request-announce-modes I/O & Edge-Case Matrix）：
+ * 点播播报三档模式的矩阵行覆盖。
+ * 矩阵出处：_bmad-output/implementation-artifacts/spec-request-announce-modes.md
+ * 的 frozen 块「I/O & Edge-Case Matrix」（human-owned intent，行为以此为准）：
  * 默认/老用户回退 card、静默不发卡片、summary 单曲发卡片、
  * summary 批量 ≥2 仅一条总结消息、总结报文合法 JSON（\n 转义）、设置持久化读取。
  */
@@ -122,6 +124,17 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     expect(raw).not.toMatch(/\n/);
   });
 
+  it("summary 档批量 count=2 边界（<2 判定的唯一边界）：仍发总结并抑制", async () => {
+    setMode("summary");
+    let inLoop = true;
+    await Announce.runBatchAnnounce("双曲歌单", 2, async () => {
+      inLoop = Announce.shouldSendCard();
+    });
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(inLoop).toBe(false);
+    expect(Announce.shouldSendCard()).toBe(true);
+  });
+
   it("summary 档单曲（count=1）：不总结、不抑制，仍发卡片", async () => {
     setMode("summary");
     let inLoop = false;
@@ -140,5 +153,47 @@ describe("runBatchAnnounce（批量点播播报）", () => {
       }),
     ).rejects.toThrow("单项失败");
     expect(Announce.shouldSendCard()).toBe(true);
+  });
+
+  it("空标题兜底：标题为空串/undefined 时正文使用「批量点播」", async () => {
+    setMode("summary");
+    await Announce.runBatchAnnounce("", 2, async () => {});
+    await Announce.runBatchAnnounce(
+      undefined as unknown as string,
+      2,
+      async () => {},
+    );
+    const first = JSON.parse(sendMock.mock.calls[0][0]) as { m: string };
+    const second = JSON.parse(sendMock.mock.calls[1][0]) as { m: string };
+    expect(first.m).toBe("\\*\n已点播《批量点播》共 2 项");
+    expect(second.m).toBe("\\*\n已点播《批量点播》共 2 项");
+  });
+
+  it("并发批量回归：后启动的一批先结束，先启动批量的剩余部分仍被抑制", async () => {
+    setMode("summary");
+    let releaseFirst!: () => void;
+    const firstGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    let inRestOfFirst = true;
+
+    // 第一批：进入 loop 后挂起（窗口深度 1）。runBatchAnnounce 的同步前缀
+    // （发总结、深度 +1）在调用返回前就已执行完，无需额外让步。
+    const first = Announce.runBatchAnnounce("歌单A", 3, async () => {
+      await firstGate;
+      inRestOfFirst = Announce.shouldSendCard();
+    });
+
+    // 第二批完成时第一批仍在执行：旧的单布尔实现会在此把窗口整个关掉
+    const second = Announce.runBatchAnnounce("歌单B", 2, async () => {});
+    await second;
+
+    releaseFirst();
+    await first;
+
+    expect(inRestOfFirst).toBe(false);
+    expect(Announce.shouldSendCard()).toBe(true);
+    // 两个批量各一条总结，无逐曲卡片
+    expect(sendMock).toHaveBeenCalledTimes(2);
   });
 });

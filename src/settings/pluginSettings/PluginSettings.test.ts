@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PluginSettings } from "./PluginSettings";
 
 describe("normalizeSyncSettings", () => {
@@ -90,5 +90,55 @@ describe("搜索结果视图切换", () => {
   it("展示文案与设置值一一对应", () => {
     expect(PluginSettings.parseSearchViewMode("list")).toBe("列表");
     expect(PluginSettings.parseSearchViewMode("card")).toBe("卡片");
+  });
+});
+
+describe("点播播报模式设置", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem("imwPluginSetting", JSON.stringify({}));
+  });
+
+  afterEach(() => {
+    delete (window as unknown as Record<string, unknown>).Utils;
+  });
+
+  it("setAnnounceMode 真实写路径：选项框回调归一化落盘，actionTitle 同步档位文案", () => {
+    // IIROSEUtils.buildSelect2 只是 window.Utils.buildSelect2 的透传 delegate
+    // （见 src/iirose_func/IIROSEUtils.ts:64），stub 宿主侧即可截获真正的 set 回调
+    let setCb: ((t: HTMLElement, s: string) => void) | undefined;
+    (window as unknown as Record<string, unknown>).Utils = {
+      buildSelect2: (
+        _i: unknown,
+        _a: unknown,
+        s: (t: HTMLElement, v: string) => void,
+      ) => {
+        setCb = s;
+      },
+    };
+
+    const changeActionTitleAction = vi.fn();
+    PluginSettings.setAnnounceMode(changeActionTitleAction);
+
+    expect(setCb).toBeDefined();
+    setCb!(document.createElement("div"), "silent");
+
+    expect(
+      JSON.parse(localStorage.getItem("imwPluginSetting")!).announceMode,
+    ).toBe("silent");
+    expect(changeActionTitleAction).toHaveBeenCalledWith("静默");
+
+    // 写路径同样过归一化：非法值落盘回退 card，文案同步回默认档
+    setCb!(document.createElement("div"), "loud");
+    expect(
+      JSON.parse(localStorage.getItem("imwPluginSetting")!).announceMode,
+    ).toBe("card");
+    expect(changeActionTitleAction).toHaveBeenCalledWith("发卡片");
+  });
+
+  it("三档展示文案与设置值一一对应", () => {
+    expect(PluginSettings.parseAnnounceMode("card")).toBe("发卡片");
+    expect(PluginSettings.parseAnnounceMode("silent")).toBe("静默");
+    expect(PluginSettings.parseAnnounceMode("summary")).toBe("批量总结");
   });
 });

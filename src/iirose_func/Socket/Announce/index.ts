@@ -7,15 +7,19 @@ import { Socket } from "../index";
  * mediaEvent 是独立的播放触发报文，永不受档位影响，由调用方照常发送。
  */
 
-/** 批量抑制窗口：summary 档批量循环执行期间为 true，循环内跳过逐项卡片 */
-let batchSuppressing = false;
+/**
+ * 批量抑制窗口深度：>0 表示仍有批量循环在执行（多批可交错），
+ * 循环内跳过逐项卡片。用深度计数而非单布尔：先结束的一批只递减自己的深度，
+ * 不会把仍在执行的另一批的窗口提前关掉。
+ */
+let batchDepth = 0;
 
 export class Announce {
   /** 当前是否应发送 mediaCard（读档位 + 批量抑制窗口） */
   public static shouldSendCard(): boolean {
     const mode = PluginSettings.getPluginSetting().announceMode;
     if (mode === "silent") return false;
-    if (batchSuppressing) return false;
+    if (batchDepth > 0) return false;
     return true;
   }
 
@@ -42,15 +46,17 @@ export class Announce {
       return;
     }
 
-    // 报文必须经 JSON.stringify 构造，换行/反斜杠才能以 \n、\\* 合法转义嵌入
-    const content = "\\*" + "\n" + `已点播《${title}》共 ${count} 项`;
+    // 报文必须经 JSON.stringify 构造，换行/反斜杠才能以 \n、\\* 合法转义嵌入；
+    // 空标题兜底为通用措辞，避免正文退化为「已点播《》共 N 项」
+    const safeTitle = title ? title : "批量点播";
+    const content = "\\*" + "\n" + `已点播《${safeTitle}》共 ${count} 项`;
     new Socket().sendMessage(content);
 
-    batchSuppressing = true;
+    batchDepth++;
     try {
       await loop();
     } finally {
-      batchSuppressing = false;
+      batchDepth--;
     }
   }
 }

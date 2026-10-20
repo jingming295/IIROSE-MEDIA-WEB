@@ -58,7 +58,9 @@ export class NetEasePlatform extends Platform {
   /**
    * 选集多选完成后的二次排序确认选择器
    */
-  public static buildOrderConfirmSelect = (action: (select: number) => Promise<void> | void) => {
+  public static buildOrderConfirmSelect = (
+    action: (select: number) => Promise<void> | void,
+  ) => {
     const select = [
       [
         0,
@@ -283,7 +285,8 @@ export class NetEasePlatform extends Platform {
       let songListDetail: SongList | null = null;
       songListDetail = await NeteaseMusicAPI.getSongListDetail(ids[0]);
 
-      if (!songListDetail) throw new Error("获取歌单详情失败");
+      // 统一入口已在全节点失败时提示过，这里直接空返回，避免再弹一遍
+      if (!songListDetail) return null;
 
       const platformData: PlatformData = {
         title: songListDetail.playlist.name,
@@ -304,7 +307,7 @@ export class NetEasePlatform extends Platform {
       let albumDetails: AlbumData | null = null;
       albumDetails = await NeteaseMusicAPI.getAlbumDetail(ids[0]);
 
-      if (!albumDetails) throw new Error("获取专辑详情失败");
+      if (!albumDetails) return null;
       const platformData: PlatformData = {
         title: albumDetails.album.name,
         coverImg: albumDetails.album.picUrl,
@@ -530,7 +533,8 @@ export class NetEasePlatform extends Platform {
 
       songListDetail = await NeteaseMusicAPI.getSongListDetail(id);
 
-      if (!songListDetail) throw new Error("获取歌单详情失败");
+      if (!songListDetail)
+        return { platformData: [], totalPage: 0, allPlatformData: [] };
       const ids = songListDetail.playlist.trackIds.map((item) => item.id);
 
       return this.processSongPlatformData(ids);
@@ -551,7 +555,8 @@ export class NetEasePlatform extends Platform {
 
       albumDetails = await NeteaseMusicAPI.getAlbumDetail(id);
 
-      if (!albumDetails) throw new Error("获取专辑详情失败");
+      if (!albumDetails)
+        return { platformData: [], totalPage: 0, allPlatformData: [] };
 
       const ids = albumDetails.songs.map((item) => item.id);
 
@@ -575,7 +580,8 @@ export class NetEasePlatform extends Platform {
     let count = 0;
 
     const songDetail = await NeteaseMusicAPI.getNeteaseSongDetail(trackID);
-    if (!songDetail) throw new Error("获取歌单详情失败");
+    if (!songDetail)
+      return { platformData: [], totalPage: 0, allPlatformData: [] };
 
     for (const item of songDetail) {
       const data: PlatformData = {
@@ -694,7 +700,8 @@ export class NetEasePlatform extends Platform {
 
       songListDetail = await NeteaseMusicAPI.getSongListDetail(id);
 
-      if (!songListDetail) throw new Error("获取歌单详情失败");
+      // 失败提示已由统一入口发出，这里静默结束本次点播
+      if (!songListDetail) return;
 
       const trackIds = songListDetail.playlist.trackIds;
       let trackID = trackIds.map((item) => item.id);
@@ -708,18 +715,23 @@ export class NetEasePlatform extends Platform {
         // 选集多选点播
         const tracks = songListDetail.playlist.tracks || [];
         const playlistCover =
-          (await platformData.coverImg) || songListDetail.playlist.coverImgUrl || "";
-        const selectOptions = (tracks.length > 0 ? tracks : trackIds).map((item: any, idx: number) => {
-          const songId = item.id;
-          const name = item.name || `曲目 ${idx + 1}`;
-          const ar = item.ar?.map((a: any) => a.name).join("/") || "";
-          const cover = item.al?.picUrl || item.album?.picUrl || playlistCover;
-          return [
-            songId,
-            `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
-            IIROSEUtils.generatePicHtml(cover, "mdi-music-note"),
-          ];
-        });
+          (await platformData.coverImg) ||
+          songListDetail.playlist.coverImgUrl ||
+          "";
+        const selectOptions = (tracks.length > 0 ? tracks : trackIds).map(
+          (item: any, idx: number) => {
+            const songId = item.id;
+            const name = item.name || `曲目 ${idx + 1}`;
+            const ar = item.ar?.map((a: any) => a.name).join("/") || "";
+            const cover =
+              item.al?.picUrl || item.album?.picUrl || playlistCover;
+            return [
+              songId,
+              `${idx + 1}. ${name}${ar ? ` - ${ar}` : ""}`,
+              IIROSEUtils.generatePicHtml(cover, "mdi-music-note"),
+            ];
+          },
+        );
 
         IIROSEUtils.buildSelect2(
           null,
@@ -779,7 +791,7 @@ export class NetEasePlatform extends Platform {
 
       albumDetails = await NeteaseMusicAPI.getAlbumDetail(id);
 
-      if (!albumDetails) throw new Error("获取歌单详情失败");
+      if (!albumDetails) return;
 
       const Songs = albumDetails.songs;
       let songsID = Songs.map((item) => item.id);
@@ -873,7 +885,9 @@ export class NetEasePlatform extends Platform {
 
       const res = await NeteaseMusicAPI.getMVPlayURL(id);
 
-      if (!res || !res.data) throw new Error("获取MV资源失败");
+      // 请求层失败已提示过；`res.data` 为空才是内容侧失败，仍按原文案提示
+      if (!res) return;
+      if (!res.data) throw new Error("获取MV资源失败");
 
       if (res.data.msg) throw new Error(res.data.msg);
 
@@ -915,8 +929,7 @@ export class NetEasePlatform extends Platform {
     let songDetailSongs: SongDetailSong[] | null = null;
     let songDetailFromBinaryify: SongsFromBinaryify[] | null = null;
     songDetailSongs = await NeteaseMusicAPI.getNeteaseSongDetail(songsID);
-    if (!songDetailSongs && !songDetailFromBinaryify)
-      throw new Error("获取歌单详情失败");
+    if (!songDetailSongs && !songDetailFromBinaryify) return;
     const quality = neteaseSetting.quality;
 
     if (songDetailSongs) {

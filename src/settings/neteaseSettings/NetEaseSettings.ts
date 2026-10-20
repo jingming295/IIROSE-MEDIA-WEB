@@ -1,4 +1,5 @@
 import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
+import { NETEASE_NODES, getNeteaseNode } from "../../Api/NeteaseAPI/Nodes";
 
 export class NetEaseSettings {
   public static setNeteaseMusicQuality(
@@ -86,14 +87,10 @@ export class NetEaseSettings {
       }
     };
 
-    // 图标与 B 站「默认API」保持一致：广州/香港同用定位图标，开发者模式用 DEV 标记
-    const mdiClass = ["mdi-crosshairs-gps", "mdi-crosshairs-gps", "mdi-dev-to"];
+    // 节点文案与图标统一取自 NETEASE_NODES，避免选项表与读取端各写一份
+    const selectOption = NETEASE_NODES.map((node) => [node.id, node.label]);
 
-    const selectOption = [
-      ["default", "广州-默认节点"],
-      ["HK", "香港-海外优化"],
-      ["Dev", "开发者模式"],
-    ];
+    const mdiClass = NETEASE_NODES.map((node) => node.icon);
 
     selectOption.forEach((item, index) => {
       item.push(
@@ -197,15 +194,7 @@ export class NetEaseSettings {
   }
 
   public static parseNetEaseMusicApi(api: string) {
-    const selectOption = [
-      ["default", "广州-默认节点"],
-      ["HK", "香港-海外优化"],
-      ["Dev", "开发者模式"],
-    ];
-
-    const optionInText = selectOption.find((option) => option[0] === api);
-
-    return optionInText ? optionInText[1] : "广州-默认节点";
+    return getNeteaseNode(api).label;
   }
 
   public static parseNetEaseMusicLyricOption(lyricOption: string) {

@@ -1,4 +1,5 @@
 import { SendFetch } from "..";
+import { resolveAggregatePlayback } from "./playback";
 
 type Source = `netease` | `kuwo` | `joox` | `bilibili`;
 
@@ -53,7 +54,26 @@ export class GDStudioOnlineMusicPlatformAPI extends SendFetch {
     }
   }
 
-  public static async getLyric(source: Source, id: string) {
+  public static resolvePlayback(id: string, signal?: AbortSignal) {
+    return resolveAggregatePlayback(
+      id,
+      (requestSignal) =>
+        this.sendGet(
+          "https://music-api.gdstudio.xyz/api.php",
+          new URLSearchParams({ types: "url", source: "joox", id, br: "320" }),
+          undefined,
+          false,
+          requestSignal,
+        ),
+      signal,
+    );
+  }
+
+  public static async getLyric(
+    source: Source,
+    id: string,
+    options: { signal?: AbortSignal; warn?: boolean } = {},
+  ) {
     const url = `https://music-api.gdstudio.xyz/api.php`;
 
     const params = new URLSearchParams({
@@ -62,11 +82,21 @@ export class GDStudioOnlineMusicPlatformAPI extends SendFetch {
       id,
     });
 
-    const response = await this.sendGet(url, params);
+    const response = await this.sendGet(
+      url,
+      params,
+      undefined,
+      options.warn ?? true,
+      options.signal,
+    );
 
     if (response && response.ok) {
-      const data: GDStudioLyric = await response.json();
-      return data;
+      try {
+        const data: GDStudioLyric = await response.json();
+        return data;
+      } catch (error) {
+        if (options.warn !== false) throw error;
+      }
     }
   }
 }

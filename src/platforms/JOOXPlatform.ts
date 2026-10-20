@@ -1,4 +1,8 @@
 import { GDStudioOnlineMusicPlatformAPI } from "../Api/GD-Studio's-Online-Music-Platform-API";
+import {
+  playbackFailure,
+  type PlaybackFailure,
+} from "../Api/GD-Studio's-Online-Music-Platform-API/playback";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
 import { Announce } from "../iirose_func/Socket/Announce";
@@ -58,85 +62,125 @@ export class JOOXPlatform extends Platform {
     return { platformData, totalPage, allPlatformData };
   };
 
-  public static MOD = async (platformData: PlatformData) => {
-    const jooxdata: JOOXSearchResult =
-      platformData as unknown as JOOXSearchResult;
+  private static inFlight = new Map<string, Promise<void>>();
 
-    try {
-      if (!platformData.joox) throw new Error("没有JOOX音乐数据");
-      // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
-      await Announce.runSingleAnnounce(() => this.finalODSONG([jooxdata]));
-    } catch (error) {
-      ShowMessage.show((error as Error).message);
+  public static MOD = (platformData: PlatformData): Promise<void> => {
+    const item = platformData as unknown as JOOXSearchResult;
+    if (!item.joox?.id) {
+      ShowMessage.show("缺少目标音源曲目数据");
+      return Promise.resolve();
     }
+    // 当前唯一作用域：固定匿名聚合通道。未来会话/地区支持需扩展此键。
+    const key = `aggregate:${item.joox.id}`;
+    const pending = this.inFlight.get(key);
+    if (pending) return pending;
+    const operation = this.finalODSONG(item).finally(() => {
+      this.inFlight.delete(key);
+    });
+    this.inFlight.set(key, operation);
+    return operation;
   };
 
-  private static finalODSONG = async (JOOXSearch: JOOXSearchResult[]) => {
-    const media = new Media();
-    const socket = new Socket();
+  private static showFailure(failure: PlaybackFailure) {
+    const messages = {
+      empty_url: "未取得播放链接，请稍后重试",
+      rate_limited: `解析通道请求过于频繁，请在 ${Math.ceil((failure.retryAfterMs ?? 60000) / 1000)} 秒后重试`,
+      auth_required: "目标音源需要有效授权",
+      region_restricted: "目标音源暂不支持当前地区",
+      preview_only: "目标音源仅提供试听，未提交点播",
+      rights_restricted: "目标音源暂不允许播放此曲目",
+      transport_error: "解析通道连接失败，请稍后重试",
+      timeout: "点播准备超时，请稍后重试",
+      invalid_response: "解析通道返回异常，请稍后重试",
+      media_unavailable: "音频暂时无法加载，未提交点播",
+      channel_unavailable: "暂无可用解析通道，请稍后重试",
+    };
+    ShowMessage.show(messages[failure.kind]);
+  }
 
-    for (const item of JOOXSearch) {
-      let playUrlData = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
-        "joox",
-        item.joox.id,
-      );
-
-      // GD Studio API 限流时返回 HTTP 200 + 空 url（{"url":"","br":-1}），隔 1.5s 重试一次
-      if (!playUrlData?.url) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        playUrlData = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
-          "joox",
+  private static finalODSONG = async (item: JOOXSearchResult) => {
+    const controller = new AbortController();
+    const deadline = Date.now() + 20000;
+    const timer = setTimeout(() => controller.abort(), 20000);
+    const expired = () => controller.signal.aborted || Date.now() >= deadline;
+    let lyric = "";
+    try {
+      const checked = new Set<string>();
+      let failure = playbackFailure("media_unavailable");
+      // 主解析失败即结束；只有媒体检查失败才允许刷新一次。
+      for (let attempt = 0; attempt < 2 && !expired(); attempt++) {
+        const result = await GDStudioOnlineMusicPlatformAPI.resolvePlayback(
           item.joox.id,
+          controller.signal,
         );
-      }
-
-      if (!playUrlData?.url) {
-        ShowMessage.show(
-          `《${item.title}》获取播放链接失败：GD Studio API 可能已限流（按 IP 计），请稍后再试`,
-        );
-        continue;
-      }
-
-      const lyricData = await GDStudioOnlineMusicPlatformAPI.getLyric(
-        "joox",
-        item.joox.id,
-      );
-      const lyric = this.mergeLyrics(
-        lyricData?.lyric || "",
-        lyricData?.tlyric || "",
-      );
-      let duration = await ParseMediaMetaData.getAudioDuration(playUrlData.url);
-
-      // 时长解析失败可能是 vkey 瞬时失效：重新取一次新链接再试
-      if (!duration) {
-        const fresh = await GDStudioOnlineMusicPlatformAPI.getMusicUrl(
-          "joox",
-          item.joox.id,
-        );
-        if (fresh?.url) {
-          playUrlData = fresh;
-          duration = await ParseMediaMetaData.getAudioDuration(fresh.url);
+        if (expired()) break;
+        if (!result.ok) {
+          failure = result;
+          break;
         }
+        // 只有取得候选才并行取歌词，冷却和主失败不会继续请求通道。
+        // 仅消费提交前已完成的结果；失败或挂起使用空歌词。
+        if (attempt === 0) {
+          void GDStudioOnlineMusicPlatformAPI.getLyric("joox", item.joox.id, {
+            signal: controller.signal,
+            warn: false,
+          })
+            .then((data) => {
+              if (!expired())
+                lyric = this.mergeLyrics(data?.lyric || "", data?.tlyric || "");
+            })
+            .catch(() => {});
+        }
+        for (const url of result.urls) {
+          if (checked.has(url) || checked.size >= 2 || expired()) continue;
+          checked.add(url);
+          const duration = await ParseMediaMetaData.getAudioDuration(url, {
+            signal: controller.signal,
+            timeoutMs: Math.min(10000, deadline - Date.now()),
+          });
+          if (expired()) break;
+          if (!Number.isFinite(duration) || duration <= 0) continue;
+          if (
+            result.expectedDurationSeconds !== undefined &&
+            Math.abs(duration - result.expectedDurationSeconds) >
+              Math.max(5, result.expectedDurationSeconds * 0.03)
+          )
+            continue;
+          const mediaData: MediaData = {
+            type: "music",
+            name: item.title,
+            singer: item.author,
+            cover: item.coverImg,
+            link: item.websiteUrl,
+            url,
+            duration,
+            bitRate: result.bitrateKbps ?? "",
+            color: this.baseHex,
+            lyrics: lyric,
+            origin: "qqmusic",
+          };
+          const media = new Media();
+          const socket = new Socket();
+          const card = media.mediaCard(mediaData);
+          const event = media.mediaEvent(mediaData);
+          if (!event) break;
+          await Announce.runSingleAnnounce(() => {
+            if (expired()) return;
+            Announce.sendMediaCard(socket, card);
+            socket.send(event);
+          });
+          return;
+        }
+        if (checked.size >= 2) break;
       }
-
-      const mediaData: MediaData = {
-        type: "music",
-        name: item.title,
-        singer: item.author,
-        cover: item.coverImg,
-        link: item.websiteUrl,
-        url: playUrlData.url,
-        duration: duration,
-        bitRate: 320,
-        color: this.baseHex,
-        lyrics: lyric,
-        origin: "qqmusic",
-      };
-      const mediacard = media.mediaCard(mediaData);
-      const mediaEvent = media.mediaEvent(mediaData);
-
-      Announce.sendMediaCard(socket, mediacard);
-      socket.send(mediaEvent);
+      this.showFailure(expired() ? playbackFailure("timeout") : failure);
+    } catch {
+      this.showFailure(
+        playbackFailure(expired() ? "timeout" : "media_unavailable"),
+      );
+    } finally {
+      clearTimeout(timer);
+      controller.abort();
     }
   };
 

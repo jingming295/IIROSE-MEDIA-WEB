@@ -981,9 +981,12 @@ export class NetEasePlatform extends Platform {
         .map((id) => songMap.get(id))
         .filter((s): s is SongDetailSong => Boolean(s));
 
+      // 无版权曲目按批聚合计数：循环结束统一提示一次，不逐曲刷屏
+      let noCopyrightSkipped = 0;
+
       for (const item of orderedSongs) {
         if (item.noCopyrightRcmd) {
-          ShowMessage.show(`歌曲《${item.name}》可能为无版权歌曲，已跳过播放`);
+          noCopyrightSkipped++;
           continue;
         }
         try {
@@ -1020,9 +1023,13 @@ export class NetEasePlatform extends Platform {
           Announce.sendMediaCard(socket, mediacard);
           socket.send(mediaEvent);
         } catch (error) {
-          // 单项失败：提示（同因 10 秒去重）后跳过，剩余曲目照播
-          Announce.showBatchItemError(error);
+          // 单项失败：带曲名提示（同因 10 秒去重）后跳过，剩余曲目照播
+          Announce.showBatchItemError(error, item.name);
         }
+      }
+
+      if (noCopyrightSkipped > 0) {
+        ShowMessage.show(`已跳过 ${noCopyrightSkipped} 首无版权曲目`);
       }
     }
   };

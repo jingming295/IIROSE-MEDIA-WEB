@@ -102,8 +102,8 @@ export class AllVideosPlatform extends Platform {
                   // 呼吸时间，防止 Socket 拥塞
                   await new Promise((resolve) => setTimeout(resolve, 150));
                 } catch (error) {
-                  // 单项失败：提示（同因 10 秒去重）后跳过，剩余分集照播
-                  Announce.showBatchItemError(error);
+                  // 单项失败：带分集名提示（同因 10 秒去重）后跳过，剩余分集照播
+                  Announce.showBatchItemError(error, item.episode);
                 }
               }
             },

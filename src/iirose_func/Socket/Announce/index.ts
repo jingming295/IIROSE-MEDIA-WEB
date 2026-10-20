@@ -118,28 +118,32 @@ export class Announce {
    * 批量点播单项失败的公开提示入口：平台层逐项 catch 与本模块兜底 catch 共用。
    * 同因 10 秒窗口去重（模式同 SendFetch.showNeteaseFailure）：
    * 一次大批量多曲同因失败只提示一次，避免逐曲刷屏。
+   * label（曲名/分P名）只进显示文案（「《label》播放失败：原因」），
+   * 去重键始终是原因本身。
    */
   private static batchItemErrorToastAt = 0;
   private static batchItemErrorToastMessage = "";
 
-  public static showBatchItemError(error: unknown): void {
+  public static showBatchItemError(error: unknown, label?: string): void {
     // 非 Error 抛出物：字符串原样，其余 JSON 序列化兜底——避免 String()
     // 把不同对象都渲染成 "[object Object]" 撞成同因
-    const message =
+    const cause =
       error instanceof Error
         ? error.message
         : typeof error === "string"
           ? error
           : JSON.stringify(error);
+    // 同因去重按「原因」而非显示文案：大批量多曲同因失败只提示一次，
+    // 曲名（label）只进显示文案（首支失败曲），不参与去重键
     const now = Date.now();
     if (
-      message === Announce.batchItemErrorToastMessage &&
+      cause === Announce.batchItemErrorToastMessage &&
       now - Announce.batchItemErrorToastAt < 10000
     )
       return;
-    Announce.batchItemErrorToastMessage = message;
+    Announce.batchItemErrorToastMessage = cause;
     Announce.batchItemErrorToastAt = now;
-    ShowMessage.show(message);
+    ShowMessage.show(label ? `《${label}》播放失败：${cause}` : cause);
   }
 
   /**

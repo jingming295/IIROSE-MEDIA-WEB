@@ -419,6 +419,22 @@ describe("批次作用域：单曲窗口 / 批次快照 / 逐项失败（spec-an
     expect(alertMock).toHaveBeenLastCalledWith("另一原因");
   });
 
+  it("失败提示带曲名：label 只进显示文案，去重键仍是原因", () => {
+    const err = new Error("解析失败");
+    Announce.showBatchItemError(err, "海阔天空");
+    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(alertMock).toHaveBeenCalledWith("《海阔天空》播放失败：解析失败");
+
+    // 同因不同曲名：10 秒窗口内不重复提示
+    Announce.showBatchItemError(err, "月半小夜曲");
+    expect(alertMock).toHaveBeenCalledTimes(1);
+
+    // 无 label：裸原因
+    Announce.showBatchItemError(new Error("裸原因"));
+    expect(alertMock).toHaveBeenCalledTimes(2);
+    expect(alertMock).toHaveBeenLastCalledWith("裸原因");
+  });
+
   it("CAP-2 同因去重：10 秒窗口到期后，同因失败再次提示", async () => {
     vi.useFakeTimers();
     setMode("summary");

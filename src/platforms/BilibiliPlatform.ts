@@ -495,8 +495,11 @@ export class BilibiliPlatform extends Platform {
                       bvid,
                     );
                   } catch (error) {
-                    // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
-                    Announce.showBatchItemError(error);
+                    // 单项失败：带分P名提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                    Announce.showBatchItemError(
+                      error,
+                      `P${item.page} ${item.part}`,
+                    );
                   }
                 }
               },
@@ -518,8 +521,11 @@ export class BilibiliPlatform extends Platform {
                       bvid,
                     );
                   } catch (error) {
-                    // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
-                    Announce.showBatchItemError(error);
+                    // 单项失败：带分P名提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                    Announce.showBatchItemError(
+                      error,
+                      `P${item.page} ${item.part}`,
+                    );
                   }
                 }
               },
@@ -595,8 +601,11 @@ export class BilibiliPlatform extends Platform {
                                   bvid,
                                 );
                               } catch (error) {
-                                // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
-                                Announce.showBatchItemError(error);
+                                // 单项失败：带分P名提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                                Announce.showBatchItemError(
+                                  error,
+                                  `P${item.page} ${item.part}`,
+                                );
                               }
                             }
                           },

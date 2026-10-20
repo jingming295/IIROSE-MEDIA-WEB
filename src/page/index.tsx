@@ -14,9 +14,16 @@ function initMediaProgress() {
   document.body.appendChild(root);
   const bridge = new HostMediaBridge();
   let visible = false;
-  const close = () => {
+  const close = (restoreFocus = true) => {
     visible = false;
     render(null, root);
+    const entry = document.getElementById("imw-media-progress-entry");
+    if (
+      restoreFocus &&
+      entry?.getClientRects().length &&
+      getComputedStyle(entry).visibility === "visible"
+    )
+      entry.focus({ preventScroll: true });
   };
   const sidebar = new SidebarMediaEntry(() => {
     if (!visible) {
@@ -25,14 +32,17 @@ function initMediaProgress() {
     }
     root.querySelector<HTMLElement>("#imw-media-progress")?.focus();
   });
+  const onPageHide = (event: PageTransitionEvent) => {
+    if (!event.persisted) dispose();
+  };
   const dispose = () => {
-    close();
+    close(false);
     sidebar.dispose();
     bridge.dispose();
     root.remove();
-    window.removeEventListener("pagehide", dispose);
+    window.removeEventListener("pagehide", onPageHide);
   };
-  window.addEventListener("pagehide", dispose);
+  window.addEventListener("pagehide", onPageHide);
   disposeProgress = dispose;
 }
 

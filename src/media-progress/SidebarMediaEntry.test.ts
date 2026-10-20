@@ -74,6 +74,39 @@ describe("侧栏媒体入口", () => {
     ).toBe(true);
     adapter.dispose();
   });
+  it("媒体移除清理入口，再插入媒体重新创建；时钟纯文本不触发扫描", async () => {
+    document.body.innerHTML = markup;
+    const open = vi.fn();
+    const adapter = new SidebarMediaEntry(open);
+    await flush();
+    const box = document.getElementById("functionHolderExtBox")!;
+    const scan = vi.spyOn(box, "querySelector");
+    const media = document.getElementById("shareMediaBox")!;
+    media.innerHTML = '<span id="shareMediaTime">0:01</span>';
+    await flush();
+    scan.mockClear();
+    document.getElementById("shareMediaTime")!.textContent = "0:02";
+    await flush();
+    expect(scan).not.toHaveBeenCalled();
+    const oldEntry = document.getElementById("imw-media-progress-entry")!;
+    const card = media.parentElement!;
+    media.remove();
+    await flush();
+    expect(document.getElementById("imw-media-progress-entry")).toBeNull();
+    oldEntry.click();
+    expect(open).not.toHaveBeenCalled();
+    card.appendChild(media);
+    await flush();
+    expect(document.querySelectorAll("#imw-media-progress-entry")).toHaveLength(
+      1,
+    );
+    expect(document.getElementById("imw-media-progress-entry")).not.toBe(
+      oldEntry,
+    );
+    document.getElementById("imw-media-progress-entry")!.click();
+    expect(open).toHaveBeenCalledOnce();
+    adapter.dispose();
+  });
   it("dispose 取消已排队的适配", async () => {
     const adapter = new SidebarMediaEntry(vi.fn());
     document.body.innerHTML = markup;

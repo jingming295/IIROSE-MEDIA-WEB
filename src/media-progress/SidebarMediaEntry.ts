@@ -19,6 +19,13 @@ export class SidebarMediaEntry {
               ? record.target
               : record.target.parentElement;
           if (
+            target?.closest("#shareMediaBox") &&
+            [...record.addedNodes, ...record.removedNodes].every(
+              (node) => node.nodeType === Node.TEXT_NODE,
+            )
+          )
+            return false;
+          if (
             target?.closest(
               "#functionHolder, #functionHolderBox, #functionHolderExtBox",
             )
@@ -84,7 +91,12 @@ export class SidebarMediaEntry {
     const media = box
       .querySelector("#shareMediaBox")
       ?.closest(".functionButtonExt");
-    if (!media) return;
+    if (!media) {
+      this.entry?.removeEventListener("click", this.open);
+      this.entry?.remove();
+      this.entry = undefined;
+      return;
+    }
     if (!this.entry) {
       this.entry = this.doc.createElement("button");
       this.entry.type = "button";

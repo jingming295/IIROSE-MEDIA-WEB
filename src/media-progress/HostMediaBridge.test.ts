@@ -152,6 +152,37 @@ describe("宿站桥接与交互生命周期", () => {
     expect(reopened.state.media.current).toBe(200);
     reopened.dispose();
   });
+  it("外部嵌套包装在关闭后失效，重开与重新包装只通知一次", () => {
+    vi.useFakeTimers();
+    const original = vi.fn(function (this: unknown) {
+      return this;
+    });
+    const host: MediaHost = { shareMedia: original };
+    const bridge = new HostMediaBridge(host);
+    let stop = bridge.subscribe(vi.fn());
+    const receiver = {};
+    for (let index = 0; index < 3; index++) {
+      const nested = host.shareMedia!;
+      const external = function (this: unknown, ...args: unknown[]) {
+        return nested.apply(this, args);
+      };
+      host.shareMedia = external;
+      vi.advanceTimersByTime(250);
+      stop();
+      const before = bridge.read().instance;
+      expect(external.call(receiver)).toBe(receiver);
+      expect(bridge.read().instance).toBe(before);
+      const listener = vi.fn();
+      stop = bridge.subscribe(listener);
+      listener.mockClear();
+      expect(host.shareMedia!.call(receiver)).toBe(receiver);
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(bridge.read().instance).toBe(before + 1);
+    }
+    stop();
+    expect(original).toHaveBeenCalledTimes(6);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it("支持延迟初始化并还原包装，不覆盖后安装的钩子", () => {
     vi.useFakeTimers();
     const host: MediaHost = {};

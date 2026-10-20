@@ -39,6 +39,7 @@ export function MediaProgress({
     top: number;
   }>();
   const seekPointer = useRef<number>();
+  const inputSource = useRef<"pointer" | "keyboard" | "native" | null>(null);
   const media = state.media;
   const unavailable = unavailableReason(media);
   const disabled = !!unavailable || state.waiting;
@@ -113,6 +114,20 @@ export function MediaProgress({
       tabIndex={-1}
       className={`fixed z-[90001] w-[320px] overflow-auto rounded-2xl border border-solid p-3 font-sans text-[14px] shadow-[0_12px_40px_rgba(0,0,0,0.25)] outline-none max-[768px]:w-[320px] ${media.dark ? "border-white/15 bg-[#242a34] text-[#f4f6fa]" : "border-black/10 bg-[#fafbfe] text-[#253047]"}`}
       style={{ left: position.x, top: position.y }}
+      onKeyDown={(event) => {
+        if (
+          event.key !== "Escape" ||
+          event.isComposing ||
+          event.defaultPrevented
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (session.current?.state.preview !== null && session.current) {
+          session.current.cancel();
+          seekPointer.current = undefined;
+        } else if (!event.repeat) close();
+      }}
     >
       <div className="mb-2 flex items-center gap-2">
         <div
@@ -230,6 +245,43 @@ export function MediaProgress({
         value={time ?? 0}
         disabled={disabled}
         className="m-0 mt-2 h-[44px] w-full touch-none cursor-pointer accent-sky-500 disabled:cursor-not-allowed disabled:opacity-40"
+        onInput={(event) => {
+          if (
+            seekPointer.current !== undefined ||
+            (inputSource.current === "keyboard" &&
+              session.current?.state.preview !== null)
+          )
+            return;
+          const active = session.current;
+          if (!active || active.state.waiting) return;
+          const target = event.currentTarget.valueAsNumber;
+          if (active.state.preview === null && !active.begin()) return;
+          inputSource.current = "native";
+          active.preview(target);
+        }}
+        onChange={(event) => {
+          if (
+            inputSource.current === "pointer" ||
+            inputSource.current === "keyboard"
+          )
+            return;
+          const active = session.current;
+          if (!active || active.state.waiting) return;
+          const target = event.currentTarget.valueAsNumber;
+          if (inputSource.current === "native" && active.state.preview === null)
+            return;
+          if (inputSource.current !== "native") {
+            if (
+              active.state.preview !== null ||
+              target === active.state.media.current ||
+              !active.begin()
+            )
+              return;
+          }
+          active.preview(target);
+          active.commit();
+          inputSource.current = null;
+        }}
         onPointerDown={(event) => {
           if (
             !event.isPrimary ||
@@ -239,6 +291,7 @@ export function MediaProgress({
             return;
           event.preventDefault();
           event.currentTarget.focus();
+          inputSource.current = "pointer";
           seekPointer.current = event.pointerId;
           event.currentTarget.setPointerCapture(event.pointerId);
           pointerTarget(event.currentTarget, event.clientX);
@@ -264,11 +317,6 @@ export function MediaProgress({
           }
         }}
         onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            session.current?.cancel();
-            return;
-          }
           if (event.key === "Enter") {
             event.preventDefault();
             session.current?.commit();
@@ -294,6 +342,7 @@ export function MediaProgress({
             !session.current.begin()
           )
             return;
+          inputSource.current = "keyboard";
           const current = session.current?.state.preview ?? media.current ?? 0;
           session.current?.preview(
             event.key === "Home"

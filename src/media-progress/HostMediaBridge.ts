@@ -28,7 +28,10 @@ export class HostMediaBridge {
   private listeners = new Set<(snapshot: MediaSnapshot) => void>();
   private restorers: (() => void)[] = [];
   private timer?: ReturnType<typeof setInterval>;
-  private hooked = new Map<string, { owner: object; wrapper: HostFunction }>();
+  private hooked = new Map<
+    string,
+    { owner: object; wrapper: HostFunction; invalidate: () => void }
+  >();
 
   constructor(
     private host: MediaHost = window as unknown as MediaHost,
@@ -103,15 +106,21 @@ export class HostMediaBridge {
     if (typeof original !== "function") return;
     const previous = this.hooked.get(key);
     if (previous?.owner === owner && previous.wrapper === original) return;
+    previous?.invalidate();
+    let active = true;
+    const invalidate = () => {
+      active = false;
+    };
     const wrapper = function (this: unknown, ...args: unknown[]) {
       const result = original.apply(this, args);
-      after();
+      if (active) after();
       return result;
     };
     target[key] = wrapper;
-    this.hooked.set(key, { owner, wrapper });
+    this.hooked.set(key, { owner, wrapper, invalidate });
     this.restorers.push(() => {
-      // 不覆盖其他插件后来安装的钩子。
+      invalidate();
+      // 不覆盖其他插件后来安装的钩子；嵌套旧包装仍转发，但不再通知。
       if (target[key] === wrapper) target[key] = original;
     });
   }

@@ -81,25 +81,30 @@ export class AllVideosPlatform extends Platform {
             playList.length,
             async () => {
               for (const item of playList) {
-                // 每一个分集都需要获取时长 (如果不需要精准时长可以设为默认值以提升速度)
-                const duration = await ParseMediaMetaData.getM3U8Duration(
-                  item.url,
-                );
+                try {
+                  // 每一个分集都需要获取时长 (如果不需要精准时长可以设为默认值以提升速度)
+                  const duration = await ParseMediaMetaData.getM3U8Duration(
+                    item.url,
+                  );
 
-                // 构造分集数据
-                const tempPD: PlatformData = {
-                  ...platformData,
-                  title: `${platformData.title}`,
-                  author: `${item.episode}`,
-                };
-                await AllVideosPlatform.sendVideoMedia(
-                  tempPD,
-                  item.url,
-                  duration,
-                );
+                  // 构造分集数据
+                  const tempPD: PlatformData = {
+                    ...platformData,
+                    title: `${platformData.title}`,
+                    author: `${item.episode}`,
+                  };
+                  await AllVideosPlatform.sendVideoMedia(
+                    tempPD,
+                    item.url,
+                    duration,
+                  );
 
-                // 呼吸时间，防止 Socket 拥塞
-                await new Promise((resolve) => setTimeout(resolve, 150));
+                  // 呼吸时间，防止 Socket 拥塞
+                  await new Promise((resolve) => setTimeout(resolve, 150));
+                } catch (error) {
+                  // 单项失败：提示（同因 10 秒去重）后跳过，剩余分集照播
+                  Announce.showBatchItemError(error);
+                }
               }
             },
           );
@@ -115,11 +120,14 @@ export class AllVideosPlatform extends Platform {
           const duration = await ParseMediaMetaData.getM3U8Duration(
             playList[0].url,
           );
-          await AllVideosPlatform.sendVideoMedia(
-            tempPD,
-            playList[0].url,
-            duration,
-          );
+          // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+          await Announce.runSingleAnnounce(async () => {
+            await AllVideosPlatform.sendVideoMedia(
+              tempPD,
+              playList[0].url,
+              duration,
+            );
+          });
         }
       } catch (error) {
         console.error("[Video VOD Action Error]:", error);

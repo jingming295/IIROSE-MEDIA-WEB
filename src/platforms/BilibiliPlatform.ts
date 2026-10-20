@@ -408,11 +408,15 @@ export class BilibiliPlatform extends Platform {
             const { playurl, qn } = await BilibiliPlatform.getDashUrlAndQn(
               res.data.dash,
             );
-            await BilibiliPlatform.prepareAndSendMedia(
-              platformData,
-              playurl,
-              res.data.timelength || 0,
-              qn,
+            const timelength = res.data.timelength || 0;
+            // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+            await Announce.runSingleAnnounce(() =>
+              BilibiliPlatform.prepareAndSendMedia(
+                platformData,
+                playurl,
+                timelength,
+                qn,
+              ),
             );
             return;
           }
@@ -440,11 +444,9 @@ export class BilibiliPlatform extends Platform {
         const targetPage =
           pages.find((p) => p.page === targetP) || pages[targetP - 1];
         if (targetPage) {
-          await BilibiliPlatform.playBiliPage(
-            platformData,
-            targetPage,
-            aid,
-            bvid,
+          // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+          await Announce.runSingleAnnounce(() =>
+            BilibiliPlatform.playBiliPage(platformData, targetPage, aid, bvid),
           );
         } else {
           ShowMessage.show(`未找到分P: P${targetP}`);
@@ -462,11 +464,9 @@ export class BilibiliPlatform extends Platform {
           duration: platformData.duration || 0,
           cid: platformData.bilibili.cid,
         };
-        await BilibiliPlatform.playBiliPage(
-          platformData,
-          singlePage,
-          aid,
-          bvid,
+        // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+        await Announce.runSingleAnnounce(() =>
+          BilibiliPlatform.playBiliPage(platformData, singlePage, aid, bvid),
         );
         return;
       }
@@ -487,12 +487,17 @@ export class BilibiliPlatform extends Platform {
               pages.length,
               async () => {
                 for (const item of pages) {
-                  await BilibiliPlatform.playBiliPage(
-                    platformData,
-                    item,
-                    aid,
-                    bvid,
-                  );
+                  try {
+                    await BilibiliPlatform.playBiliPage(
+                      platformData,
+                      item,
+                      aid,
+                      bvid,
+                    );
+                  } catch (error) {
+                    // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                    Announce.showBatchItemError(error);
+                  }
                 }
               },
               res?.data?.desc,
@@ -505,12 +510,17 @@ export class BilibiliPlatform extends Platform {
               shuffled.length,
               async () => {
                 for (const item of shuffled) {
-                  await BilibiliPlatform.playBiliPage(
-                    platformData,
-                    item,
-                    aid,
-                    bvid,
-                  );
+                  try {
+                    await BilibiliPlatform.playBiliPage(
+                      platformData,
+                      item,
+                      aid,
+                      bvid,
+                    );
+                  } catch (error) {
+                    // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                    Announce.showBatchItemError(error);
+                  }
                 }
               },
               res?.data?.desc,
@@ -552,11 +562,14 @@ export class BilibiliPlatform extends Platform {
                     .map((pageNo) => pages.find((p) => p.page === pageNo))
                     .filter((p): p is (typeof pages)[0] => Boolean(p));
                   if (chosenPages.length === 1) {
-                    BilibiliPlatform.playBiliPage(
-                      platformData,
-                      chosenPages[0],
-                      aid,
-                      bvid,
+                    // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+                    void Announce.runSingleAnnounce(() =>
+                      BilibiliPlatform.playBiliPage(
+                        platformData,
+                        chosenPages[0],
+                        aid,
+                        bvid,
+                      ),
                     );
                     return;
                   }
@@ -574,12 +587,17 @@ export class BilibiliPlatform extends Platform {
                           chosenPages.length,
                           async () => {
                             for (const item of chosenPages) {
-                              await BilibiliPlatform.playBiliPage(
-                                platformData,
-                                item,
-                                aid,
-                                bvid,
-                              );
+                              try {
+                                await BilibiliPlatform.playBiliPage(
+                                  platformData,
+                                  item,
+                                  aid,
+                                  bvid,
+                                );
+                              } catch (error) {
+                                // 单项失败：提示（同因 10 秒去重）后跳过，剩余分 P 照播
+                                Announce.showBatchItemError(error);
+                              }
                             }
                           },
                           res?.data?.desc,
@@ -603,11 +621,14 @@ export class BilibiliPlatform extends Platform {
 
       // 6. 单集视频直接播放
       if (pages.length > 0) {
-        await BilibiliPlatform.playBiliPage(
-          platformData,
-          { ...pages[0], part: platformData.title },
-          aid,
-          bvid,
+        // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+        await Announce.runSingleAnnounce(() =>
+          BilibiliPlatform.playBiliPage(
+            platformData,
+            { ...pages[0], part: platformData.title },
+            aid,
+            bvid,
+          ),
         );
       } else {
         throw new Error("无法获取视频信息");
@@ -780,8 +801,11 @@ export class BilibiliPlatform extends Platform {
         const mediaEvent = media.mediaEvent(mediaData);
 
         const socket = new Socket();
-        Announce.sendMediaCard(socket, mediacard);
-        socket.send(mediaEvent);
+        // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+        await Announce.runSingleAnnounce(async () => {
+          Announce.sendMediaCard(socket, mediacard);
+          socket.send(mediaEvent);
+        });
       }
     } catch (error) {
       ShowMessage.show((error as Error).message);

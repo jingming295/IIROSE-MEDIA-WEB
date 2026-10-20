@@ -64,7 +64,8 @@ export class JOOXPlatform extends Platform {
 
     try {
       if (!platformData.joox) throw new Error("没有JOOX音乐数据");
-      this.finalODSONG([jooxdata]);
+      // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+      await Announce.runSingleAnnounce(() => this.finalODSONG([jooxdata]));
     } catch (error) {
       ShowMessage.show((error as Error).message);
     }

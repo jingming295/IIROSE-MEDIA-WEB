@@ -9,9 +9,12 @@ import { PluginSettings } from "../../../settings/pluginSettings/PluginSettings"
  * 的 frozen 块「I/O & Edge-Case Matrix」（human-owned intent，行为以此为准）：
  * 默认/老用户回退 card、静默不发卡片、summary 单曲发卡片、
  * summary 批量 ≥2 仅一条总结消息、总结报文合法 JSON（\n 转义）、设置持久化读取。
+ * 批次作用域矩阵（单曲窗口放行 / 批次档位快照 / 逐项失败去重）出处：
+ * _bmad-output/implementation-artifacts/spec-announce-batch-scope.md。
  */
 
 const sendMock = vi.fn<(data: string) => void>();
+const alertMock = vi.fn<(message: string) => void>();
 
 function setMode(raw: unknown) {
   localStorage.setItem(
@@ -25,12 +28,20 @@ beforeEach(() => {
   (window as unknown as Record<string, unknown>).WebSocket =
     function WebSocket() {};
   (window as unknown as Record<string, unknown>).socket = { send: sendMock };
+  // 宿站 toast 通道：showBatchItemError 经 ShowMessage.show 走 window._alert
+  (window as unknown as Record<string, unknown>)._alert = alertMock;
   sendMock.mockClear();
+  alertMock.mockClear();
+  // 同因提示有 10 秒去重窗口：用例之间必须重置，否则后一条断言会被上一条压掉
+  (Announce as unknown as Record<string, unknown>).batchItemErrorToastAt = 0;
+  (Announce as unknown as Record<string, unknown>).batchItemErrorToastMessage =
+    "";
 });
 
 afterEach(() => {
   delete (window as unknown as Record<string, unknown>).socket;
   delete (window as unknown as Record<string, unknown>).WebSocket;
+  delete (window as unknown as Record<string, unknown>)._alert;
 });
 
 describe("announceMode 归一化（默认/老用户回退发卡片）", () => {
@@ -119,7 +130,9 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     const raw = sendMock.mock.calls[0][0];
     const parsed = JSON.parse(raw) as { m: string; mc: string; i: string };
     // 首行为宿站 markdown 触发写法：三个反斜杠 + 星号
-    expect(parsed.m).toBe("\\\\\\*\n🎵 已提交点播 **《冬日歌单》**，共 **5** 项");
+    expect(parsed.m).toBe(
+      "\\\\\\*\n🎵 已提交点播 **《冬日歌单》**，共 **5** 项",
+    );
     expect(parsed.m.split("\n")[0]).toBe("\\\\\\*");
     expect(parsed.m.split("\n")[1]).toBe(
       "🎵 已提交点播 **《冬日歌单》**，共 **5** 项",
@@ -211,13 +224,13 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     expect(sendMock).not.toHaveBeenCalled();
   });
 
-  it("循环抛异常时 finally 关闭抑制窗口", async () => {
+  it("循环抛异常：兜底 catch 消化异常（无 unhandled rejection）、提示一次、finally 关窗", async () => {
     setMode("summary");
-    await expect(
-      Announce.runBatchAnnounce("歌单", 3, async () => {
-        throw new Error("单项失败");
-      }),
-    ).rejects.toThrow("单项失败");
+    await Announce.runBatchAnnounce("歌单", 3, async () => {
+      throw new Error("循环级异常");
+    });
+    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(alertMock).toHaveBeenCalledWith("循环级异常");
     expect(Announce.shouldSendCard()).toBe(true);
   });
 
@@ -266,5 +279,121 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     expect(Announce.shouldSendCard()).toBe(true);
     // 两个批量各一条总结，无逐曲卡片
     expect(sendMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("批次作用域：单曲窗口 / 批次快照 / 逐项失败（spec-announce-batch-scope）", () => {
+  it("CAP-1 批间手动点播：批量挂起中开单曲窗口，单曲卡片放行，批量其余仍抑制", async () => {
+    setMode("summary");
+    let releaseBatch!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      releaseBatch = resolve;
+    });
+    let batchRest = true;
+
+    const batch = Announce.runBatchAnnounce("歌单", 5, async () => {
+      await gate;
+      batchRest = Announce.shouldSendCard();
+    });
+
+    // 批量挂起中用户手动点播单曲（如 @直链/MOD/MVOD）：单曲窗口内卡片立即发送
+    await Announce.runSingleAnnounce(async () => {
+      Announce.sendMediaCard(new Socket(), "SINGLE_CARD");
+    });
+
+    // 一条总结 + 一张单曲卡片
+    expect(sendMock).toHaveBeenCalledTimes(2);
+    expect(sendMock).toHaveBeenLastCalledWith("SINGLE_CARD");
+
+    releaseBatch();
+    await batch;
+    // 批量其余曲目仍无卡片（单曲窗口不泄漏到批量判定）
+    expect(batchRest).toBe(false);
+    expect(Announce.shouldSendCard()).toBe(true);
+  });
+
+  it("CAP-1 单曲窗口×silent：静默档优先于单曲窗口，仍不发卡片", async () => {
+    setMode("silent");
+    let inSingleWindow = true;
+    await Announce.runSingleAnnounce(async () => {
+      inSingleWindow = Announce.shouldSendCard();
+      Announce.sendMediaCard(new Socket(), "SINGLE_CARD");
+    });
+    expect(inSingleWindow).toBe(false);
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("CAP-3 批次快照：批量执行中切到 card，本批剩余仍抑制；下一批按新档位", async () => {
+    setMode("summary");
+    let releaseBatch!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      releaseBatch = resolve;
+    });
+    let batchRest = true;
+
+    const batch = Announce.runBatchAnnounce("歌单", 5, async () => {
+      await gate;
+      setMode("card"); // 中途切档
+      batchRest = Announce.shouldSendCard();
+    });
+
+    releaseBatch();
+    await batch;
+
+    // 快照生效：本批剩余曲目不逐个发卡片，无「总结+逐卡」分裂
+    expect(batchRest).toBe(false);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    // 批量结束后读实时档位：card → 放行（下一次点播立即按新档）
+    expect(Announce.shouldSendCard()).toBe(true);
+  });
+
+  it("CAP-2 逐项失败：逐项 catch 跳过失败曲、剩余照播、同因只提示一次、关窗", async () => {
+    setMode("summary");
+    const played: number[] = [];
+    await Announce.runBatchAnnounce("歌单", 3, async () => {
+      // 模拟平台层批量循环的逐项 try/catch 结构（如 finalODSONG）
+      for (const i of [1, 2, 3]) {
+        try {
+          if (i === 2) throw new Error("第2曲解析失败");
+          played.push(i);
+        } catch (error) {
+          Announce.showBatchItemError(error);
+        }
+      }
+    });
+    expect(played).toEqual([1, 3]); // 失败曲跳过，剩余照播
+    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(alertMock).toHaveBeenCalledWith("第2曲解析失败");
+    expect(Announce.shouldSendCard()).toBe(true); // finally 关窗
+  });
+
+  it("CAP-2 同因去重：10 秒窗口内同因失败只提示一次，不同因仍提示", async () => {
+    setMode("summary");
+    await Announce.runBatchAnnounce("歌单A", 2, async () => {
+      throw new Error("同因失败");
+    });
+    await Announce.runBatchAnnounce("歌单B", 2, async () => {
+      throw new Error("同因失败");
+    });
+    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(alertMock).toHaveBeenCalledWith("同因失败");
+
+    await Announce.runBatchAnnounce("歌单C", 2, async () => {
+      throw new Error("另一原因");
+    });
+    expect(alertMock).toHaveBeenCalledTimes(2);
+    expect(alertMock).toHaveBeenLastCalledWith("另一原因");
+  });
+
+  it("CAP-1 单曲窗口 try/finally：loop 抛异常也会关闭窗口", async () => {
+    setMode("summary");
+    await expect(
+      Announce.runSingleAnnounce(async () => {
+        throw new Error("单曲失败");
+      }),
+    ).rejects.toThrow("单曲失败");
+    // 窗口已关：批量抑制与档位判定恢复原状
+    await Announce.runSingleAnnounce(async () => {});
+    expect(Announce.shouldSendCard()).toBe(true);
   });
 });

@@ -144,8 +144,11 @@ export class InputPlatformAnalysis {
 
         const media = new Media();
         const socket = new Socket();
-        Announce.sendMediaCard(socket, media.mediaCard(mediaData));
-        socket.send(media.mediaEvent(mediaData));
+        // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+        await Announce.runSingleAnnounce(async () => {
+          Announce.sendMediaCard(socket, media.mediaCard(mediaData));
+          socket.send(media.mediaEvent(mediaData));
+        });
         return;
       }
 

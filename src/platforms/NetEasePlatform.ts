@@ -757,7 +757,10 @@ export class NetEasePlatform extends Platform {
               return;
             }
             if (checkedIds.length === 1) {
-              NetEasePlatform.finalODSONG(checkedIds);
+              // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+              void Announce.runSingleAnnounce(() =>
+                NetEasePlatform.finalODSONG(checkedIds),
+              );
               return;
             }
             setTimeout(() => {
@@ -856,7 +859,10 @@ export class NetEasePlatform extends Platform {
               return;
             }
             if (checkedIds.length === 1) {
-              NetEasePlatform.finalODSONG(checkedIds);
+              // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+              void Announce.runSingleAnnounce(() =>
+                NetEasePlatform.finalODSONG(checkedIds),
+              );
               return;
             }
             setTimeout(() => {
@@ -899,7 +905,8 @@ export class NetEasePlatform extends Platform {
     try {
       if (!platformData.neteaseMusic) throw new Error("没有网易云音乐数据");
       const id = platformData.neteaseMusic.id;
-      this.finalODSONG([id]);
+      // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+      void Announce.runSingleAnnounce(() => this.finalODSONG([id]));
     } catch (error) {
       ShowMessage.show((error as Error).message);
     }
@@ -945,8 +952,11 @@ export class NetEasePlatform extends Platform {
 
       const socket = new Socket();
 
-      Announce.sendMediaCard(socket, mediacard);
-      socket.send(mediaEvent);
+      // 手动单曲点播：包单曲窗口，卡片不被并行批量抑制吞掉
+      await Announce.runSingleAnnounce(async () => {
+        Announce.sendMediaCard(socket, mediacard);
+        socket.send(mediaEvent);
+      });
     } catch (error) {
       ShowMessage.show((error as Error).message);
     }
@@ -974,38 +984,43 @@ export class NetEasePlatform extends Platform {
           ShowMessage.show(`歌曲《${item.name}》可能为无版权歌曲，已跳过播放`);
           continue;
         }
-        let playUrl = "";
-        // playUrl = `https://v.iarc.top/?type=url&id=${item.id}#.mp3`;
-        playUrl = `https://1309510434-1fsutl4dzp.ap-hongkong.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
-        //playUrl = `https://1309510434-k3dderqeb9.ap-guangzhou.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
-        const lyrdata = await NeteaseMusicAPI.getLyric(item.id);
+        try {
+          let playUrl = "";
+          // playUrl = `https://v.iarc.top/?type=url&id=${item.id}#.mp3`;
+          playUrl = `https://1309510434-1fsutl4dzp.ap-hongkong.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
+          //playUrl = `https://1309510434-k3dderqeb9.ap-guangzhou.tencentscf.com/musicstreamlink/?platform=netease&id=${item.id}&quality=320&vip=${item.fee}#.mp3`;
+          const lyrdata = await NeteaseMusicAPI.getLyric(item.id);
 
-        let lyric = ``;
+          let lyric = ``;
 
-        if (lyrdata && lyrdata.lrc && lyrdata.tlyric) {
-          lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
-        } else if (lyrdata && lyrdata.lrc) {
-          lyric = lyrdata.lrc.lyric;
+          if (lyrdata && lyrdata.lrc && lyrdata.tlyric) {
+            lyric = this.mergeLyrics(lyrdata.lrc.lyric, lyrdata.tlyric.lyric);
+          } else if (lyrdata && lyrdata.lrc) {
+            lyric = lyrdata.lrc.lyric;
+          }
+          const mediaData: MediaData = {
+            type: "music",
+            name: item.name,
+            singer: item.artists[0].name,
+            cover: item.album.picUrl,
+            link: `https://music.163.com/#/song?id=${item.id}`,
+            url: playUrl,
+            duration: item.duration / 1000,
+            bitRate: 320,
+            color: this.baseHex,
+            lyrics: lyric,
+            origin: "netease",
+          };
+
+          const mediacard = media.mediaCard(mediaData);
+          const mediaEvent = media.mediaEvent(mediaData);
+
+          Announce.sendMediaCard(socket, mediacard);
+          socket.send(mediaEvent);
+        } catch (error) {
+          // 单项失败：提示（同因 10 秒去重）后跳过，剩余曲目照播
+          Announce.showBatchItemError(error);
         }
-        const mediaData: MediaData = {
-          type: "music",
-          name: item.name,
-          singer: item.artists[0].name,
-          cover: item.album.picUrl,
-          link: `https://music.163.com/#/song?id=${item.id}`,
-          url: playUrl,
-          duration: item.duration / 1000,
-          bitRate: 320,
-          color: this.baseHex,
-          lyrics: lyric,
-          origin: "netease",
-        };
-
-        const mediacard = media.mediaCard(mediaData);
-        const mediaEvent = media.mediaEvent(mediaData);
-
-        Announce.sendMediaCard(socket, mediacard);
-        socket.send(mediaEvent);
       }
     }
   };

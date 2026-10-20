@@ -21,6 +21,12 @@ import { ShowMessage } from "../iirose_func/ShowMessage";
 
 const showMock = ShowMessage.show as unknown as ReturnType<typeof vi.fn>;
 
+// 同因提示有 10 秒去重窗口：用例之间必须重置，否则后一条断言会被上一条压掉
+beforeEach(() => {
+  (SendFetch as any).neteaseFailureToastAt = 0;
+  (SendFetch as any).neteaseFailureToastMessage = "";
+});
+
 const URL_UNDER_TEST = "https://music.163.com/weapi/search/get";
 const POST_BODY = new URLSearchParams({ s: "周杰伦", type: "1000" });
 
@@ -348,6 +354,21 @@ describe("neteaseRequest：全部节点失败", () => {
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(String(showMock.mock.calls[0][0])).toContain("请求失败");
     expect(String(showMock.mock.calls[0][0])).not.toContain("500");
+  });
+
+  it("同一原因的连续失败在 10 秒窗口内只提示一次", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValue(json200({ code: -462 }));
+
+    await callNeteaseRequest();
+    await callNeteaseRequest();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(10_500);
+    await callNeteaseRequest();
+
+    expect(showMock).toHaveBeenCalledTimes(2);
   });
 
   it("网络异常时返回 null 并按网络原因提示一次", async () => {

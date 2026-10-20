@@ -434,8 +434,24 @@ export class SendFetch
                     ? '网易云网络请求失败，请检查网络后重试'
                     : `网易云请求失败${lastStatus !== undefined ? `（${lastStatus}）` : ''}`;
 
-        ShowMessage.show(reason);
+        this.showNeteaseFailure(reason);
         return null;
+    }
+
+    /**
+     * 同因提示去重：逐曲歌词这类批量请求在端点故障时会在几秒内失败 N 次，
+     * 同一个原因（风控/超时/网络/状态码）在窗口内只提示一次，避免刷屏。
+     */
+    private static neteaseFailureToastAt = 0;
+    private static neteaseFailureToastMessage = '';
+
+    private static showNeteaseFailure(reason: string)
+    {
+        const now = Date.now();
+        if (reason === this.neteaseFailureToastMessage && now - this.neteaseFailureToastAt < 10000) return;
+        this.neteaseFailureToastMessage = reason;
+        this.neteaseFailureToastAt = now;
+        ShowMessage.show(reason);
     }
 
 }

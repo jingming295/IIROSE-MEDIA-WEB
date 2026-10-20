@@ -76,7 +76,7 @@ export class NeteaseMusicAPI extends SendFetch
                     ids: `[${chunk.toString()}]`
                 });
 
-                const data: SongDetail | null = await this.neteaseRequest('http://music.163.com/api/song/detail', params, 'GET');
+                const data: SongDetail | null = await this.neteaseRequest('https://music.163.com/api/song/detail', params, 'GET');
 
                 if (data && data.code === 200)
                 {

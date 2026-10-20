@@ -41,7 +41,7 @@
 ## Known pitfalls
 
 - `vite.config.ts` 的库入口写的是 `src/main.js`，实际文件是 `src/main.ts`（构建能正常解析）；重命名入口时两处要一起改。
-- 网易云新增/修改端点必须走 `SendFetch.neteaseRequest`（节点切换、5s 超时、失败提示的唯一入口）；照 B 站写法自己拼 `${this.cors}` 会叠成双层代理前缀，并把失败退化成静默空列表。风控码（`-462/-460/460`）、HTTP 433 与超时各自归类，重试过程静默、全节点失败才提示一次。
+- 网易云新增/修改端点必须走 `SendFetch.neteaseRequest`（节点切换、5s 超时、失败提示的唯一入口）；照 B 站写法自己拼 `${this.cors}` 会叠成双层代理前缀，并把失败退化成静默空列表。风控码（`-462/-460/460`）、HTTP 433 与超时各自归类，重试过程静默、全节点失败才提示一次；批量端点（逐曲歌词）失败按同因 10 秒窗口去重，否则一次点播会刷出上百条提示。
 - 首次注入会弹插件自己的用户协议（宿站 `#syncAlertHolder`），挡住一切交互——先点它的「确定」。
 - 宿站输入框（`#syncPromptHolder` 等）是 jQuery 体系：合成 DOM 事件无效，自动化必须用真实键盘事件（Playwright `type()`/`press()`）。
 - GD Studio API（music-api.gdstudio.xyz）按 IP 限流：连续几次 `types=url` 请求即触发、恢复窗口 >10 分钟，且限流时返回 **HTTP 200 + `{"url":"","br":-1}`**——判失败必须检查 `data.url` 是否为空，不能只看 HTTP 状态码。

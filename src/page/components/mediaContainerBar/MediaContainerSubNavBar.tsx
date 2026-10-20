@@ -178,7 +178,7 @@ export class MediaContainerSubNavBar extends Component<
             return (
               <div
                 key={index} // 加入 key 属性
-                className={`flex items-center shrink-0 h-full px-[20px] max-[768px]:px-3.5 max-[768px]:text-xs cursor-pointer transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:opacity-70 active:scale-95 ${
+                className={`flex items-center shrink-0 h-full px-[20px] max-[768px]:px-3.5 max-[768px]:text-xs cursor-pointer transition-all duration-100! animate-[fadeIn_.25s_ease-out] hov:hover:opacity-70 [&>span]:transition-transform [&>span]:duration-100 active:[&>span]:scale-95 ${
                   isActive
                     ? "bg-[rgba(255,255,255,0.85)] text-[#2f2f2f] font-semibold"
                     : "bg-black/30 text-white/90"
@@ -187,7 +187,7 @@ export class MediaContainerSubNavBar extends Component<
                   this.handleItemClick(index, item.searchAction, item.class)
                 }
               >
-                {item.title}
+                <span>{item.title}</span>
               </div>
             );
           })}

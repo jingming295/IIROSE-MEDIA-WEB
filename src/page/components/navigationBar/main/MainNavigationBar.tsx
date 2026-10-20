@@ -29,7 +29,7 @@ export class MainNavigationBar extends Component<
   // NavBarButton：px-[20px] flex items-center cursor-pointer text-2xl 文字白 半透明底 悬停变淡
   // 移动端（≤768px）：隐藏文字，44px 触控区紧密相连无间距，纯图标高密度
   private navButtonClass = (active: boolean) =>
-    `min-w-[40px] min-h-[40px] max-[768px]:min-w-[44px] max-[768px]:min-h-[44px] max-[768px]:w-[44px] max-[768px]:h-[44px] px-[20px] max-[768px]:px-0 flex items-center justify-center cursor-pointer text-white text-2xl transition-all duration-100! hov:hover:opacity-70 active:scale-95 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
+    `min-w-[40px] min-h-[40px] max-[768px]:min-w-[44px] max-[768px]:min-h-[44px] max-[768px]:w-[44px] max-[768px]:h-[44px] px-[20px] max-[768px]:px-0 flex items-center justify-center cursor-pointer text-white text-2xl transition-all duration-100! hov:hover:opacity-70 [&>div]:transition-transform [&>div]:duration-100 active:[&>div]:scale-95 ${active ? "bg-[#00000080]" : "bg-[#fff3]"}`;
 
   render() {
     const { activeButtonIndex } = this.props;

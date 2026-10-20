@@ -43,6 +43,46 @@ afterEach(() => {
 });
 
 describe("宿站桥接与交互生命周期", () => {
+  it("默认发送器通过 Socket 发送单条公聊JSON且不改聊天草稿", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-20T00:00:00Z"));
+    const wireSend = vi.fn();
+    const socket = { readyState: WebSocket.OPEN, send: wireSend };
+    vi.stubGlobal("socket", socket);
+    const host: MediaHost = {
+      shareMediaCurrentTime: 80,
+      shareMediaDuration: 300,
+      socket,
+      Utils: { service: { isShareMediaPlaying: () => true } },
+    };
+    document.body.innerHTML = '<textarea id="moveinput"></textarea>';
+    const draft = document.getElementById("moveinput") as HTMLTextAreaElement;
+    draft.value = '保留草稿："未发送"\n第二行';
+    const originalDraft = draft.value;
+    // 不注入 sender，也不 mock Socket；只截获传输边界，不建立网络连接。
+    const bridge = new HostMediaBridge(host, document);
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      session.begin();
+      session.preview(120);
+      expect(wireSend).not.toHaveBeenCalled();
+      session.commit();
+      session.commit();
+      expect(wireSend).toHaveBeenCalledTimes(1);
+      const payload = wireSend.mock.calls[0][0];
+      expect(typeof payload).toBe("string");
+      expect(JSON.parse(payload)).toEqual({
+        m: "快进40s",
+        mc: "008000",
+        i: String(Date.now()),
+      });
+      expect(document.getElementById("moveinput")).toBe(draft);
+      expect(draft.value).toBe(originalDraft);
+    } finally {
+      session.dispose();
+      vi.unstubAllGlobals();
+    }
+  });
   it("拖动中零消息，释放按最新时间发一条并保护草稿", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();

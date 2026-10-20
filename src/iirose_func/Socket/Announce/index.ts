@@ -30,15 +30,17 @@ export class Announce {
   }
 
   /**
-   * 批量点播播报入口：summary 档且 count ≥ 2 时，先发一条总结消息
-   * （`\*` 独立一行 + 正文行「已点播《标题》共 N 项」），再在抑制窗口内
-   * 执行 loop；否则直接执行 loop。
+   * 批量点播播报入口：summary 档且 count ≥ 2 时，先发一条总结消息，再在抑制
+   * 窗口内执行 loop；否则直接执行 loop。
+   * 消息格式（宿站 markdown）：首行 `\\\*`（三反斜杠+星号）触发 markdown，
+   * 第二行「🎵 已点播 **《标题》**，共 **N** 项」，平台有简介时再附一行 blockquote。
    * 总结先于循环发送；循环中单项失败不回收总结，仍按现状各自提示。
    */
   public static async runBatchAnnounce(
     title: string,
     count: number,
     loop: () => Promise<void> | void,
+    description?: string | null,
   ): Promise<void> {
     const mode = PluginSettings.getPluginSetting().announceMode;
     if (mode !== "summary" || count < 2) {
@@ -49,8 +51,13 @@ export class Announce {
     // 报文必须经 JSON.stringify 构造，换行/反斜杠才能以 \n、\\* 合法转义嵌入；
     // 空标题兜底为通用措辞，避免正文退化为「已点播《》共 N 项」
     const safeTitle = title ? title : "批量点播";
-    const content = "\\*" + "\n" + `已点播《${safeTitle}》共 ${count} 项`;
-    new Socket().sendMessage(content);
+    const lines = [
+      "\\\\\\*",
+      `🎵 已点播 **《${safeTitle}》**，共 **${count}** 项`,
+    ];
+    const quote = Announce.buildDescriptionQuote(description);
+    if (quote) lines.push(quote);
+    new Socket().sendMessage(lines.join("\n"));
 
     batchDepth++;
     try {
@@ -58,5 +65,17 @@ export class Announce {
     } finally {
       batchDepth--;
     }
+  }
+
+  /**
+   * 集合简介（歌单/专辑/B站视频 desc）整理为单行 blockquote；
+   * 空白简介返回空串（不带详情行），超长截断到 120 字符。
+   */
+  private static buildDescriptionQuote(description?: string | null): string {
+    if (!description) return "";
+    const flat = description.replace(/\s*\n+\s*/g, " ").trim();
+    if (!flat) return "";
+    const clipped = flat.length > 120 ? flat.slice(0, 120) + "…" : flat;
+    return `> ${clipped}`;
   }
 }

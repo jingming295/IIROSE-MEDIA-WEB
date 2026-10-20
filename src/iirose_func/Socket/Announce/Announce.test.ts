@@ -112,16 +112,52 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     expect(Announce.shouldSendCard()).toBe(true);
   });
 
-  it("总结报文：合法 JSON，解析后 m 为 \\* 独行 + 正文行（换行经 \\n 转义）", async () => {
+  it("总结报文：合法 JSON，解析后 m 为 \\\* 独行 + 正文行（换行经 \\n 转义）", async () => {
     setMode("summary");
     await Announce.runBatchAnnounce("冬日歌单", 5, async () => {});
     const raw = sendMock.mock.calls[0][0];
     const parsed = JSON.parse(raw) as { m: string; mc: string };
-    expect(parsed.m).toBe("\\*\n已点播《冬日歌单》共 5 项");
-    expect(parsed.m.split("\n")[0]).toBe("\\*");
-    expect(parsed.m.split("\n")[1]).toBe("已点播《冬日歌单》共 5 项");
+    // 首行为宿站 markdown 触发写法：三个反斜杠 + 星号
+    expect(parsed.m).toBe("\\\\\\*\n🎵 已点播 **《冬日歌单》**，共 **5** 项");
+    expect(parsed.m.split("\n")[0]).toBe("\\\\\\*");
+    expect(parsed.m.split("\n")[1]).toBe(
+      "🎵 已点播 **《冬日歌单》**，共 **5** 项",
+    );
+    // 无简介时正文只有两行，不带详情行
+    expect(parsed.m.split("\n")).toHaveLength(2);
     // 原始报文里不允许出现裸换行
     expect(raw).not.toMatch(/\n/);
+  });
+
+  it("总结附简介：平台有详细介绍时以 blockquote 追加为第三行", async () => {
+    setMode("summary");
+    await Announce.runBatchAnnounce(
+      "冬日歌单",
+      5,
+      async () => {},
+      "第一行简介\n\n第二行简介",
+    );
+    const parsed = JSON.parse(sendMock.mock.calls[0][0]) as { m: string };
+    const lines = parsed.m.split("\n");
+    expect(lines).toHaveLength(3);
+    // 简介压平为单行 blockquote
+    expect(lines[2]).toBe("> 第一行简介 第二行简介");
+  });
+
+  it("简介超长截断到 120 字符；空白简介不带详情行", async () => {
+    setMode("summary");
+    await Announce.runBatchAnnounce(
+      "歌单",
+      2,
+      async () => {},
+      "简介".repeat(200),
+    );
+    let parsed = JSON.parse(sendMock.mock.calls[0][0]) as { m: string };
+    expect(parsed.m.split("\n")[2]).toBe(`> ${"简介".repeat(60)}…`);
+
+    await Announce.runBatchAnnounce("歌单", 2, async () => {}, "  \n  ");
+    parsed = JSON.parse(sendMock.mock.calls[1][0]) as { m: string };
+    expect(parsed.m.split("\n")).toHaveLength(2);
   });
 
   it("summary 档批量 count=2 边界（<2 判定的唯一边界）：仍发总结并抑制", async () => {
@@ -165,8 +201,8 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     );
     const first = JSON.parse(sendMock.mock.calls[0][0]) as { m: string };
     const second = JSON.parse(sendMock.mock.calls[1][0]) as { m: string };
-    expect(first.m).toBe("\\*\n已点播《批量点播》共 2 项");
-    expect(second.m).toBe("\\*\n已点播《批量点播》共 2 项");
+    expect(first.m).toBe("\\\\\\*\n🎵 已点播 **《批量点播》**，共 **2** 项");
+    expect(second.m).toBe("\\\\\\*\n🎵 已点播 **《批量点播》**，共 **2** 项");
   });
 
   it("并发批量回归：后启动的一批先结束，先启动批量的剩余部分仍被抑制", async () => {

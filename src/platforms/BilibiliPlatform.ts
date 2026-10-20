@@ -495,6 +495,7 @@ export class BilibiliPlatform extends Platform {
                   );
                 }
               },
+              res?.data?.desc,
             );
           } else if (select === 1) {
             // 乱序点播所有分 P
@@ -512,6 +513,7 @@ export class BilibiliPlatform extends Platform {
                   );
                 }
               },
+              res?.data?.desc,
             );
           } else if (select === 2) {
             // 选集多选点播：等待 buildBiliSelect 菜单淡出（250ms）后唤起多选列表
@@ -580,6 +582,7 @@ export class BilibiliPlatform extends Platform {
                               );
                             }
                           },
+                          res?.data?.desc,
                         );
                       },
                     );

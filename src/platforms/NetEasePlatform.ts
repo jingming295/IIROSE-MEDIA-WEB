@@ -712,6 +712,7 @@ export class NetEasePlatform extends Platform {
           songListDetail.playlist.name,
           trackID.length,
           () => NetEasePlatform.finalODSONG(trackID),
+          songListDetail.playlist.description,
         );
       } else if (select === 1) {
         trackID = trackID.sort(() => Math.random() - 0.5);
@@ -719,6 +720,7 @@ export class NetEasePlatform extends Platform {
           songListDetail.playlist.name,
           trackID.length,
           () => NetEasePlatform.finalODSONG(trackID),
+          songListDetail.playlist.description,
         );
       } else if (select === 2) {
         // 选集多选点播
@@ -767,6 +769,7 @@ export class NetEasePlatform extends Platform {
                   songListDetail.playlist.name,
                   checkedIds.length,
                   () => NetEasePlatform.finalODSONG(checkedIds),
+                  songListDetail.playlist.description,
                 );
               });
             }, 300);
@@ -814,6 +817,7 @@ export class NetEasePlatform extends Platform {
           albumDetails.album.name,
           songsID.length,
           () => NetEasePlatform.finalODSONG(songsID),
+          albumDetails.album.description,
         );
       } else if (select === 1) {
         songsID = songsID.sort(() => Math.random() - 0.5);
@@ -821,6 +825,7 @@ export class NetEasePlatform extends Platform {
           albumDetails.album.name,
           songsID.length,
           () => NetEasePlatform.finalODSONG(songsID),
+          albumDetails.album.description,
         );
       } else if (select === 2) {
         // 专辑选集多选点播
@@ -863,6 +868,7 @@ export class NetEasePlatform extends Platform {
                   albumDetails.album.name,
                   checkedIds.length,
                   () => NetEasePlatform.finalODSONG(checkedIds),
+                  albumDetails.album.description,
                 );
               });
             }, 300);

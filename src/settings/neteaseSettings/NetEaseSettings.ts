@@ -86,7 +86,8 @@ export class NetEaseSettings {
       }
     };
 
-    const mdiClass = ["mdi-rocket-launch-outline", "mdi-grass", "mdi-firefox"];
+    // 图标与 B 站「默认API」保持一致：广州/香港同用定位图标，开发者模式用 DEV 标记
+    const mdiClass = ["mdi-crosshairs-gps", "mdi-crosshairs-gps", "mdi-dev-to"];
 
     const selectOption = [
       ["default", "广州-默认节点"],
@@ -122,10 +123,7 @@ export class NetEaseSettings {
       if (neteaseSettings) {
         const neteaseSetting = JSON.parse(neteaseSettings) as NeteaseSetting;
         neteaseSetting.lyricOption = s as
-          | "off"
-          | "original"
-          | "translated"
-          | "both";
+          "off" | "original" | "translated" | "both";
         localStorage.setItem("neteaseSetting", JSON.stringify(neteaseSetting));
       }
 

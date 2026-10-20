@@ -28,7 +28,8 @@ export class SendFetch
             const response = await fetch(fullUrl, {
                 method: 'GET',
                 headers: {
-                    ...headers,
+                    // Headers 实例没有可枚举自有属性，展开会丢光所有请求头
+                    ...Object.fromEntries(headers),
                     Origin: 'https://iirose.com'
                 },
                 signal: signal
@@ -100,7 +101,8 @@ export class SendFetch
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    ...headers,
+                    // Headers 实例没有可枚举自有属性，展开会丢光所有请求头
+                    ...Object.fromEntries(headers),
                     Origin: 'https://iirose.com'
                 },
                 body: params,

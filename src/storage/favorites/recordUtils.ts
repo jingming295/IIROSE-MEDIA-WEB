@@ -71,7 +71,7 @@ export function normalizeRecord(record: FavoriteRecord): FavoriteRecord {
  */
 export function deriveFavoriteId(data: PlatformData): {
   id: string;
-  platform: "netease" | "joox" | "bilibili";
+  platform: "netease" | "bilibili";
   type: "song" | "album" | "playlist" | "video";
 } | null {
   // 1. 网易云
@@ -94,18 +94,7 @@ export function deriveFavoriteId(data: PlatformData): {
     };
   }
 
-  // 2. JOOX
-  if (data.joox || data.websiteUrl?.includes("joox.com")) {
-    const rawId = data.joox?.id || extractIdFromUrl(data.websiteUrl);
-    if (!rawId) return null;
-    return {
-      id: `joox:song:${rawId}`,
-      platform: "joox",
-      type: "song",
-    };
-  }
-
-  // 3. 哔哩哔哩
+  // 2. 哔哩哔哩
   if (data.bilibili || data.websiteUrl?.includes("bilibili.com")) {
     const bvid = data.bilibili?.bvid;
     const aid = data.bilibili?.aid;

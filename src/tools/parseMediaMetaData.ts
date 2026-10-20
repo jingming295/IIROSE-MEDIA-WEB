@@ -54,33 +54,32 @@ export class ParseMediaMetaData {
   /**
    * 前端版：获取普通音频文件 (MP3/OGG/WAV) 的时长
    */
-  public static getAudioDuration = (
-    url: string,
-    options: { signal?: AbortSignal; timeoutMs?: number } = {},
-  ): Promise<number> => {
-    if (options.signal?.aborted) return Promise.resolve(0);
+  public static getAudioDuration = (url: string): Promise<number> => {
     return new Promise((resolve) => {
       const audio = new Audio();
-      let settled = false;
-      const finish = (duration: number) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        options.signal?.removeEventListener("abort", abort);
-        audio.onloadedmetadata = null;
-        audio.onerror = null;
-        audio.removeAttribute("src");
-        audio.load();
-        resolve(Number.isFinite(duration) && duration > 0 ? duration : 0);
-      };
-      const abort = () => finish(0);
-      const timer = setTimeout(abort, Math.max(0, options.timeoutMs ?? 10000));
-      options.signal?.addEventListener("abort", abort, { once: true });
-      audio.onloadedmetadata = () => finish(audio.duration);
-      audio.onerror = abort;
+
+      // 这一步很关键：静音并尝试仅加载元数据
       audio.muted = true;
       audio.preload = "metadata";
       audio.src = url;
+
+      // 当元数据加载完成时获取时长
+      audio.onloadedmetadata = () => {
+        const duration = audio.duration;
+        // 清理对象释放内存
+        audio.src = "";
+        audio.load();
+        resolve(isNaN(duration) ? 0 : duration);
+      };
+
+      // 如果加载出错
+      audio.onerror = () => {
+        console.error("解析音频时长失败", url);
+        resolve(0);
+      };
+
+      // 设置超时，防止某些链接由于 CORS 或响应慢挂死
+      setTimeout(() => resolve(0), 10000);
     });
   };
 

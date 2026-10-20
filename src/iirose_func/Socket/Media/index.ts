@@ -1,5 +1,6 @@
 export class Media {
   public mediaCard(media: MediaData) {
+    console.log(media);
     function parseBitrate(bitrate: number | string): string | number {
       switch (bitrate) {
         case 10000:
@@ -224,6 +225,7 @@ export class Media {
         o: media.link.substring(4),
         l: media.lyrics,
       });
+      console.log(`&1${data}`);
       return `&1${data}`;
     } catch (error) {
       console.log(error);

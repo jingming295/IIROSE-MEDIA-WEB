@@ -3,7 +3,6 @@ import {
   CommonSettings,
   CommonSettingsInterface,
 } from "../commonSettings/CommonSettings";
-import { JOOXSetting } from "../jooxSettings/JOOXSettings";
 import {
   PluginSettings,
   PluginSettingsInterface,
@@ -15,7 +14,6 @@ export class LocalStorageUtils {
     this.setNetease();
     this.setCommonSetting();
     this.setPluginSetting();
-    this.setJOOX();
   }
 
   /**
@@ -152,13 +150,6 @@ export class LocalStorageUtils {
         PrivacyAgree: false,
       },
     };
-  }
-
-  private static setJOOX() {
-    const defaultJOOX: JOOXSetting = {
-      api: "gdstudio",
-    };
-    this.mergeSetting("jooxSetting", defaultJOOX);
   }
 
   private static setPluginSetting() {

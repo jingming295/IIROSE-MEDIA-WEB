@@ -18,7 +18,6 @@ import { AboutService } from "./MainAppContainerServices/AboutService";
 import { SettingsService } from "./MainAppContainerServices/SettingsService";
 import { NetEaseService } from "./MainAppContainerServices/NetEaseService";
 import { MediaContainerGesture } from "./MainAppContainerServices/MediaContainerGesture";
-import { JOOXService } from "./MainAppContainerServices/JOOXService";
 import { RadioService } from "./MainAppContainerServices/RadioService";
 import { FavoritesService } from "./MainAppContainerServices/FavoritesService";
 import { FavoritesStorageService } from "../storage/FavoritesStorageService";
@@ -742,37 +741,6 @@ export class MainAppContainer extends Component<
             },
           ],
         },
-        {
-          title: "JOOX",
-          iconsrc: "http://r.iirose.com/i/26/3/4/1/4905-KM.png",
-          color: "rgb(24, 209, 106)",
-          subNavBarItems: [
-            {
-              title: "全部",
-              class: "search",
-              searchAction: () => {
-                FavoritesService.loadFavorites(
-                  this.getActionContext(),
-                  "joox",
-                  "all",
-                  this.itemsPerPage,
-                );
-              },
-            },
-            {
-              title: "单曲",
-              class: "search",
-              searchAction: () => {
-                FavoritesService.loadFavorites(
-                  this.getActionContext(),
-                  "joox",
-                  "song",
-                  this.itemsPerPage,
-                );
-              },
-            },
-          ],
-        },
       ],
     },
     {
@@ -858,23 +826,6 @@ export class MainAppContainer extends Component<
               class: "search",
               searchAction: () => {
                 NetEaseService.searchPlaylist(
-                  this.getActionContext(),
-                  this.itemsPerPage,
-                );
-              },
-            },
-          ],
-        },
-        {
-          title: "JOOX",
-          iconsrc: "http://r.iirose.com/i/26/3/4/1/4905-KM.png",
-          color: "rgb(24, 209, 106)",
-          subNavBarItems: [
-            {
-              title: "搜索音乐",
-              class: "search",
-              searchAction: () => {
-                JOOXService.searchMusic(
                   this.getActionContext(),
                   this.itemsPerPage,
                 );
@@ -1020,19 +971,6 @@ export class MainAppContainer extends Component<
               title: "音乐设置",
               searchAction: () => {
                 SettingsService.showNetEaseMusic(this.getActionContext());
-              },
-            },
-          ],
-        },
-        {
-          title: "JOOX",
-          iconsrc: "http://r.iirose.com/i/26/3/4/1/4905-KM.png",
-          color: "rgb(24, 209, 106)",
-          subNavBarItems: [
-            {
-              title: "JOOX设置",
-              searchAction: () => {
-                SettingsService.showJOOXMusic(this.getActionContext());
               },
             },
           ],

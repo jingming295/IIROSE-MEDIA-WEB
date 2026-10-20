@@ -39,8 +39,6 @@ export function getMediaInfoArea(platformData: PlatformData): string {
     type = "电台";
   } else if (platformData.neteaseMusic) {
     type = "音乐";
-  } else if (platformData.joox?.isSong) {
-    type = "音乐";
   } else if (platformData.radio?.isradio) {
     type = "电台";
   } else if (platformData.subtitle) {

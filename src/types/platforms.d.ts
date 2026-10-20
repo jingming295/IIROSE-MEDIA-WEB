@@ -25,10 +25,6 @@ interface PlatformData {
     isDjRadios?: boolean;
     fee: number;
   };
-  joox?: {
-    id: string;
-    isSong?: boolean;
-  };
   radio?: {
     isradio: boolean;
     id: number;

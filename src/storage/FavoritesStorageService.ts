@@ -39,7 +39,7 @@ export interface FavoriteRecord {
    * 之后严格按账号隔离、不再变更。
    */
   ownerUid?: string;
-  platform: "netease" | "joox" | "bilibili";
+  platform: "netease" | "bilibili";
   type: "song" | "album" | "playlist" | "video";
   title: string;
   subtitle?: string;
@@ -148,7 +148,7 @@ export class FavoritesStorageService {
    */
   public static deriveFavoriteId(data: PlatformData): {
     id: string;
-    platform: "netease" | "joox" | "bilibili";
+    platform: "netease" | "bilibili";
     type: "song" | "album" | "playlist" | "video";
   } | null {
     return deriveFavoriteIdImpl(data);
@@ -385,7 +385,7 @@ export class FavoritesStorageService {
    * 按平台、类型、关键词检索**当前账号**的收藏数据（按时间倒序排列）
    */
   public static async query(options?: {
-    platform?: "all" | "netease" | "joox" | "bilibili";
+    platform?: "all" | "netease" | "bilibili";
     type?: "all" | "song" | "album" | "playlist" | "video";
     keyword?: string;
   }): Promise<FavoriteRecord[]> {

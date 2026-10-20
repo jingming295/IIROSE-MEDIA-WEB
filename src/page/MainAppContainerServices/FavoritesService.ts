@@ -1,12 +1,11 @@
 import { FavoritesStorageService } from "../../storage/FavoritesStorageService";
 import { NetEasePlatform } from "../../platforms/NetEasePlatform";
-import { JOOXPlatform } from "../../platforms/JOOXPlatform";
 import { BilibiliPlatform } from "../../platforms/BilibiliPlatform";
 
 export class FavoritesService {
   /** 最近一次收藏查询条件：云端拉取落地后按同一条件刷新已渲染的列表 */
   private static lastQuery: {
-    platform: "netease" | "joox" | "bilibili";
+    platform: "netease" | "bilibili";
     type: "all" | "song" | "album" | "playlist" | "video";
     itemsPerPage: number;
   } | null = null;
@@ -36,7 +35,7 @@ export class FavoritesService {
    */
   public static async loadFavorites(
     ctx: MainAppContainerActionContext,
-    platform: "netease" | "joox" | "bilibili",
+    platform: "netease" | "bilibili",
     type: "all" | "song" | "album" | "playlist" | "video",
     itemsPerPage: number = 10,
   ) {
@@ -88,8 +87,6 @@ export class FavoritesService {
     const onDemandPlay = (data: PlatformData) => {
       if (data.bilibili) {
         BilibiliPlatform.VOD(data);
-      } else if (data.joox) {
-        JOOXPlatform.MOD(data);
       } else if (data.neteaseMusic) {
         if (data.neteaseMusic.isAlbum) {
           NetEasePlatform.AOD(data);

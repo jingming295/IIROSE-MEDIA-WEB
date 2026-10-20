@@ -4,7 +4,6 @@ import { GetBiliBiliAccount } from "../../Account/BiliBili/GetBiliBili";
 import { ShowMessage } from "../../iirose_func/ShowMessage";
 import { IIROSEUtils } from "../../iirose_func/IIROSEUtils";
 import { BiliBiliSettings } from "../../settings/bilibiliSettings/BiliBiliSettings";
-import { JOOXSettings } from "../../settings/jooxSettings/JOOXSettings";
 import { NetEaseSettings } from "../../settings/neteaseSettings/NetEaseSettings";
 import { PluginSettings } from "../../settings/pluginSettings/PluginSettings";
 import { RadioSettings } from "../../settings/radioSettings/RadioSettings";
@@ -111,21 +110,6 @@ export class SettingsService {
         actionTitle: NetEaseSettings.parseNetEaseMusicQuality(s.quality),
         icon: "mdi-music",
         action: NetEaseSettings.setNeteaseMusicQuality.bind(NetEaseSettings),
-      },
-    ];
-
-    this.setState(ctx, data);
-  }
-
-  static showJOOXMusic(ctx: MainAppContainerActionContext) {
-    const s = JOOXSettings.getJOOXSetting();
-    const data: SettingData[] = [
-      {
-        key: "jooxDefaultApi",
-        title: "默认API",
-        actionTitle: JOOXSettings.parseJOOXApi(s.api),
-        icon: "mdi-code-braces",
-        action: JOOXSettings.setJooxDefaultApi.bind(JOOXSettings),
       },
     ];
 

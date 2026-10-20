@@ -3,6 +3,9 @@ import { Input_Behavior_Module } from "../../input-behavior-module/Input-Behavio
 
 export type SearchViewMode = "card" | "list";
 
+/** 点播播报模式：card 逐个发卡片（默认/现状） / silent 静默 / summary 批量总结 */
+export type AnnounceMode = "card" | "silent" | "summary";
+
 /** 云同步设置；口令**绝不**入此结构（只存内存，刷新即失锁） */
 export interface PluginSyncSettings {
   enabled: boolean;
@@ -34,6 +37,7 @@ export interface PluginSettingsInterface {
   };
   defaultPage: number;
   searchViewMode: SearchViewMode;
+  announceMode: AnnounceMode;
   sync: PluginSyncSettings;
 }
 
@@ -129,6 +133,68 @@ export class PluginSettings {
     return mode === "list" ? "列表" : "卡片";
   }
 
+  /**
+   * 点播播报模式设置入口：三选一选择框（发卡片 / 静默 / 批量总结）
+   */
+  public static setAnnounceMode(
+    changeActionTitleAction?: (actionTitle?: string) => void,
+  ) {
+    const set = (_t: HTMLElement, s: string) => {
+      const pluginSettings = PluginSettings.getPluginSetting();
+      pluginSettings.announceMode = PluginSettings.normalizeAnnounceMode(s);
+      localStorage.setItem("imwPluginSetting", JSON.stringify(pluginSettings));
+
+      if (changeActionTitleAction) {
+        changeActionTitleAction(
+          PluginSettings.parseAnnounceMode(pluginSettings.announceMode),
+        );
+      }
+    };
+
+    const iconClass = [
+      "announceCardIcon",
+      "announceSilentIcon",
+      "announceSummaryIcon",
+    ];
+
+    const selectOption: (string | number)[][] = [
+      ["card", "发卡片"],
+      ["silent", "静默"],
+      ["summary", "批量总结"],
+    ];
+
+    selectOption.forEach((item, index) => {
+      item.push(
+        `<div class="${iconClass[index]}" style="font-family:md;font-size:28px;text-align:center;line-height:100px;height:100px;width:100px;position:absolute;top:0;opacity:.7;left:0;"></div>`,
+      );
+    });
+
+    IIROSEUtils.buildSelect2(
+      null,
+      selectOption,
+      set,
+      false,
+      true,
+      null,
+      false,
+      null,
+      () => {},
+    );
+  }
+
+  public static parseAnnounceMode(mode: AnnounceMode): string {
+    return mode === "silent"
+      ? "静默"
+      : mode === "summary"
+        ? "批量总结"
+        : "发卡片";
+  }
+
+  /** 归一化：手改 localStorage 产生的非法值一律回退 "card"（单点归一化，同 searchViewMode） */
+  public static normalizeAnnounceMode(raw: unknown): AnnounceMode {
+    return raw === "silent" || raw === "summary" ? raw : "card";
+  }
+
   public static getPluginSetting(): PluginSettingsInterface {
     const pluginSettings = localStorage.getItem("imwPluginSetting");
     if (pluginSettings) {
@@ -136,6 +202,9 @@ export class PluginSettings {
       // 单点归一化：手改 localStorage 产生的非法值一律回退 "card"
       parsed.searchViewMode =
         parsed.searchViewMode === "list" ? "list" : "card";
+      parsed.announceMode = PluginSettings.normalizeAnnounceMode(
+        parsed.announceMode,
+      );
       parsed.sync = PluginSettings.normalizeSyncSettings(parsed.sync);
       return parsed;
     }
@@ -145,6 +214,7 @@ export class PluginSettings {
       },
       defaultPage: 0,
       searchViewMode: "card",
+      announceMode: "card",
       sync: PluginSettings.defaultSyncSettings(),
     };
   }
@@ -174,7 +244,8 @@ export class PluginSettings {
       enabled: raw.enabled === true,
       salt: typeof raw.salt === "string" && raw.salt ? raw.salt : null,
       lastSyncAt: typeof raw.lastSyncAt === "number" ? raw.lastSyncAt : null,
-      lastRev: typeof raw.lastRev === "string" && raw.lastRev ? raw.lastRev : null,
+      lastRev:
+        typeof raw.lastRev === "string" && raw.lastRev ? raw.lastRev : null,
       // 服务端强制 ^[0-9a-f]{16}$：非法值会让每次 PUT 400，因此直接清空，
       // 由 SyncManager.ensureDeviceId() 重新生成并落盘（设置面板没有重置入口）。
       deviceId:

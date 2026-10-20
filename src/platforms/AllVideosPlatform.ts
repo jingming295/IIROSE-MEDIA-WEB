@@ -2,6 +2,7 @@ import { CMSAPI } from "../Api/AllVideosAPI/CMS";
 import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
+import { Announce } from "../iirose_func/Socket/Announce";
 import { Media } from "../iirose_func/Socket/Media";
 import { ParseMediaMetaData } from "../tools/parseMediaMetaData";
 import { Platform } from "./Platform";
@@ -75,21 +76,33 @@ export class AllVideosPlatform extends Platform {
       try {
         if (select === 1) {
           // --- 正序点播全部 ---
-          for (const item of playList) {
-            // 每一个分集都需要获取时长 (如果不需要精准时长可以设为默认值以提升速度)
-            const duration = await ParseMediaMetaData.getM3U8Duration(item.url);
+          await Announce.runBatchAnnounce(
+            platformData.title,
+            playList.length,
+            async () => {
+              for (const item of playList) {
+                // 每一个分集都需要获取时长 (如果不需要精准时长可以设为默认值以提升速度)
+                const duration = await ParseMediaMetaData.getM3U8Duration(
+                  item.url,
+                );
 
-            // 构造分集数据
-            const tempPD: PlatformData = {
-              ...platformData,
-              title: `${platformData.title}`,
-              author: `${item.episode}`,
-            };
-            await AllVideosPlatform.sendVideoMedia(tempPD, item.url, duration);
+                // 构造分集数据
+                const tempPD: PlatformData = {
+                  ...platformData,
+                  title: `${platformData.title}`,
+                  author: `${item.episode}`,
+                };
+                await AllVideosPlatform.sendVideoMedia(
+                  tempPD,
+                  item.url,
+                  duration,
+                );
 
-            // 呼吸时间，防止 Socket 拥塞
-            await new Promise((resolve) => setTimeout(resolve, 150));
-          }
+                // 呼吸时间，防止 Socket 拥塞
+                await new Promise((resolve) => setTimeout(resolve, 150));
+              }
+            },
+          );
         } else {
           // --- 默认点播单集 (第一集) ---
 
@@ -147,7 +160,7 @@ export class AllVideosPlatform extends Platform {
 
     const media = new Media();
     const socket = new Socket();
-    socket.send(media.mediaCard(mediaData));
+    Announce.sendMediaCard(socket, media.mediaCard(mediaData));
     socket.send(media.mediaEvent(mediaData));
     console.log(`[VOD] Sent: ${pd.title}`);
   }

@@ -128,7 +128,11 @@
 .syncKeyIcon::before,
 .syncClockIcon::before,
 .syncRefreshIcon::before,
-.syncDeleteIcon::before {
+.syncDeleteIcon::before,
+.announceModeIcon::before,
+.announceCardIcon::before,
+.announceSilentIcon::before,
+.announceSummaryIcon::before {
   font-family: "md";
 }
 
@@ -237,12 +241,37 @@
   content: "\F09E7"; /* delete-outline */
 }
 
+/* 点播播报三档设置图标（码点对 @mdi/font 7.3.67 核实） */
+.announceModeIcon::before {
+  content: "\F00E6"; /* bullhorn */
+}
+
+.announceCardIcon::before {
+  content: "\F0B78"; /* card-text-outline */
+}
+
+.announceSilentIcon::before {
+  content: "\F0581"; /* volume-off */
+}
+
+.announceSummaryIcon::before {
+  content: "\F0CB8"; /* playlist-music */
+}
+
 /* --- 6. 移动端小屏交互增强 --- */
 /* 子分类横滑右侧渐变遮罩提示（仅在 ≤768px 移动视口下生效，提示用户可继续横滑） */
 @media (max-width: 768px) {
   .subnavbar-mask {
-    mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(
+      to right,
+      black calc(100% - 24px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black calc(100% - 24px),
+      transparent 100%
+    );
   }
 }
 
@@ -254,4 +283,3 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-

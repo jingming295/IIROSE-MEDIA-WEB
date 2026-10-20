@@ -181,6 +181,12 @@ export class SettingsService {
         },
       },
       {
+        title: "点播播报",
+        actionTitle: PluginSettings.parseAnnounceMode(ps.announceMode),
+        icon: "announceModeIcon",
+        action: (doSomethings) => PluginSettings.setAnnounceMode(doSomethings),
+      },
+      {
         title: "代理蔷薇@输入",
         actionTitle: isProxyAtInputInText,
         icon: "mdi-at",

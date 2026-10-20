@@ -6,6 +6,7 @@ import { BiliBiliVideoApi } from "../Api/BilibiliAPI/BiliBiliVideoAPI";
 import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
+import { Announce } from "../iirose_func/Socket/Announce";
 import { Media } from "../iirose_func/Socket/Media";
 import { BiliBiliSettings } from "../settings/bilibiliSettings/BiliBiliSettings";
 import { Platform } from "./Platform";
@@ -350,18 +351,23 @@ export class BilibiliPlatform extends Platform {
 
       if (!videoUrl) throw new Error("解析播放地址失败");
 
-      const title = pageItem.part ? `P${pageItem.page} ${pageItem.part}` : basePlatformData.title;
+      const title = pageItem.part
+        ? `P${pageItem.page} ${pageItem.part}`
+        : basePlatformData.title;
       const pd: PlatformData = {
         ...basePlatformData,
         title: title,
         duration: pageItem.duration || basePlatformData.duration,
-        websiteUrl: bvid ? `https://www.bilibili.com/video/${bvid}?p=${pageItem.page}` : basePlatformData.websiteUrl,
+        websiteUrl: bvid
+          ? `https://www.bilibili.com/video/${bvid}?p=${pageItem.page}`
+          : basePlatformData.websiteUrl,
       };
 
       await BilibiliPlatform.prepareAndSendMedia(
         pd,
         videoUrl,
-        res.data.timelength || (pageItem.duration ? pageItem.duration * 1000 : 0),
+        res.data.timelength ||
+          (pageItem.duration ? pageItem.duration * 1000 : 0),
         actuallyQn,
       );
     } else {
@@ -415,17 +421,31 @@ export class BilibiliPlatform extends Platform {
       }
 
       // 2. 普通视频：获取视频数据与分 P 列表
-      let pages: { page: number; part: string; duration: number; cid: number }[] = [];
-      const res = await BiliBiliVideoApi.getBilibiliVideoData(aid || null, bvid);
+      let pages: {
+        page: number;
+        part: string;
+        duration: number;
+        cid: number;
+      }[] = [];
+      const res = await BiliBiliVideoApi.getBilibiliVideoData(
+        aid || null,
+        bvid,
+      );
       if (res && res.code === 0 && res.data && res.data.pages) {
         pages = res.data.pages;
       }
 
       // 3. 若显式指定 targetP (例如 URL 带 ?p=N)，直接播放对应分 P
       if (typeof targetP === "number" && targetP > 0) {
-        const targetPage = pages.find((p) => p.page === targetP) || pages[targetP - 1];
+        const targetPage =
+          pages.find((p) => p.page === targetP) || pages[targetP - 1];
         if (targetPage) {
-          await BilibiliPlatform.playBiliPage(platformData, targetPage, aid, bvid);
+          await BilibiliPlatform.playBiliPage(
+            platformData,
+            targetPage,
+            aid,
+            bvid,
+          );
         } else {
           ShowMessage.show(`未找到分P: P${targetP}`);
         }
@@ -434,13 +454,20 @@ export class BilibiliPlatform extends Platform {
 
       // 4. 若为子级单集卡片（在分 P 列表内部单点某集：cid 存在且未携带 multiPage）
       if (platformData.bilibili.cid && !platformData.multiPage) {
-        const singlePage = pages.find((p) => p.cid === platformData.bilibili!.cid) || {
+        const singlePage = pages.find(
+          (p) => p.cid === platformData.bilibili!.cid,
+        ) || {
           page: 1,
           part: platformData.title,
           duration: platformData.duration || 0,
           cid: platformData.bilibili.cid,
         };
-        await BilibiliPlatform.playBiliPage(platformData, singlePage, aid, bvid);
+        await BilibiliPlatform.playBiliPage(
+          platformData,
+          singlePage,
+          aid,
+          bvid,
+        );
         return;
       }
 
@@ -455,20 +482,44 @@ export class BilibiliPlatform extends Platform {
         await BilibiliPlatform.buildBiliSelect(async (select: number) => {
           if (select === 0) {
             // 正序点播所有分 P
-            for (const item of pages) {
-              await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
-            }
+            void Announce.runBatchAnnounce(
+              platformData.title,
+              pages.length,
+              async () => {
+                for (const item of pages) {
+                  await BilibiliPlatform.playBiliPage(
+                    platformData,
+                    item,
+                    aid,
+                    bvid,
+                  );
+                }
+              },
+            );
           } else if (select === 1) {
             // 乱序点播所有分 P
             const shuffled = [...pages].sort(() => Math.random() - 0.5);
-            for (const item of shuffled) {
-              await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
-            }
+            void Announce.runBatchAnnounce(
+              platformData.title,
+              shuffled.length,
+              async () => {
+                for (const item of shuffled) {
+                  await BilibiliPlatform.playBiliPage(
+                    platformData,
+                    item,
+                    aid,
+                    bvid,
+                  );
+                }
+              },
+            );
           } else if (select === 2) {
             // 选集多选点播：等待 buildBiliSelect 菜单淡出（250ms）后唤起多选列表
             setTimeout(async () => {
               const defaultCover =
-                (res && res.data && res.data.pic) || (await platformData.coverImg) || "";
+                (res && res.data && res.data.pic) ||
+                (await platformData.coverImg) ||
+                "";
               const selectOptions = pages.map((item) => [
                 item.page,
                 `P${item.page} ${item.part}`,
@@ -482,9 +533,13 @@ export class BilibiliPlatform extends Platform {
                 null,
                 selectOptions,
                 (_t: HTMLElement, selected: any) => {
-                  const rawArr = Array.isArray(selected) ? selected : [selected];
+                  const rawArr = Array.isArray(selected)
+                    ? selected
+                    : [selected];
                   const checkedPages = rawArr
-                    .filter((x: any) => x !== "" && x !== null && x !== undefined)
+                    .filter(
+                      (x: any) => x !== "" && x !== null && x !== undefined,
+                    )
                     .map(Number);
                   if (checkedPages.length === 0) {
                     ShowMessage.show("未选择任何分P");
@@ -493,23 +548,41 @@ export class BilibiliPlatform extends Platform {
 
                   let chosenPages = checkedPages
                     .map((pageNo) => pages.find((p) => p.page === pageNo))
-                    .filter((p): p is typeof pages[0] => Boolean(p));
+                    .filter((p): p is (typeof pages)[0] => Boolean(p));
                   if (chosenPages.length === 1) {
-                    BilibiliPlatform.playBiliPage(platformData, chosenPages[0], aid, bvid);
+                    BilibiliPlatform.playBiliPage(
+                      platformData,
+                      chosenPages[0],
+                      aid,
+                      bvid,
+                    );
                     return;
                   }
 
                   setTimeout(() => {
-                    BilibiliPlatform.buildOrderConfirmSelect((order: number) => {
-                      if (order === 1) {
-                        chosenPages = [...chosenPages].sort(() => Math.random() - 0.5);
-                      }
-                      (async () => {
-                        for (const item of chosenPages) {
-                          await BilibiliPlatform.playBiliPage(platformData, item, aid, bvid);
+                    BilibiliPlatform.buildOrderConfirmSelect(
+                      (order: number) => {
+                        if (order === 1) {
+                          chosenPages = [...chosenPages].sort(
+                            () => Math.random() - 0.5,
+                          );
                         }
-                      })();
-                    });
+                        void Announce.runBatchAnnounce(
+                          platformData.title,
+                          chosenPages.length,
+                          async () => {
+                            for (const item of chosenPages) {
+                              await BilibiliPlatform.playBiliPage(
+                                platformData,
+                                item,
+                                aid,
+                                bvid,
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
                   }, 300);
                 },
                 false,
@@ -527,7 +600,12 @@ export class BilibiliPlatform extends Platform {
 
       // 6. 单集视频直接播放
       if (pages.length > 0) {
-        await BilibiliPlatform.playBiliPage(platformData, { ...pages[0], part: platformData.title }, aid, bvid);
+        await BilibiliPlatform.playBiliPage(
+          platformData,
+          { ...pages[0], part: platformData.title },
+          aid,
+          bvid,
+        );
       } else {
         throw new Error("无法获取视频信息");
       }
@@ -641,7 +719,7 @@ export class BilibiliPlatform extends Platform {
     const media = new Media();
     const socket = new Socket();
 
-    socket.send(media.mediaCard(mediaData));
+    Announce.sendMediaCard(socket, media.mediaCard(mediaData));
     socket.send(media.mediaEvent(mediaData));
 
     console.log(`[VOD] 播放指令已下发: ${mediaData.name}`);
@@ -699,7 +777,7 @@ export class BilibiliPlatform extends Platform {
         const mediaEvent = media.mediaEvent(mediaData);
 
         const socket = new Socket();
-        socket.send(mediacard);
+        Announce.sendMediaCard(socket, mediacard);
         socket.send(mediaEvent);
       }
     } catch (error) {

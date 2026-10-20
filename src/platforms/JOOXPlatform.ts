@@ -1,6 +1,7 @@
 import { GDStudioOnlineMusicPlatformAPI } from "../Api/GD-Studio's-Online-Music-Platform-API";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
+import { Announce } from "../iirose_func/Socket/Announce";
 import { Media } from "../iirose_func/Socket/Media";
 import { NetEaseSettings } from "../settings/neteaseSettings/NetEaseSettings";
 import { ParseMediaMetaData } from "../tools/parseMediaMetaData";
@@ -133,7 +134,7 @@ export class JOOXPlatform extends Platform {
       const mediacard = media.mediaCard(mediaData);
       const mediaEvent = media.mediaEvent(mediaData);
 
-      socket.send(mediacard);
+      Announce.sendMediaCard(socket, mediacard);
       socket.send(mediaEvent);
     }
   };

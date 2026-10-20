@@ -4,6 +4,7 @@ import { SearchData } from "../Api/NeteaseAPI/NeteaseSearch/SearchInterface";
 import { IIROSEUtils } from "../iirose_func/IIROSEUtils";
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
+import { Announce } from "../iirose_func/Socket/Announce";
 import { Media } from "../iirose_func/Socket/Media";
 import { NetEaseSettings } from "../settings/neteaseSettings/NetEaseSettings";
 import { Platform } from "./Platform";
@@ -707,10 +708,18 @@ export class NetEasePlatform extends Platform {
       let trackID = trackIds.map((item) => item.id);
 
       if (select === 0) {
-        NetEasePlatform.finalODSONG(trackID);
+        void Announce.runBatchAnnounce(
+          songListDetail.playlist.name,
+          trackID.length,
+          () => NetEasePlatform.finalODSONG(trackID),
+        );
       } else if (select === 1) {
         trackID = trackID.sort(() => Math.random() - 0.5);
-        NetEasePlatform.finalODSONG(trackID);
+        void Announce.runBatchAnnounce(
+          songListDetail.playlist.name,
+          trackID.length,
+          () => NetEasePlatform.finalODSONG(trackID),
+        );
       } else if (select === 2) {
         // 选集多选点播
         const tracks = songListDetail.playlist.tracks || [];
@@ -754,7 +763,11 @@ export class NetEasePlatform extends Platform {
                 if (order === 1) {
                   checkedIds.sort(() => Math.random() - 0.5);
                 }
-                NetEasePlatform.finalODSONG(checkedIds);
+                void Announce.runBatchAnnounce(
+                  songListDetail.playlist.name,
+                  checkedIds.length,
+                  () => NetEasePlatform.finalODSONG(checkedIds),
+                );
               });
             }, 300);
           },
@@ -797,10 +810,18 @@ export class NetEasePlatform extends Platform {
       let songsID = Songs.map((item) => item.id);
 
       if (select === 0) {
-        NetEasePlatform.finalODSONG(songsID);
+        void Announce.runBatchAnnounce(
+          albumDetails.album.name,
+          songsID.length,
+          () => NetEasePlatform.finalODSONG(songsID),
+        );
       } else if (select === 1) {
         songsID = songsID.sort(() => Math.random() - 0.5);
-        NetEasePlatform.finalODSONG(songsID);
+        void Announce.runBatchAnnounce(
+          albumDetails.album.name,
+          songsID.length,
+          () => NetEasePlatform.finalODSONG(songsID),
+        );
       } else if (select === 2) {
         // 专辑选集多选点播
         const albumCover =
@@ -838,7 +859,11 @@ export class NetEasePlatform extends Platform {
                 if (order === 1) {
                   checkedIds.sort(() => Math.random() - 0.5);
                 }
-                NetEasePlatform.finalODSONG(checkedIds);
+                void Announce.runBatchAnnounce(
+                  albumDetails.album.name,
+                  checkedIds.length,
+                  () => NetEasePlatform.finalODSONG(checkedIds),
+                );
               });
             }, 300);
           },
@@ -914,7 +939,7 @@ export class NetEasePlatform extends Platform {
 
       const socket = new Socket();
 
-      socket.send(mediacard);
+      Announce.sendMediaCard(socket, mediacard);
       socket.send(mediaEvent);
     } catch (error) {
       ShowMessage.show((error as Error).message);
@@ -973,7 +998,7 @@ export class NetEasePlatform extends Platform {
         const mediacard = media.mediaCard(mediaData);
         const mediaEvent = media.mediaEvent(mediaData);
 
-        socket.send(mediacard);
+        Announce.sendMediaCard(socket, mediacard);
         socket.send(mediaEvent);
       }
     }

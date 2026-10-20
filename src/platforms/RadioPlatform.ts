@@ -1,5 +1,6 @@
 import { ShowMessage } from "../iirose_func/ShowMessage";
 import { Socket } from "../iirose_func/Socket";
+import { Announce } from "../iirose_func/Socket/Announce";
 import { Media } from "../iirose_func/Socket/Media";
 import { RadioSettings } from "../settings/radioSettings/RadioSettings";
 import { Platform } from "./Platform";
@@ -90,7 +91,7 @@ export class RadioPlatform extends Platform {
       const mediacard = media.mediaCard(mediaData);
       const mediaEvent = media.mediaEvent(mediaData);
 
-      socket.send(mediacard);
+      Announce.sendMediaCard(socket, mediacard);
       socket.send(mediaEvent);
     }
   };

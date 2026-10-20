@@ -1,27 +1,24 @@
-interface SongDetail
-{
+interface SongDetail {
   songs?: SongDetailSong[];
   equalizers: string; // 这里是一个键值对，值的类型未知，可以根据需要修改
   code: number;
 }
 
-interface SongDetailFromBinaryify
-{
+interface SongDetailFromBinaryify {
   code: number;
   privileges: [];
   songs?: SongsFromBinaryify[];
 }
 
-interface SongsFromBinaryify
-{
-  a: null
+interface SongsFromBinaryify {
+  a: null;
   al: {
     id: number; // 专辑id
     name: string; // 专辑名
     picUrl: string; // 专辑图片
     pic: number; // 未知
     pic_str: string; // 专辑图片
-  } // 专辑信息
+  }; // 专辑信息
   alia: string[];
   ar: {
     id: number; // 歌手id
@@ -44,13 +41,13 @@ interface SongsFromBinaryify
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  } // 歌曲分辨率信息？最高
+  }; // 歌曲分辨率信息？最高
   h: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  } // 歌曲分辨率信息？中等偏上
+  }; // 歌曲分辨率信息？中等偏上
   hr: null; // 未知
   id: number; // 歌曲id
   l: {
@@ -58,19 +55,19 @@ interface SongsFromBinaryify
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  } // 歌曲分辨率信息？最低
+  }; // 歌曲分辨率信息？最低
   m: {
     br: number; // 比特率
     fid: number; // 未知
     size: number; // 大小
     vd: number; // 未知
-  } // 歌曲分辨率信息？中等
+  }; // 歌曲分辨率信息？中等
   mark: number; // 未知
   mst: number; // 未知
   mv: number; // 未知
   name: string; // 歌曲名
   no: number; // 未知
-  noCopyrightRcmd: null // 未知
+  noCopyrightRcmd: null; // 未知
   originCoverType: number; // 未知
   originSongSimpleData: null; // 未知
   pop: number; // 未知
@@ -90,11 +87,9 @@ interface SongsFromBinaryify
   tagPicList: null; // 未知
   v: number; // 未知
   version: number; // 未知
-
 }
 
-interface SongDetailSong
-{
+interface SongDetailSong {
   name: string;
   id: number;
   position: number;
@@ -143,16 +138,14 @@ interface SongDetailSong
   transNames: string[];
 }
 
-interface NoCopyrightRcmd
-{
+interface NoCopyrightRcmd {
   type: number;
   typeDesc: string;
   songId: number | null;
   thirdPartySong: any | null;
   expInfo: any | null;
 }
-interface MusicDetailArtists
-{
+interface MusicDetailArtists {
   name: string;
   id: number;
   picId: number;
@@ -167,8 +160,7 @@ interface MusicDetailArtists
   topicPerson: number;
 }
 
-interface MusicDetailAlbum
-{
+interface MusicDetailAlbum {
   name: string;
   id: number;
   type: string;
@@ -194,13 +186,9 @@ interface MusicDetailAlbum
   picId_str: string;
 }
 
-interface Artist
-{
+interface Artist {}
 
-}
-
-interface MusicFormat
-{
+interface MusicFormat {
   name: string | null;
   id: number;
   size: number;

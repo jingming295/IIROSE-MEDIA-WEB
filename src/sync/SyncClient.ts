@@ -237,7 +237,11 @@ export class SyncClient {
           if (error instanceof DOMException && error.name === "AbortError") {
             throw error;
           }
-          throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
+          throw new SyncClientError(
+            "invalid",
+            SYNC_ERROR_MESSAGES.invalid,
+            200,
+          );
         }
 
         const snapshot = payload?.snapshot ?? null;
@@ -287,7 +291,11 @@ export class SyncClient {
           if (error instanceof DOMException && error.name === "AbortError") {
             throw error;
           }
-          throw new SyncClientError("invalid", SYNC_ERROR_MESSAGES.invalid, 200);
+          throw new SyncClientError(
+            "invalid",
+            SYNC_ERROR_MESSAGES.invalid,
+            200,
+          );
         }
 
         return {

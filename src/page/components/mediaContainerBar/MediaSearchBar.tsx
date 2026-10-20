@@ -88,7 +88,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
         >
           <div
             className={`${
-              this.props.favoritesMode ? "starSolidIcon text-[#fbc02d]" : "starOutlineIcon text-white"
+              this.props.favoritesMode
+                ? "starSolidIcon text-[#fbc02d]"
+                : "starOutlineIcon text-white"
             } text-2xl max-[768px]:text-[22px]`}
           ></div>
           <div className="font-bold ml-[22px] max-[768px]:hidden whitespace-nowrap">
@@ -116,7 +118,9 @@ export class MediaSearchBar extends Component<MediaSearchBarProps> {
         <div className="flex items-center h-full shrink-0">
           <div className="flex items-center text-white cursor-pointer h-full transition-all duration-100! mx-[24px] max-[768px]:mx-1.5 hov:hover:opacity-70 shrink-0">
             <div className="paginationIcon text-2xl max-[768px]:text-[18px]"></div>
-            <div className="ml-[22px] max-[768px]:ml-1 text-sm max-[768px]:text-xs whitespace-nowrap">{pages}</div>
+            <div className="ml-[22px] max-[768px]:ml-1 text-sm max-[768px]:text-xs whitespace-nowrap">
+              {pages}
+            </div>
           </div>
 
           <div className="flex items-center h-full max-[768px]:gap-1.5 shrink-0">

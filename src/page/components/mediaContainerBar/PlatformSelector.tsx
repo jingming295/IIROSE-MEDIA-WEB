@@ -69,8 +69,14 @@ export class PlatformSelector extends Component<
                     this.handleSwitchPlatform(index);
                   }}
                 >
-                  <img className="w-8 h-8 max-[768px]:w-[26px] max-[768px]:h-[26px] rounded-sm object-cover shrink-0" src={item.iconsrc} alt={item.title}></img>
-                  <div className="mx-[10px] max-[768px]:mx-1.5 max-[768px]:text-[13px] whitespace-nowrap">{item.title}</div>
+                  <img
+                    className="w-8 h-8 max-[768px]:w-[26px] max-[768px]:h-[26px] rounded-sm object-cover shrink-0"
+                    src={item.iconsrc}
+                    alt={item.title}
+                  ></img>
+                  <div className="mx-[10px] max-[768px]:mx-1.5 max-[768px]:text-[13px] whitespace-nowrap">
+                    {item.title}
+                  </div>
                 </div>
               </div>
             );

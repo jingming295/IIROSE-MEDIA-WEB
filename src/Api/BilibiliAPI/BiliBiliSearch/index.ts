@@ -1,267 +1,334 @@
 import { SendFetch } from "../..";
 import { WBI } from "../Crypto/WBI";
 
-export class BiliBiliSearchApi extends SendFetch
-{
-    /**
-     * 综合搜索（web端）
-     * @param keyword
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestAll(keyword: string)
-    {
-        const url = 'https://api.bilibili.com/x/web-interface/wbi/search/all/v2';
-        const params = new URLSearchParams({
-            keyword: keyword,
-            search_type: 'article'
-        });
+export class BiliBiliSearchApi extends SendFetch {
+  /**
+   * 综合搜索（web端）
+   * @param keyword
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestAll(keyword: string) {
+    const url = "https://api.bilibili.com/x/web-interface/wbi/search/all/v2";
+    const params = new URLSearchParams({
+      keyword: keyword,
+      search_type: "article",
+    });
 
-        const wbi = new WBI();
+    const wbi = new WBI();
 
-        const wbidata = await wbi.main(params);
+    const wbidata = await wbi.main(params);
 
-        wbidata.w_rid && params.append('w_rid', wbidata.w_rid);
-        wbidata.wts && params.append('wts', wbidata.wts.toString());
+    wbidata.w_rid && params.append("w_rid", wbidata.w_rid);
+    wbidata.wts && params.append("wts", wbidata.wts.toString());
 
-        const headers = this.returnBilibiliHeaders();
+    const headers = this.returnBilibiliHeaders();
 
-        const response = await this.sendGet(url, params, headers);
+    const response = await this.sendGet(url, params, headers);
 
-        if (response && response.ok)
-        {
-            const data: BilibiliSearchRequest = await response.json();
-            return data;
+    if (response && response.ok) {
+      const data: BilibiliSearchRequest = await response.json();
+      return data;
+    } else {
+      return null;
+    }
+  }
 
-        } else
-        {
-            return null;
-        }
+  /**
+   * 分类搜索（web端）
+   * @param search_type
+   * @param keyword
+   * @param page
+   * @param order
+   * @param order_sort
+   * @param user_type
+   * @param duration
+   * @param tids
+   * @param category_id
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByType(
+    search_type: string,
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+    order_sort: string | null = null,
+    user_type: number | null = null,
+    duration: number | null = null,
+    tids: number | null = null,
+    category_id: number | null = null,
+  ) {
+    const bcors = this.getBilibiliCors();
 
+    const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
 
+    const params = new URLSearchParams({
+      search_type,
+      keyword,
+    });
+
+    if (page_size !== null) params.set("page_size", page_size.toString());
+    if (page !== null) params.set("page", page.toString());
+    if (order) params.set("order", order);
+    if (order_sort) params.set("order_sort", order_sort);
+    if (user_type !== null) params.set("user_type", user_type.toString());
+    if (duration !== null) params.set("duration", duration.toString());
+    if (tids !== null) params.set("tids", tids.toString());
+    if (category_id !== null) params.set("category_id", category_id.toString());
+
+    // ===== WBI =====
+    const wbi = new WBI();
+    const wbidata = await wbi.main(params);
+
+    if (wbidata.w_rid) params.set("w_rid", wbidata.w_rid);
+    if (wbidata.wts) params.set("wts", wbidata.wts.toString());
+
+    // ===== COOKIE（关键修复点）=====
+    const cookie = this.buildCookieString();
+
+    if (cookie) {
+      params.set("cookie", encodeURIComponent(cookie));
     }
 
-    /**
-     * 分类搜索（web端）
-     * @param search_type
-     * @param keyword
-     * @param page
-     * @param order
-     * @param order_sort
-     * @param user_type
-     * @param duration
-     * @param tids
-     * @param category_id
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByType(
-        search_type: string,
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null,
-        order_sort: string | null = null,
-        user_type: number | null = null,
-        duration: number | null = null,
-        tids: number | null = null,
-        category_id: number | null = null
-    )
-    {
-        const bcors = this.getBilibiliCors();
+    const response = await this.sendGet(url, params);
 
-        const url = `${bcors}https://api.bilibili.com/x/web-interface/wbi/search/type`;
-
-        const params = new URLSearchParams({
-            search_type,
-            keyword
-        });
-
-        if (page_size !== null) params.set('page_size', page_size.toString());
-        if (page !== null) params.set('page', page.toString());
-        if (order) params.set('order', order);
-        if (order_sort) params.set('order_sort', order_sort);
-        if (user_type !== null) params.set('user_type', user_type.toString());
-        if (duration !== null) params.set('duration', duration.toString());
-        if (tids !== null) params.set('tids', tids.toString());
-        if (category_id !== null) params.set('category_id', category_id.toString());
-
-        // ===== WBI =====
-        const wbi = new WBI();
-        const wbidata = await wbi.main(params);
-
-        if (wbidata.w_rid) params.set('w_rid', wbidata.w_rid);
-        if (wbidata.wts) params.set('wts', wbidata.wts.toString());
-
-        // ===== COOKIE（关键修复点）=====
-        const cookie = this.buildCookieString();
-
-        if (cookie)
-        {
-            params.set('cookie', encodeURIComponent(cookie));
-        }
-
-        const response = await this.sendGet(url, params);
-
-        if (response && response.ok)
-        {
-            return await response.json();
-        }
-
-        return null;
+    if (response && response.ok) {
+      return await response.json();
     }
 
-    /**
-     * 视频搜索（web端）
-     * @param keyword
-     * @param page
-     * @param page_size 返回多少内容，最大50
-     * @param order
-     * @param duration
-     * @param tids
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeVideo(
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null,
-        duration: number | null = null,
-        tids: number | null = null
-    )
-    {
-        const data: SearchRequestByTypeVideo = await this.getSearchRequestByType('video', keyword, page, page_size, order, null, null, duration, tids, null);
-        return data;
-    }
+    return null;
+  }
 
-    /**
-     * 番剧搜索（web端）
-     * @param keyword // 需要搜索的关键词
-     * @param page // 页码
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeMediaBangumi
-        (
-            keyword: string,
-            page: number | null = null
-        )
-    {
-        const data: SearchRequestByTypeMediaBangumiAndMediaFT = await this.getSearchRequestByType('media_bangumi', keyword, page, null, null, null, null, null, null);
-        return data;
-    }
+  /**
+   * 视频搜索（web端）
+   * @param keyword
+   * @param page
+   * @param page_size 返回多少内容，最大50
+   * @param order
+   * @param duration
+   * @param tids
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeVideo(
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+    duration: number | null = null,
+    tids: number | null = null,
+  ) {
+    const data: SearchRequestByTypeVideo = await this.getSearchRequestByType(
+      "video",
+      keyword,
+      page,
+      page_size,
+      order,
+      null,
+      null,
+      duration,
+      tids,
+      null,
+    );
+    return data;
+  }
 
-    /**
-     * 影视搜索（web端）
-     * @param keyword
-     * @param page
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeMediaFT
-        (
-            keyword: string,
-            page: number | null = null
-        )
-    {
-        const data: SearchRequestByTypeMediaBangumiAndMediaFT = await this.getSearchRequestByType('media_ft', keyword, page, null, null, null, null, null, null);
-        return data;
-    }
+  /**
+   * 番剧搜索（web端）
+   * @param keyword // 需要搜索的关键词
+   * @param page // 页码
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeMediaBangumi(
+    keyword: string,
+    page: number | null = null,
+  ) {
+    const data: SearchRequestByTypeMediaBangumiAndMediaFT =
+      await this.getSearchRequestByType(
+        "media_bangumi",
+        keyword,
+        page,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      );
+    return data;
+  }
 
-    /**
-     * 直播间和主播搜索（web端）
-     * @param keyword
-     * @param page
-     * @param order
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeLiveRoomAndLiveUser(
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null
-    )
-    {
-        const data: SearchRequestByTypeLive = await this.getSearchRequestByType('live', keyword, page, page_size, order, null, null, null, null, null);
-        return data;
-    }
+  /**
+   * 影视搜索（web端）
+   * @param keyword
+   * @param page
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeMediaFT(
+    keyword: string,
+    page: number | null = null,
+  ) {
+    const data: SearchRequestByTypeMediaBangumiAndMediaFT =
+      await this.getSearchRequestByType(
+        "media_ft",
+        keyword,
+        page,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      );
+    return data;
+  }
 
-    /**
-     * 直播间搜索（web端）
-     * @param keyword
-     * @param page
-     * @param order
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeLiveRoom(
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null
-    )
-    {
-        const data: SearchRequestByTypeLiveRoom = await this.getSearchRequestByType('live_room', keyword, page, page_size, order, null, null, null, null, null);
-        return data;
-    }
+  /**
+   * 直播间和主播搜索（web端）
+   * @param keyword
+   * @param page
+   * @param order
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeLiveRoomAndLiveUser(
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+  ) {
+    const data: SearchRequestByTypeLive = await this.getSearchRequestByType(
+      "live",
+      keyword,
+      page,
+      page_size,
+      order,
+      null,
+      null,
+      null,
+      null,
+      null,
+    );
+    return data;
+  }
 
-    /**
-     * 主播搜索（web端）
-     * @param keyword
-     * @param page
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByTypeLiveUser(
-        keyword: string,
-        page: number | null = null
-    )
-    {
-        const data: SearchRequestByTypeLiveUser = await this.getSearchRequestByType('live_user', keyword, page, null, null, null, null, null, null);
-        return data;
-    }
+  /**
+   * 直播间搜索（web端）
+   * @param keyword
+   * @param page
+   * @param order
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeLiveRoom(
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+  ) {
+    const data: SearchRequestByTypeLiveRoom = await this.getSearchRequestByType(
+      "live_room",
+      keyword,
+      page,
+      page_size,
+      order,
+      null,
+      null,
+      null,
+      null,
+      null,
+    );
+    return data;
+  }
 
-    /**
-     * 专栏搜索（web端）
-     * @param keyword
-     * @param page
-     * @param order
-     * @param category_id
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByArticle(
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null,
-        category_id: number | null = null,
-    )
-    {
-        const data: SearchRequestByTypeArticle = await this.getSearchRequestByType('photo', keyword, page, page_size, order, null, null, null, null, category_id);
-        return data;
-    }
+  /**
+   * 主播搜索（web端）
+   * @param keyword
+   * @param page
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByTypeLiveUser(
+    keyword: string,
+    page: number | null = null,
+  ) {
+    const data: SearchRequestByTypeLiveUser = await this.getSearchRequestByType(
+      "live_user",
+      keyword,
+      page,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    );
+    return data;
+  }
 
-    /**
-     * 相簿搜索（web端），他还存在，但是返回的result是空的
-     * @param keyword
-     * @param page
-     * @param order
-     * @param category_id
-     * @param ctx
-     * @returns
-     */
-    public static async getSearchRequestByPhoto(
-        keyword: string,
-        page: number | null = null,
-        page_size: number | null = null,
-        order: string | null = null,
-        category_id: number | null = null,
-    )
-    {
-        const data: SearchRequestByTypePhoto = await this.getSearchRequestByType('photo', keyword, page, page_size, order, null, null, null, null, category_id);
-        return data;
-    }
+  /**
+   * 专栏搜索（web端）
+   * @param keyword
+   * @param page
+   * @param order
+   * @param category_id
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByArticle(
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+    category_id: number | null = null,
+  ) {
+    const data: SearchRequestByTypeArticle = await this.getSearchRequestByType(
+      "photo",
+      keyword,
+      page,
+      page_size,
+      order,
+      null,
+      null,
+      null,
+      null,
+      category_id,
+    );
+    return data;
+  }
+
+  /**
+   * 相簿搜索（web端），他还存在，但是返回的result是空的
+   * @param keyword
+   * @param page
+   * @param order
+   * @param category_id
+   * @param ctx
+   * @returns
+   */
+  public static async getSearchRequestByPhoto(
+    keyword: string,
+    page: number | null = null,
+    page_size: number | null = null,
+    order: string | null = null,
+    category_id: number | null = null,
+  ) {
+    const data: SearchRequestByTypePhoto = await this.getSearchRequestByType(
+      "photo",
+      keyword,
+      page,
+      page_size,
+      order,
+      null,
+      null,
+      null,
+      null,
+      category_id,
+    );
+    return data;
+  }
 }

@@ -1,8 +1,7 @@
 /**
  * 使用 https://api.bilibili.com/x/web-interface/view 的时候返回的接口
  */
-interface BVideoDetail
-{
+interface BVideoDetail {
   code: number;
   message: string;
   ttl: number;
@@ -12,8 +11,7 @@ interface BVideoDetail
 /**
  * BVideoDetail下的data
  */
-interface VideoData
-{
+interface VideoData {
   bvid: string;
   aid: number;
   videos: number;
@@ -39,7 +37,7 @@ interface VideoData
     mid: number;
     name: string;
     face: string;
-  }
+  };
   stat: {
     aid: number;
     view: number;
@@ -55,14 +53,14 @@ interface VideoData
     evaluation: string;
     argue_msg: string;
     vt: number;
-  }
+  };
   dynamic: string;
   cid: number;
   dimension: {
     width: number;
     height: number;
     rotate: number;
-  }
+  };
   season_id: number;
   premiere: null;
   teenage_mode: number;
@@ -77,7 +75,7 @@ interface VideoData
   subtitle: {
     allow_submit: boolean;
     list: SubtitleList[];
-  }
+  };
   ugc_season: {
     id: number;
     title: string;
@@ -91,16 +89,16 @@ interface VideoData
       score: number;
       count: number;
       average: string;
-    }
+    };
     ep_count: number;
     season_type: number;
     is_pay_season: boolean;
     enable_vt: number;
-  }
+  };
   is_season_display: boolean;
   user_garb: {
     url_image_ani_cut: string;
-  }
+  };
   honor_reply: HonorReply | Record<string, never>;
   like_icon: string;
   need_jump_bv: boolean;
@@ -110,16 +108,15 @@ interface VideoData
     goto: string;
     trackid: string;
     uniq_id: string;
-  }
-  v_voucher: string
+  };
+  v_voucher: string;
 }
 
 /**
  * BVideoDetail下的data的page
  * 如果视频有分页
  */
-interface BVideoDetailDataPage
-{
+interface BVideoDetailDataPage {
   cid: number;
   page: number;
   from: string;
@@ -131,15 +128,14 @@ interface BVideoDetailDataPage
     width: number;
     height: number;
     rotate: number;
-  }
+  };
   first_frame: string;
 }
 
 /**
  * 视频获得的荣誉？
  */
-interface HonorReply
-{
+interface HonorReply {
   honor: {
     aid: number;
     type: number;
@@ -150,8 +146,7 @@ interface HonorReply
 /**
  * 不知道有什么用
  */
-interface Arc
-{
+interface Arc {
   aid: number;
   videos: number;
   type_id: number;
@@ -169,7 +164,7 @@ interface Arc
     mid: number;
     name: string;
     face: string;
-  }
+  };
   stat: {
     aid: number;
     view: number;
@@ -186,13 +181,13 @@ interface Arc
     argue_msg: string;
     vt: number;
     vv: number;
-  }
+  };
   dynamic: string;
   dimension: {
     width: number;
     height: number;
     rotate: number;
-  }
+  };
   desc_v2: null; // 输出是null，不确定有没有其他输出
   is_chargeable_season: boolean;
   is_blooper: boolean;
@@ -200,8 +195,7 @@ interface Arc
   vt_display: string;
 }
 
-interface rights
-{
+interface rights {
   bp: number;
   elec: number;
   download: number;
@@ -222,12 +216,10 @@ interface rights
   free_watch: number;
 }
 
-
 /**
  * 集？
  */
-interface Episode
-{
+interface Episode {
   season_id: number;
   section_id: number;
   id: number;
@@ -242,8 +234,7 @@ interface Episode
 /**
  * 还没研究是什么，暂时不知道
  */
-interface ugc_season_Section
-{
+interface ugc_season_Section {
   season_id: number;
   id: number;
   title: string;
@@ -254,8 +245,7 @@ interface ugc_season_Section
 /**
  * 字幕列表
  */
-interface SubtitleList
-{
+interface SubtitleList {
   id: number;
   lan: string;
   lan_doc: string;
@@ -277,12 +267,10 @@ interface SubtitleList
     is_deleted: number;
     in_reg_audit: number;
     is_senior_member: number;
-  }
+  };
 }
 
-interface BilibiliPagesAndCids
-{
-
+interface BilibiliPagesAndCids {
   code: number;
   message: string;
   ttl: number;
@@ -298,8 +286,7 @@ interface BilibiliPagesAndCids
       width: number;
       height: number;
       rotate: number;
-    }
+    };
     first_frame: string;
-  }[]
-
+  }[];
 }

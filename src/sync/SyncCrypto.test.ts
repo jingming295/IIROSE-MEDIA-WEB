@@ -156,7 +156,11 @@ describe("信封校验", () => {
     ({
       v: 2,
       alg: "AES-GCM-256",
-      kdf: { alg: "PBKDF2-SHA256", iter: ITER, salt: toB64(new Uint8Array(SALT_BYTES).fill(1)) },
+      kdf: {
+        alg: "PBKDF2-SHA256",
+        iter: ITER,
+        salt: toB64(new Uint8Array(SALT_BYTES).fill(1)),
+      },
       wrapped: {
         iv: toB64(new Uint8Array(IV_BYTES)),
         ct: toB64(new Uint8Array(48)),

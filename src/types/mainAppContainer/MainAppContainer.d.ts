@@ -1,29 +1,29 @@
-interface OldItems
-{
-    mediaData: Promise<{ platformData: PlatformData[], totalPage: number }> | null;
-    allMediaData: PlatformData[];
-    SubNavBarAction?: () => void;
-    OnDemandPlay?: (platformData: PlatformData) => void;
+interface OldItems {
+  mediaData: Promise<{
+    platformData: PlatformData[];
     totalPage: number;
-    currentPage: number;
-    PlatformIndex?: number;
-    SubNavBarIndex?: number;
-    searchKeyword?: string;
+  }> | null;
+  allMediaData: PlatformData[];
+  SubNavBarAction?: () => void;
+  OnDemandPlay?: (platformData: PlatformData) => void;
+  totalPage: number;
+  currentPage: number;
+  PlatformIndex?: number;
+  SubNavBarIndex?: number;
+  searchKeyword?: string;
 }
 
-interface Platform
-{
+interface Platform {
+  title: string;
+  iconsrc: string;
+  color: string;
+  subNavBarItems: {
     title: string;
-    iconsrc: string;
-    color: string;
-    subNavBarItems: {
-        title: string;
-        class?: string;
-        searchAction: () => void;
-    }[];
+    class?: string;
+    searchAction: () => void;
+  }[];
 }
 
-interface Categories
-{
-    platform: Platform[];
+interface Categories {
+  platform: Platform[];
 }

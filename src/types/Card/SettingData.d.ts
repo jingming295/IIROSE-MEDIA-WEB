@@ -1,7 +1,6 @@
-interface SettingData
-{
-    title: string;
-    actionTitle: string;
-    icon: string;
-    action: (doSomethings?: (actionTitle?: string) => void) => void;
+interface SettingData {
+  title: string;
+  actionTitle: string;
+  icon: string;
+  action: (doSomethings?: (actionTitle?: string) => void) => void;
 }

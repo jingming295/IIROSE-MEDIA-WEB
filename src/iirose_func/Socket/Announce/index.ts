@@ -53,7 +53,8 @@ export class Announce {
     const safeTitle = Announce.sanitizeText(title) || "批量点播";
     const lines = [
       "\\\\\\*",
-      `🎵 已点播 **《${safeTitle}》**，共 **${count}** 项`,
+      // 「已提交」而非「已点播」：无版权跳过、分集解析失败会让实际播放数 < N，不用确定语气
+      `🎵 已提交点播 **《${safeTitle}》**，共 **${count}** 项`,
     ];
     const quote = Announce.buildDescriptionQuote(description);
     if (quote) lines.push(quote);

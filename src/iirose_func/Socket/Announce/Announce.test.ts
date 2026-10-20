@@ -119,10 +119,10 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     const raw = sendMock.mock.calls[0][0];
     const parsed = JSON.parse(raw) as { m: string; mc: string; i: string };
     // 首行为宿站 markdown 触发写法：三个反斜杠 + 星号
-    expect(parsed.m).toBe("\\\\\\*\n🎵 已点播 **《冬日歌单》**，共 **5** 项");
+    expect(parsed.m).toBe("\\\\\\*\n🎵 已提交点播 **《冬日歌单》**，共 **5** 项");
     expect(parsed.m.split("\n")[0]).toBe("\\\\\\*");
     expect(parsed.m.split("\n")[1]).toBe(
-      "🎵 已点播 **《冬日歌单》**，共 **5** 项",
+      "🎵 已提交点播 **《冬日歌单》**，共 **5** 项",
     );
     // 无简介时正文只有两行，不带详情行
     expect(parsed.m.split("\n")).toHaveLength(2);
@@ -186,7 +186,7 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     await Announce.runBatchAnnounce("*星*号", 2, async () => {});
     parsed = JSON.parse(sendMock.mock.calls[1][0]) as { m: string };
     expect(parsed.m.split("\n")[1]).toBe(
-      "🎵 已点播 **《\\*星\\*号》**，共 **2** 项",
+      "🎵 已提交点播 **《\\*星\\*号》**，共 **2** 项",
     );
   });
 
@@ -234,7 +234,7 @@ describe("runBatchAnnounce（批量点播播报）", () => {
     const first = JSON.parse(sendMock.mock.calls[0][0]) as { m: string };
     const second = JSON.parse(sendMock.mock.calls[1][0]) as { m: string };
     const third = JSON.parse(sendMock.mock.calls[2][0]) as { m: string };
-    const expected = "\\\\\\*\n🎵 已点播 **《批量点播》**，共 **2** 项";
+    const expected = "\\\\\\*\n🎵 已提交点播 **《批量点播》**，共 **2** 项";
     expect(first.m).toBe(expected);
     expect(second.m).toBe(expected);
     expect(third.m).toBe(expected);

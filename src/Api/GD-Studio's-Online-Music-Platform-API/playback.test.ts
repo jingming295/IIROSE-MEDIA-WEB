@@ -64,6 +64,11 @@ describe("解析预算与通道冷却", () => {
   it.each([
     ["12", 12000],
     ["Thu, 01 Jan 1970 00:00:30 GMT", 30000],
+    ["Thursday, 01-Jan-70 00:00:30 GMT", 30000],
+    ["Thu Jan  1 00:00:30 1970", 30000],
+    ["Thu Jan 01 00:00:30 1970", 30000],
+    ["1970-01-01T00:00:30Z", 60000],
+    ["01/01/1970", 60000],
     ["invalid", 60000],
     ["-1", 60000],
     [undefined, 60000],
@@ -86,6 +91,38 @@ describe("解析预算与通道冷却", () => {
     await vi.advanceTimersByTimeAsync(ms);
     await resolve("b", request);
     expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("并发429乱序返回时，较短冷却不覆盖已有较长截止时间", async () => {
+    const resolve = await resolver();
+    let finishFirst!: (value: Response) => void;
+    let finishSecond!: (value: Response) => void;
+    const first = resolve(
+      "a",
+      () =>
+        new Promise((r) => {
+          finishFirst = r;
+        }),
+    );
+    const second = resolve(
+      "b",
+      () =>
+        new Promise((r) => {
+          finishSecond = r;
+        }),
+    );
+    finishSecond(response({}, 429, { "Retry-After": "120" }));
+    expect(await second).toMatchObject({ retryAfterMs: 120000 });
+    await vi.advanceTimersByTimeAsync(1000);
+    finishFirst(response({}, 429, { "Retry-After": "10" }));
+    expect(await first).toMatchObject({ retryAfterMs: 119000 });
+    const request = vi.fn().mockResolvedValue(response({ url: "" }));
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(await resolve("c", request)).toMatchObject({ retryAfterMs: 109000 });
+    expect(request).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(109000);
+    expect(await resolve("c", request)).toMatchObject({ kind: "empty_url" });
+    expect(request).toHaveBeenCalledTimes(1);
   });
 
   it("业务429进入默认冷却；未知失败码保留而不猜原因", async () => {

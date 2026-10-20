@@ -160,6 +160,55 @@ describe("整个点播操作矩阵", () => {
     expect(show).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["original", "[00:01.00]原文"],
+    ["translated", "[00:01.00]译文"],
+    ["both", "[00:01.00] 原文 | 译文"],
+    ["off", ""],
+  ])(
+    "真实API在元数据前返回歌词，事件遵守 %s 偏好",
+    async (lyricOption, expected) => {
+      localStorage.setItem("neteaseSetting", JSON.stringify({ lyricOption }));
+      const request = vi.fn(
+        async (url: string) =>
+          new Response(
+            JSON.stringify(
+              new URL(url).searchParams.get("types") === "url"
+                ? { url: "https://media.example/a", br: 128 }
+                : { lyric: "[00:01.00]原文", tlyric: "[00:01.00]译文" },
+            ),
+          ),
+      );
+      vi.stubGlobal("fetch", request);
+      let finishMetadata!: (duration: number) => void;
+      vi.spyOn(ParseMediaMetaData, "getAudioDuration").mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finishMetadata = resolve;
+          }),
+      );
+      const operation = JOOXPlatform.MOD(item("track+part=="));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(request).toHaveBeenNthCalledWith(
+        1,
+        "https://music-api.gdstudio.xyz/api.php?types=url&source=joox&id=track%2Bpart%3D%3D&br=320",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(request).toHaveBeenNthCalledWith(
+        2,
+        "https://music-api.gdstudio.xyz/api.php?types=lyric&source=joox&id=track%2Bpart%3D%3D",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(events()).toHaveLength(0);
+      finishMetadata(269);
+      await operation;
+      expect(events()).toHaveLength(1);
+      expect(JSON.parse(events()[0].slice(2)).l).toBe(expected);
+      expect(request).toHaveBeenCalledTimes(2);
+      expect(show).not.toHaveBeenCalled();
+    },
+  );
+
   it.each(["reject", "hang"])(
     "歌词%s不阻塞有效音频，取消后用空歌词",
     async (kind) => {
@@ -197,7 +246,12 @@ describe("整个点播操作矩阵", () => {
         });
       }),
     );
-    const operation = JOOXPlatform.MOD(item());
+    const operation = JOOXPlatform.MOD(item("track+part=="));
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
+      "https://music-api.gdstudio.xyz/api.php?types=url&source=joox&id=track%2Bpart%3D%3D&br=320",
+      expect.objectContaining({ signal }),
+    );
+    expect(signal.aborted).toBe(false);
     await vi.advanceTimersByTimeAsync(6000);
     await operation;
     expect(signal.aborted).toBe(true);

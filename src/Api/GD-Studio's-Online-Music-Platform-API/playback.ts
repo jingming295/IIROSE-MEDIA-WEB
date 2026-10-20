@@ -105,11 +105,15 @@ function retryAfterMs(header: string | null): number {
       const ms = Number(header) * 1000;
       if (Number.isFinite(ms)) return ms;
     } else if (
-      /^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(
+      // HTTP-date 的三种格式；限制形状，避免 Date.parse 把负数当日期。
+      /^(?:[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT|[A-Za-z]+, \d{2}-[A-Za-z]{3}-\d{2} \d{2}:\d{2}:\d{2} GMT|[A-Za-z]{3} [A-Za-z]{3} (?: \d|\d{2}) \d{2}:\d{2}:\d{2} \d{4})$/.test(
         header.trim(),
       )
     ) {
-      const date = Date.parse(header);
+      // asctime 没有显式时区，但 HTTP-date 始终使用 GMT。
+      const date = Date.parse(
+        header.trim().endsWith("GMT") ? header : `${header.trim()} GMT`,
+      );
       if (Number.isFinite(date)) return Math.max(0, date - Date.now());
     }
   }
@@ -157,10 +161,12 @@ export async function resolveAggregatePlayback(
       if (!result.ok) {
         result.httpStatus = response.status;
         if (result.kind === "rate_limited") {
-          result.retryAfterMs = retryAfterMs(
-            response.headers.get("Retry-After"),
+          const now = Date.now();
+          cooldownUntil = Math.max(
+            cooldownUntil,
+            now + retryAfterMs(response.headers.get("Retry-After")),
           );
-          cooldownUntil = Date.now() + result.retryAfterMs;
+          result.retryAfterMs = cooldownUntil - now;
         }
       }
       return result;

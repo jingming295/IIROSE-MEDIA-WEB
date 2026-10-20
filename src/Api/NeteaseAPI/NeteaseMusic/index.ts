@@ -46,7 +46,6 @@ export class NeteaseMusicAPI extends SendFetch
 
         if (data && data.code === 200)
         {
-            console.log(data)
             return data;
         } else
         {
@@ -92,7 +91,6 @@ export class NeteaseMusicAPI extends SendFetch
                     }
                 } else
                 {
-                    console.error('Request failed', data);
                     return null;
                 }
             }

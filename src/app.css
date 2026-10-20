@@ -43,18 +43,70 @@
   display: none !important;
 }
 
+/* 宿站通过替换 light/dark.css 切换主题；CSS 同时覆盖延迟加载和重建。 */
 #imw-media-progress-entry {
-  display: block;
+  --imw-entry-bg: #f0f2f5;
+  --imw-entry-fg: #374151;
+  --imw-entry-hover: #e2e7ef;
+  --imw-entry-focus: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: calc(100% - 24px);
   min-height: 44px;
-  margin: 8px 12px;
-  border: 1px solid currentColor;
-  border-radius: 10px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+  margin: 4px 12px 8px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--imw-entry-bg);
+  color: var(--imw-entry-fg);
+  font:
+    500 14px/1.4 "Microsoft YaHei",
+    sans-serif;
+  text-align: left;
+  white-space: nowrap;
   cursor: pointer;
   box-sizing: border-box;
+  transition: background-color 0.1s;
+}
+
+:root:has(link[href*="/dark.css"]) #imw-media-progress-entry {
+  --imw-entry-bg: #252525;
+  --imw-entry-fg: #e5e7eb;
+  --imw-entry-hover: #383838;
+  --imw-entry-focus: #93c5fd;
+}
+
+@media (hover: hover) {
+  #imw-media-progress-entry:hover:not(:disabled) {
+    background: var(--imw-entry-hover);
+  }
+}
+
+#imw-media-progress-entry:focus-visible {
+  outline: 2px solid var(--imw-entry-focus);
+  outline-offset: 2px;
+}
+
+#imw-media-progress-entry:active:not(:disabled) {
+  background: var(--imw-entry-hover);
+}
+
+#imw-media-progress-entry:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#imw-progress-entry-icon {
+  flex: 0 0 24px;
+  font-size: 22px;
+  line-height: 24px;
+  text-align: center;
+}
+
+#imw-progress-entry-icon::before {
+  content: "\F0150";
+  font-family: "md";
 }
 
 #imw-progress-icon::before {

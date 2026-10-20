@@ -5,12 +5,7 @@ import { IMCInit } from "../page";
 vi.mock("../page/MainAppControlLayer", () => ({
   MainAppControlLayer: () => null,
 }));
-const { send } = vi.hoisted(() => ({ send: vi.fn() }));
-vi.mock("../iirose_func/Socket", () => ({
-  Socket: class {
-    sendMessage = send;
-  },
-}));
+const send = vi.fn();
 
 let range: HTMLInputElement;
 let resizePanel: () => void;
@@ -66,7 +61,11 @@ beforeEach(() => {
     socket: { readyState: 1 },
     shareMedia: () => {},
     Utils: {
-      service: { isShareMediaPlaying: () => true, seekDemandMedia: () => {} },
+      service: {
+        isShareMediaPlaying: () => true,
+        seekDemandMedia: () => {},
+        moveinputDo: send,
+      },
     },
   });
   document.body.innerHTML =

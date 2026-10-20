@@ -1,4 +1,3 @@
-import { Socket } from "../iirose_func/Socket";
 import {
   coverUrl,
   finiteTime,
@@ -17,6 +16,7 @@ export interface MediaHost {
     service?: {
       isShareMediaPlaying?: () => boolean;
       seekDemandMedia?: HostFunction;
+      moveinputDo?: (command: string) => unknown;
     };
   };
 }
@@ -36,9 +36,41 @@ export class HostMediaBridge {
   constructor(
     private host: MediaHost = window as unknown as MediaHost,
     private doc: Document = document,
-    private sendMessage: (command: string) => void = (command) =>
-      new Socket().sendMessage(command),
+    private sendControl: (command: string) => void = (command) => {
+      const service = this.host.Utils?.service;
+      if (typeof service?.moveinputDo !== "function")
+        throw new Error("宿站进度控制不可用");
+      const input = this.doc.querySelector<
+        HTMLInputElement | HTMLTextAreaElement
+      >("#moveinput");
+      const draft = input?.value;
+      const selection = input
+        ? ([
+            input.selectionStart,
+            input.selectionEnd,
+            input.selectionDirection,
+          ] as const)
+        : null;
+      try {
+        // 显式传参交给宿站解析，不借用输入框，也不自行拼装控制报文。
+        service.moveinputDo(command);
+      } finally {
+        if (input && draft !== undefined) {
+          if (input.value !== draft) input.value = draft;
+          if (selection && selection[0] !== null && selection[1] !== null)
+            input.setSelectionRange(
+              selection[0],
+              selection[1],
+              selection[2] ?? "none",
+            );
+        }
+      }
+    },
   ) {}
+
+  get controlUnavailable(): boolean {
+    return typeof this.host.Utils?.service?.moveinputDo !== "function";
+  }
 
   read(): MediaSnapshot {
     let playing = false;
@@ -88,7 +120,7 @@ export class HostMediaBridge {
     const media = this.read();
     if (media.instance !== instance || unavailableReason(media)) return false;
     try {
-      this.sendMessage(command);
+      this.sendControl(command);
       return true;
     } catch {
       return false;

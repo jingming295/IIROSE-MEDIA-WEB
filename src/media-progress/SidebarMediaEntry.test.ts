@@ -39,7 +39,15 @@ describe("侧栏媒体入口", () => {
     expect(document.getElementById("shareMediaBox")).toBe(media);
     (media as HTMLElement).click();
     expect(mediaClick).toHaveBeenCalledOnce();
-    document.getElementById("imw-media-progress-entry")!.click();
+    const entry = document.getElementById("imw-media-progress-entry")!;
+    expect(entry.textContent).toBe("播放进度");
+    expect(entry.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(
+      entry
+        .querySelector("#imw-progress-entry-icon")
+        ?.getAttribute("aria-hidden"),
+    ).toBe("true");
+    entry.click();
     expect(open).toHaveBeenCalledOnce();
     document.querySelector("#functionHolderBox")!.outerHTML = markup;
     await flush();

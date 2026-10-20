@@ -101,7 +101,13 @@ export class SidebarMediaEntry {
       this.entry = this.doc.createElement("button");
       this.entry.type = "button";
       this.entry.id = "imw-media-progress-entry";
-      this.entry.textContent = "播放进度";
+      this.entry.setAttribute("aria-haspopup", "dialog");
+      const icon = this.doc.createElement("span");
+      icon.id = "imw-progress-entry-icon";
+      icon.setAttribute("aria-hidden", "true");
+      const label = this.doc.createElement("span");
+      label.textContent = "播放进度";
+      this.entry.append(icon, label);
       this.entry.addEventListener("click", this.open);
     }
     if (media.nextElementSibling !== this.entry) media.after(this.entry);

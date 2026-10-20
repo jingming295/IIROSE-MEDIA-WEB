@@ -129,7 +129,6 @@
 .syncClockIcon::before,
 .syncRefreshIcon::before,
 .syncDeleteIcon::before,
-.announceModeIcon::before,
 .announceCardIcon::before,
 .announceSilentIcon::before,
 .announceSummaryIcon::before {
@@ -242,10 +241,6 @@
 }
 
 /* 点播播报三档设置图标（码点对 @mdi/font 7.3.67 核实） */
-.announceModeIcon::before {
-  content: "\F00E6"; /* bullhorn */
-}
-
 .announceCardIcon::before {
   content: "\F0B78"; /* card-text-outline */
 }

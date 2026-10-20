@@ -49,8 +49,8 @@ export class Announce {
     }
 
     // 报文必须经 JSON.stringify 构造，换行/反斜杠才能以 \n、\\* 合法转义嵌入；
-    // 空标题兜底为通用措辞，避免正文退化为「已点播《》共 N 项」
-    const safeTitle = title ? title : "批量点播";
+    // 标题经净化（剥 HTML/转义 md 元字符/trim），空标题兜底为通用措辞
+    const safeTitle = Announce.sanitizeText(title) || "批量点播";
     const lines = [
       "\\\\\\*",
       `🎵 已点播 **《${safeTitle}》**，共 **${count}** 项`,
@@ -68,14 +68,28 @@ export class Announce {
   }
 
   /**
-   * 集合简介（歌单/专辑/B站视频 desc）整理为单行 blockquote；
-   * 空白简介返回空串（不带详情行），超长截断到 120 字符。
+   * 文本净化：剥 HTML 标签（B 站 desc 常含 <br> 等）、压平换行为单行、
+   * 转义 markdown 元字符（*_`）防止打乱总结消息排版、去首尾空白。
+   */
+  private static sanitizeText(raw: string): string {
+    if (!raw) return "";
+    return raw
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s*\n+\s*/g, " ")
+      .replace(/([*_`])/g, "\\$1")
+      .trim();
+  }
+
+  /**
+   * 集合简介整理为单行 blockquote；空白简介返回空串（不带详情行）。
+   * 按码点截断（防 emoji 被劈成孤立代理项），119 码点 + 省略号保证总长 ≤120。
    */
   private static buildDescriptionQuote(description?: string | null): string {
     if (!description) return "";
-    const flat = description.replace(/\s*\n+\s*/g, " ").trim();
+    const flat = Announce.sanitizeText(description);
     if (!flat) return "";
-    const clipped = flat.length > 120 ? flat.slice(0, 120) + "…" : flat;
+    const cps = Array.from(flat);
+    const clipped = cps.length > 119 ? cps.slice(0, 119).join("") + "…" : flat;
     return `> ${clipped}`;
   }
 }

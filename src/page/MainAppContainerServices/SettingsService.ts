@@ -183,16 +183,31 @@ export class SettingsService {
       {
         title: "点播播报",
         actionTitle: PluginSettings.parseAnnounceMode(ps.announceMode),
-        icon: "announceModeIcon",
+        icon:
+          ps.announceMode === "silent"
+            ? "announceSilentIcon"
+            : ps.announceMode === "summary"
+              ? "announceSummaryIcon"
+              : "announceCardIcon",
         action: (doSomethings) => {
           PluginSettings.setAnnounceMode((actionTitle) => {
             doSomethings?.(actionTitle);
             // 同「搜索结果视图」：ctx.setState 触发父级重渲染时，SettingCard 会用
-            // props.actionTitle 覆盖内部标题，因此需同步更新 settingsData 里的 actionTitle
+            // props.actionTitle/icon 覆盖内部状态，因此需同步更新 settingsData
+            const mode = PluginSettings.getPluginSetting().announceMode;
             ctx.setState({
               settingsData: data.map((item) =>
                 item.title === "点播播报"
-                  ? { ...item, actionTitle: actionTitle ?? item.actionTitle }
+                  ? {
+                      ...item,
+                      actionTitle: actionTitle ?? item.actionTitle,
+                      icon:
+                        mode === "silent"
+                          ? "announceSilentIcon"
+                          : mode === "summary"
+                            ? "announceSummaryIcon"
+                            : "announceCardIcon",
+                    }
                   : item,
               ),
             });

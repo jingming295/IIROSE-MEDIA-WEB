@@ -18,6 +18,11 @@ export interface MediaSnapshot {
   controlReason: string;
 }
 
+export interface MediaProgressPosition {
+  x: number;
+  y: number;
+}
+
 const globalMediaRanks = new Set(["1", "5", "3", "6", "7", "a"]);
 
 export function mediaPermission(
@@ -133,9 +138,25 @@ export function constrainPosition(
   height: number,
   viewportWidth: number,
   viewportHeight: number,
+  viewportOffsetX = 0,
+  viewportOffsetY = 0,
 ) {
   return {
-    x: clamp(x, 12, Math.max(12, viewportWidth - width - 12)),
-    y: clamp(y, 12, Math.max(12, viewportHeight - height - 12)),
+    x: clamp(
+      x,
+      viewportOffsetX + 12,
+      Math.max(
+        viewportOffsetX + 12,
+        viewportOffsetX + viewportWidth - width - 12,
+      ),
+    ),
+    y: clamp(
+      y,
+      viewportOffsetY + 12,
+      Math.max(
+        viewportOffsetY + 12,
+        viewportOffsetY + viewportHeight - height - 12,
+      ),
+    ),
   };
 }

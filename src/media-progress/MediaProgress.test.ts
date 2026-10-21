@@ -60,6 +60,14 @@ beforeEach(() => {
       disconnect() {}
     },
   );
+  Object.defineProperty(window, "scrollX", {
+    configurable: true,
+    value: 0,
+  });
+  Object.defineProperty(window, "scrollY", {
+    configurable: true,
+    value: 0,
+  });
   Object.assign(window, {
     shareMediaCurrentTime: 80,
     shareMediaDuration: 300,
@@ -292,6 +300,242 @@ describe("浮窗原生交互与页面生命周期", () => {
     });
     expect(panel()).toBeNull();
     expect(send).not.toHaveBeenCalled();
+  });
+  it("关闭后重开保留同页位置，页面卸载后恢复默认位置", () => {
+    const floating = panel()!;
+    Object.defineProperties(floating, {
+      offsetWidth: { configurable: true, get: () => 320 },
+      offsetHeight: { configurable: true, get: () => 250 },
+    });
+    vi.spyOn(floating, "getBoundingClientRect").mockImplementation(
+      () =>
+        new DOMRect(
+          parseFloat(floating.style.left) || 0,
+          parseFloat(floating.style.top) || 0,
+          floating.offsetWidth,
+          floating.offsetHeight,
+        ),
+    );
+    const title = floating.querySelector<HTMLElement>(".cursor-grab")!;
+    title.setPointerCapture = vi.fn();
+    const drag = (type: string, x: number, y: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, {
+        pointerId: 8,
+        isPrimary: true,
+        button: 0,
+        clientX: x,
+        clientY: y,
+      });
+      act(() => {
+        title.dispatchEvent(event);
+      });
+    };
+    drag("pointerdown", 20, 90);
+    drag("pointermove", 308, 290);
+    drag("pointerup", 308, 290);
+    const saved = [floating.style.left, floating.style.top];
+    act(() => {
+      floating
+        .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
+        .click();
+      entry().click();
+    });
+    expect([panel()!.style.left, panel()!.style.top]).toEqual(saved);
+    act(() => {
+      window.dispatchEvent(
+        new PageTransitionEvent("pagehide", { persisted: false }),
+      );
+      IMCInit.init(document.getElementById("mainContainer") as HTMLDivElement);
+      document.getElementById("imw-media-progress-entry")!.click();
+    });
+    expect([panel()!.style.left, panel()!.style.top]).toEqual(["12px", "80px"]);
+  });
+  it("关闭期间视口缩小，重开时把记忆位置收敛到可见范围", () => {
+    const floating = panel()!;
+    Object.defineProperties(floating, {
+      offsetWidth: { configurable: true, get: () => 320 },
+      offsetHeight: { configurable: true, get: () => 250 },
+    });
+    vi.spyOn(floating, "getBoundingClientRect").mockImplementation(
+      () =>
+        new DOMRect(
+          parseFloat(floating.style.left) || 0,
+          parseFloat(floating.style.top) || 0,
+          floating.offsetWidth * 0.8,
+          floating.offsetHeight * 0.8,
+        ),
+    );
+    const title = floating.querySelector<HTMLElement>(".cursor-grab")!;
+    title.setPointerCapture = vi.fn();
+    const down = new Event("pointerdown", { bubbles: true, cancelable: true });
+    Object.assign(down, {
+      pointerId: 9,
+      isPrimary: true,
+      button: 0,
+      clientX: 20,
+      clientY: 90,
+    });
+    const move = new Event("pointermove", { bubbles: true, cancelable: true });
+    Object.assign(move, {
+      pointerId: 9,
+      isPrimary: true,
+      button: 0,
+      clientX: 900,
+      clientY: 700,
+    });
+    act(() => {
+      title.dispatchEvent(down);
+      title.dispatchEvent(move);
+      title.dispatchEvent(
+        Object.assign(new Event("pointerup", { bubbles: true }), {
+          pointerId: 9,
+          isPrimary: true,
+          button: 0,
+          clientX: 900,
+          clientY: 700,
+        }),
+      );
+      floating
+        .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
+        .click();
+    });
+    const viewport = Object.assign(new EventTarget(), {
+      width: 240,
+      height: 200,
+      offsetLeft: 0,
+      offsetTop: 0,
+    });
+    vi.stubGlobal("visualViewport", viewport);
+    act(() => entry().click());
+    const reopened = panel()!;
+    Object.defineProperties(reopened, {
+      offsetWidth: { configurable: true, get: () => 320 },
+      offsetHeight: { configurable: true, get: () => 250 },
+    });
+    vi.spyOn(reopened, "getBoundingClientRect").mockImplementation(
+      () =>
+        new DOMRect(
+          parseFloat(reopened.style.left) || 0,
+          parseFloat(reopened.style.top) || 0,
+          reopened.offsetWidth * 0.8,
+          reopened.offsetHeight * 0.8,
+        ),
+    );
+    act(() => resizePanel());
+    expect([reopened.style.left, reopened.style.top]).toEqual(["12px", "12px"]);
+    expect([reopened.style.maxWidth, reopened.style.maxHeight]).toEqual([
+      "276px",
+      "226px",
+    ]);
+  });
+  it("visualViewport平移和页面滚动也会把浮窗校正到当前可见区域", () => {
+    const floating = panel()!;
+    Object.defineProperties(floating, {
+      offsetWidth: { configurable: true, get: () => 320 },
+      offsetHeight: { configurable: true, get: () => 250 },
+    });
+    vi.spyOn(floating, "getBoundingClientRect").mockImplementation(
+      () =>
+        new DOMRect(
+          parseFloat(floating.style.left) || 0,
+          parseFloat(floating.style.top) || 0,
+          floating.offsetWidth * 0.8,
+          floating.offsetHeight * 0.8,
+        ),
+    );
+    const viewport = Object.assign(new EventTarget(), {
+      width: 400,
+      height: 640,
+      offsetLeft: 80,
+      offsetTop: 40,
+    });
+    vi.stubGlobal("visualViewport", viewport);
+    Object.defineProperty(window, "scrollX", {
+      configurable: true,
+      value: 24,
+    });
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 16,
+    });
+    act(() => resizePanel());
+    expect([floating.style.left, floating.style.top]).toEqual([
+      "142px",
+      "82px",
+    ]);
+  });
+  it("内容高度变化重新校正位置，视口变化取消拖动锚点", () => {
+    const floating = panel()!;
+    let height = 250;
+    Object.defineProperties(floating, {
+      offsetWidth: { configurable: true, get: () => 320 },
+      offsetHeight: { configurable: true, get: () => height },
+    });
+    vi.spyOn(floating, "getBoundingClientRect").mockImplementation(
+      () =>
+        new DOMRect(
+          parseFloat(floating.style.left) || 0,
+          parseFloat(floating.style.top) || 0,
+          floating.offsetWidth * 0.8,
+          floating.offsetHeight * 0.8,
+        ),
+    );
+    const title = floating.querySelector<HTMLElement>(".cursor-grab")!;
+    title.setPointerCapture = vi.fn();
+    const drag = (type: string, x: number, y: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, {
+        pointerId: 10,
+        isPrimary: true,
+        button: 0,
+        clientX: x,
+        clientY: y,
+      });
+      act(() => {
+        title.dispatchEvent(event);
+      });
+    };
+    drag("pointerdown", 20, 90);
+    drag("pointermove", 300, 500);
+    drag("pointerup", 300, 500);
+    height = 700;
+    act(() => resizePanel());
+    expect(parseFloat(floating.style.top)).toBe(
+      window.innerHeight / 0.8 - 700 - 12,
+    );
+    drag("pointerdown", 20, 90);
+    const beforeResize = [floating.style.left, floating.style.top];
+    act(() => {
+      window.dispatchEvent(new Event("resize"));
+      resizePanel();
+    });
+    drag("pointermove", 300, 500);
+    expect([floating.style.left, floating.style.top]).toEqual(beforeResize);
+  });
+  it("视口监听会在浮窗卸载时移除", () => {
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
+        .click();
+    });
+    const viewport = Object.assign(new EventTarget(), {
+      width: 400,
+      height: 640,
+    });
+    vi.stubGlobal("visualViewport", viewport);
+    const add = vi.spyOn(viewport, "addEventListener");
+    const remove = vi.spyOn(viewport, "removeEventListener");
+    act(() => entry().click());
+    expect(add).toHaveBeenCalledWith("resize", expect.any(Function));
+    expect(add).toHaveBeenCalledWith("scroll", expect.any(Function));
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>('[aria-label="关闭播放进度"]')!
+        .click();
+    });
+    expect(remove).toHaveBeenCalledWith("resize", expect.any(Function));
+    expect(remove).toHaveBeenCalledWith("scroll", expect.any(Function));
   });
   it.each([
     ["快进1秒", '!15[">","1s"]'],

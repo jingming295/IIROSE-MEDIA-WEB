@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { HostMediaBridge } from "../../../media-progress/HostMediaBridge";
 import {
   ProgressSession,
@@ -8,17 +8,46 @@ import {
   constrainPosition,
   formatTime,
   unavailableReason,
+  type MediaProgressPosition,
 } from "../../../media-progress/model";
 
 const controlClass =
   "min-h-[44px] min-w-[44px] cursor-pointer rounded-xl border-0 bg-black/5 px-2 font-[inherit] text-[13px] text-inherit hov:bg-black/10 focus-visible:outline-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-35";
 
+type ViewportMetrics = {
+  scale: number;
+  width: number;
+  height: number;
+};
+
+function viewportMetrics(element: HTMLElement): ViewportMetrics {
+  const rect = element.getBoundingClientRect();
+  const scale = rect.width / element.offsetWidth || 1;
+  const viewport = window.visualViewport;
+  return {
+    scale,
+    width: (viewport?.width || window.innerWidth) / scale,
+    height: (viewport?.height || window.innerHeight) / scale,
+  };
+}
+
+function samePosition(
+  first: MediaProgressPosition,
+  second: MediaProgressPosition,
+) {
+  return first.x === second.x && first.y === second.y;
+}
+
 export function MediaProgress({
   bridge,
   close,
+  initialPosition,
+  onPositionChange,
 }: {
   bridge: HostMediaBridge;
   close: () => void;
+  initialPosition?: MediaProgressPosition;
+  onPositionChange?: (position: MediaProgressPosition) => void;
 }) {
   const [state, setState] = useState<ProgressState>({
     media: bridge.read(),
@@ -26,10 +55,14 @@ export function MediaProgress({
     waiting: false,
     message: "",
   });
-  const [position, setPosition] = useState({ x: 12, y: 80 });
+  const [position, setPosition] = useState<MediaProgressPosition>(
+    initialPosition ?? { x: 12, y: 80 },
+  );
   const [dragging, setDragging] = useState(false);
   const [failedCover, setFailedCover] = useState("");
   const panel = useRef<HTMLDivElement>(null);
+  const positionRef = useRef(position);
+  const onPositionChangeRef = useRef(onPositionChange ?? (() => {}));
   const session = useRef<ProgressSession>();
   const move = useRef<{
     pointer: number;
@@ -44,6 +77,28 @@ export function MediaProgress({
   const unavailable = unavailableReason(media);
   const disabled = !!unavailable || state.waiting;
   const time = state.preview ?? media.current;
+  onPositionChangeRef.current = onPositionChange ?? (() => {});
+
+  const updatePosition = (next: MediaProgressPosition) => {
+    const previous = positionRef.current;
+    if (samePosition(previous, next)) return;
+    positionRef.current = next;
+    setPosition(next);
+    onPositionChangeRef.current(next);
+  };
+
+  const currentViewportPosition = (element: HTMLElement) => {
+    const metrics = viewportMetrics(element);
+    return {
+      metrics,
+      offsetLeft:
+        (window.scrollX + (window.visualViewport?.offsetLeft || 0)) /
+        metrics.scale,
+      offsetTop:
+        (window.scrollY + (window.visualViewport?.offsetTop || 0)) /
+        metrics.scale,
+    };
+  };
 
   useEffect(() => {
     const active = new ProgressSession(bridge, setState);
@@ -63,37 +118,48 @@ export function MediaProgress({
     };
   }, [bridge]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const constrain = () => {
       const element = panel.current;
       if (!element) return;
+      if (move.current) {
+        move.current = undefined;
+        setDragging(false);
+      }
       // 宿站通过 zoom 缩放 iframe 文档；offset 尺寸与 client 坐标转换用实测比例。
-      const rect = element.getBoundingClientRect();
-      const scale = rect.width / element.offsetWidth || 1;
-      const viewport = window.visualViewport;
-      const width = (viewport?.width || window.innerWidth) / scale;
-      const height = (viewport?.height || window.innerHeight) / scale;
-      element.style.maxWidth = `${Math.max(0, width - 24)}px`;
-      element.style.maxHeight = `${Math.max(0, height - 24)}px`;
-      setPosition((previous) =>
+      const {
+        metrics,
+        offsetLeft: viewportOffsetX,
+        offsetTop: viewportOffsetY,
+      } = currentViewportPosition(element);
+      element.style.maxWidth = `${Math.max(0, metrics.width - 24)}px`;
+      element.style.maxHeight = `${Math.max(0, metrics.height - 24)}px`;
+      updatePosition(
         constrainPosition(
-          previous.x,
-          previous.y,
+          positionRef.current.x,
+          positionRef.current.y,
           element.offsetWidth,
           element.offsetHeight,
-          width,
-          height,
+          metrics.width,
+          metrics.height,
+          viewportOffsetX,
+          viewportOffsetY,
         ),
       );
     };
     constrain();
     window.addEventListener("resize", constrain);
-    window.visualViewport?.addEventListener("resize", constrain);
+    window.addEventListener("scroll", constrain, { passive: true });
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", constrain);
+    viewport?.addEventListener("scroll", constrain);
     const observer = new ResizeObserver(constrain);
     if (panel.current) observer.observe(panel.current);
     return () => {
       window.removeEventListener("resize", constrain);
-      window.visualViewport?.removeEventListener("resize", constrain);
+      window.removeEventListener("scroll", constrain);
+      viewport?.removeEventListener("resize", constrain);
+      viewport?.removeEventListener("scroll", constrain);
       observer.disconnect();
     };
   }, []);
@@ -103,6 +169,22 @@ export function MediaProgress({
     session.current?.preview(
       ((clientX - rect.left) / rect.width) * (media.duration || 0),
     );
+  };
+
+  const pointerPosition = (
+    element: HTMLElement,
+    clientX: number,
+    clientY: number,
+  ) => {
+    const { metrics } = currentViewportPosition(element);
+    return {
+      x:
+        (clientX + window.scrollX + (window.visualViewport?.offsetLeft || 0)) /
+        metrics.scale,
+      y:
+        (clientY + window.scrollY + (window.visualViewport?.offsetTop || 0)) /
+        metrics.scale,
+    };
   };
 
   return (
@@ -134,15 +216,17 @@ export function MediaProgress({
           className={`flex min-h-[44px] min-w-0 flex-1 touch-none select-none items-center gap-2 rounded-lg px-1 ${dragging ? "cursor-grabbing bg-sky-500/15" : "cursor-grab"}`}
           onPointerDown={(event) => {
             if (!event.isPrimary || event.button !== 0) return;
-            const scale =
-              panel.current!.getBoundingClientRect().width /
-                panel.current!.offsetWidth || 1;
+            const pointer = pointerPosition(
+              panel.current!,
+              event.clientX,
+              event.clientY,
+            );
             move.current = {
               pointer: event.pointerId,
-              x: event.clientX / scale,
-              y: event.clientY / scale,
-              left: position.x,
-              top: position.y,
+              x: pointer.x,
+              y: pointer.y,
+              left: positionRef.current.x,
+              top: positionRef.current.y,
             };
             event.currentTarget.setPointerCapture(event.pointerId);
             setDragging(true);
@@ -151,16 +235,23 @@ export function MediaProgress({
             const start = move.current;
             const element = panel.current;
             if (!start || start.pointer !== event.pointerId || !element) return;
-            const scale =
-              element.getBoundingClientRect().width / element.offsetWidth || 1;
-            setPosition(
+            const pointer = pointerPosition(
+              element,
+              event.clientX,
+              event.clientY,
+            );
+            const { metrics, offsetLeft, offsetTop } =
+              currentViewportPosition(element);
+            updatePosition(
               constrainPosition(
-                start.left + event.clientX / scale - start.x,
-                start.top + event.clientY / scale - start.y,
+                start.left + pointer.x - start.x,
+                start.top + pointer.y - start.y,
                 element.offsetWidth,
                 element.offsetHeight,
-                (window.visualViewport?.width || window.innerWidth) / scale,
-                (window.visualViewport?.height || window.innerHeight) / scale,
+                metrics.width,
+                metrics.height,
+                offsetLeft,
+                offsetTop,
               ),
             );
           }}

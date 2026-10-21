@@ -1,6 +1,7 @@
 import {
   coverUrl,
   finiteTime,
+  isAbsoluteSeekCommand,
   isSeekCommand,
   mediaPermission,
   mediaPermissionReason,
@@ -169,8 +170,24 @@ export class HostMediaBridge {
     controlMode: MediaControlMode,
   ): boolean {
     const media = this.read();
+    const relative = isSeekCommand(command);
+    const absolute = isAbsoluteSeekCommand(command);
+    let absoluteTarget: number | null = null;
+    if (absolute) {
+      try {
+        const [position] = JSON.parse(command.slice(3)) as [string];
+        absoluteTarget = Number(position.slice(0, -1));
+      } catch {
+        return false;
+      }
+    }
     if (
-      !isSeekCommand(command) ||
+      (!relative && !absolute) ||
+      (absolute &&
+        (controlMode !== "silent" ||
+          media.duration === null ||
+          absoluteTarget === null ||
+          absoluteTarget > media.duration)) ||
       media.instance !== instance ||
       media.controlMode !== controlMode ||
       unavailableReason(media)
@@ -178,7 +195,7 @@ export class HostMediaBridge {
       return false;
     try {
       if (controlMode === "silent") this.sendControl(command);
-      else if (controlMode === "owner") this.sendOwner(command);
+      else if (controlMode === "owner" && relative) this.sendOwner(command);
       else return false;
       return true;
     } catch {

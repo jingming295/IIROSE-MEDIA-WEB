@@ -1,5 +1,6 @@
 import { HostMediaBridge } from "./HostMediaBridge";
 import {
+  absoluteSeekCommand,
   clamp,
   MediaControlMode,
   MediaSnapshot,
@@ -20,6 +21,7 @@ export class ProgressSession {
   private gesture: {
     instance: number;
     controlMode: MediaControlMode;
+    kind: "slider" | "step";
     target: number;
   } | null = null;
   private pending: {
@@ -86,13 +88,14 @@ export class ProgressSession {
     this.publish();
   }
 
-  begin(): boolean {
+  begin(kind: "slider" | "step" = "slider"): boolean {
     const media = this.bridge.read();
     this.receive(media);
     if (this.disposed || this.pending || unavailableReason(media)) return false;
     this.gesture = {
       instance: media.instance,
       controlMode: media.controlMode,
+      kind,
       target: media.current!,
     };
     this.state.preview = media.current;
@@ -125,7 +128,10 @@ export class ProgressSession {
     this.gesture = null;
     this.state.preview = null;
     const target = clamp(gesture.target, 0, media.duration!);
-    const command = seekCommand(media.current!, target, media.duration!);
+    const command =
+      gesture.controlMode === "silent" && gesture.kind === "slider"
+        ? absoluteSeekCommand(target, media.duration!)
+        : seekCommand(media.current!, target, media.duration!);
     if (!command) {
       this.state.message = "已在目标位置";
       this.publish();
@@ -154,7 +160,7 @@ export class ProgressSession {
   }
 
   step(seconds: number) {
-    if (!this.begin()) return;
+    if (!this.begin("step")) return;
     this.preview(this.state.media.current! + seconds);
     this.commit();
   }

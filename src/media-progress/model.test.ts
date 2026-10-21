@@ -6,7 +6,9 @@ import {
   mediaPermission,
   mediaPermissionReason,
   formatTime,
+  isAbsoluteSeekCommand,
   isSeekCommand,
+  absoluteSeekCommand,
   seekCommand,
 } from "./model";
 
@@ -55,6 +57,32 @@ describe("进度时间与指令边界", () => {
               `!15${JSON.stringify([direction, `${amount}${unit}`])}`,
             ),
           ).toBe(true);
+  });
+  it("绝对定位允许零秒与正安全整数秒，并限制目标范围", () => {
+    expect(absoluteSeekCommand(0, 300)).toBe('!16["0s"]');
+    expect(absoluteSeekCommand(120, 300)).toBe('!16["120s"]');
+    expect(absoluteSeekCommand(-10, 300)).toBe('!16["0s"]');
+    expect(absoluteSeekCommand(400, 300)).toBe('!16["300s"]');
+    expect(absoluteSeekCommand(0.4, 300)).toBe('!16["0s"]');
+    expect(absoluteSeekCommand(Infinity, 300)).toBeNull();
+    expect(absoluteSeekCommand(0, Infinity)).toBeNull();
+    for (const target of [0, 1, 60, Number.MAX_SAFE_INTEGER])
+      expect(
+        isAbsoluteSeekCommand(`!16${JSON.stringify([`${target}s`])}`),
+      ).toBe(true);
+  });
+  it("绝对定位拒绝相对协议、前导零和非法值", () => {
+    for (const command of [
+      '!15[">","1s"]',
+      '!16["01s"]',
+      '!16["1.5s"]',
+      '!16["-1s"]',
+      '!16["Infinitys"]',
+      '!16["1m"]',
+      '!16["1s","extra"]',
+      '!16["1s"]\n',
+    ])
+      expect(isAbsoluteSeekCommand(command)).toBe(false);
   });
   it("不猜测未知和无效时间", () => {
     for (const value of [undefined, null, "", "直播", Infinity, -1, NaN])

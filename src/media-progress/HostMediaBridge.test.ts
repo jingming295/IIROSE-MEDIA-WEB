@@ -80,16 +80,13 @@ describe("宿站桥接与交互生命周期", () => {
       expect(control).not.toHaveBeenCalled();
       session.commit();
       session.commit();
-      expect(control.mock.calls).toEqual([['!15[">","40s"]']]);
+      expect(control.mock.calls).toEqual([['!16["120s"]']]);
       expect(session.state.waiting).toBe(true);
       service.seekDemandMedia!(120);
       expect(session.state.media.current).toBe(120);
       expect(session.state.waiting).toBe(false);
       session.step(60);
-      expect(control.mock.calls).toEqual([
-        ['!15[">","40s"]'],
-        ['!15[">","1m"]'],
-      ]);
+      expect(control.mock.calls).toEqual([['!16["120s"]'], ['!15[">","1m"]']]);
       expect(publicSend).not.toHaveBeenCalled();
       for (const send of Object.values(chat))
         expect(send).not.toHaveBeenCalled();
@@ -389,6 +386,8 @@ describe("宿站桥接与交互生命周期", () => {
         "快进1s",
         "普通聊天",
         '!16[">","1s"]',
+        '!16["301s"]',
+        '!16["01s"]',
         '!15[">","0s"]',
         '!15["<","-1m"]',
         '!15[">","1.5s"]',
@@ -416,6 +415,21 @@ describe("宿站桥接与交互生命周期", () => {
       defaultBridge.dispose();
     }
   });
+  it("绝对定位允许零秒，拒绝超过当前媒体时长", () => {
+    const { host, bridge, session, send } = fixture();
+    try {
+      expect(
+        bridge.send('!16["0s"]', session.state.media.instance, "silent"),
+      ).toBe(true);
+      expect(
+        bridge.send('!16["301s"]', session.state.media.instance, "silent"),
+      ).toBe(false);
+      expect(send).toHaveBeenCalledExactlyOnceWith('!16["0s"]');
+    } finally {
+      session.dispose();
+    }
+  });
+
   it("拖动中零消息，释放按最新时间发一条并保护草稿", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();
@@ -427,7 +441,7 @@ describe("宿站桥接与交互生命周期", () => {
     session.commit();
     session.commit();
     session.step(1);
-    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
+    expect(send.mock.calls).toEqual([['!16["121s"]']]);
     expect((document.getElementById("draft") as HTMLInputElement).value).toBe(
       "未发送的草稿",
     );

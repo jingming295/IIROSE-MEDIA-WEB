@@ -88,6 +88,25 @@ export function isSeekCommand(command: string): boolean {
   );
 }
 
+export function absoluteSeekCommand(
+  target: number,
+  duration: number,
+): string | null {
+  if (!Number.isFinite(target) || !Number.isFinite(duration) || duration <= 0)
+    return null;
+  const position = Math.round(clamp(target, 0, duration));
+  if (position < 0 || !Number.isSafeInteger(position)) return null;
+  return `!16${JSON.stringify([`${position}s`])}`;
+}
+
+export function isAbsoluteSeekCommand(command: string): boolean {
+  if (typeof command !== "string") return false;
+  const match = /^!16\["(0|[1-9]\d*)s"\]$/.exec(command);
+  return (
+    !!match && match[0] === command && Number.isSafeInteger(Number(match[1]))
+  );
+}
+
 export function unavailableReason(media: MediaSnapshot): string {
   if (media.controlReason) return media.controlReason;
   if (media.controlMode === "unavailable") return media.permissionReason;

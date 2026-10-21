@@ -350,7 +350,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     value("change", 120);
     value("change", 120);
-    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
+    expect(send.mock.calls).toEqual([['!16["120s"]']]);
   });
   it("原生预览 Escape 取消后晚到的 change 不提交，后续 input 可重新操作", () => {
     value("input", 120);
@@ -360,11 +360,11 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(panel()).not.toBeNull();
     value("input", 140);
     value("change", 140);
-    expect(send.mock.calls).toEqual([['!15[">","1m"]']]);
+    expect(send.mock.calls).toEqual([['!16["140s"]']]);
   });
   it("辅助技术仅 change 也能提交", () => {
     value("change", 140);
-    expect(send.mock.calls).toEqual([['!15[">","1m"]']]);
+    expect(send.mock.calls).toEqual([['!16["140s"]']]);
   });
   it("键盘仍需 Enter，原生事件不重复提交", () => {
     key("ArrowRight");
@@ -374,7 +374,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     key("Enter");
     value("change", 82);
-    expect(send.mock.calls).toEqual([['!15[">","2s"]']]);
+    expect(send.mock.calls).toEqual([['!16["82s"]']]);
   });
   it("指针释放提交一次，原生 change 不提前提交", () => {
     pointer("pointerdown");
@@ -383,7 +383,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     pointer("pointerup");
     value("change", 120);
-    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
+    expect(send.mock.calls).toEqual([['!16["120s"]']]);
   });
   it("取消指针后晚到的 change 不发送", () => {
     pointer("pointerdown");

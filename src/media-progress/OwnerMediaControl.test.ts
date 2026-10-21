@@ -262,13 +262,15 @@ describe("本人点播双通道", () => {
     expect(replacement).toHaveBeenCalledOnce();
   });
 
-  it("本人通道仅接受白名单，不把任意文本转为公聊", () => {
+  it("本人通道仅接受相对协议白名单，不把绝对定位转为公聊", () => {
     const { host, bridge, session, moveinputDo } = fixture();
     for (const text of [
       "快进1s",
       '!15[">","0s"]',
       '!15[">","1s"]\n',
       '!15[">","1s","chat"]',
+      '!16["0s"]',
+      '!16["120s"]',
     ])
       expect(bridge.send(text, session.state.media.instance, "owner")).toBe(
         false,

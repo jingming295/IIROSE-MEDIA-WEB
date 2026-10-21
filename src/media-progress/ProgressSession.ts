@@ -122,7 +122,7 @@ export class ProgressSession {
     if (!this.bridge.send(command, gesture.instance)) {
       this.clearOperation();
       this.state.message = this.bridge.controlUnavailable
-        ? "宿站进度控制不可用，请刷新页面后重试"
+        ? this.bridge.controlUnavailableMessage
         : "发送失败，请检查连接、房间权限与当前媒体";
     }
     this.publish();

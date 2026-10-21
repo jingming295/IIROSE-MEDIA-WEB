@@ -64,6 +64,20 @@ describe("侧栏媒体入口", () => {
         .textContent,
     ).toBe("盒子");
   });
+  it("入口主题跟随侧栏实际背景，重建后从深色更新为浅色", async () => {
+    document.body.innerHTML = `<div id="functionHolder" style="background-color: rgb(16, 16, 16)">${markup}</div>`;
+    const adapter = new SidebarMediaEntry(vi.fn());
+    const entry = document.getElementById("imw-media-progress-entry")!;
+    expect(entry.dataset.imwTheme).toBe("dark");
+    document.getElementById("functionHolder")!.outerHTML =
+      `<div id="functionHolder" style="background-color: rgb(224, 224, 224)">${markup}</div>`;
+    await flush();
+    expect(
+      document.getElementById("imw-media-progress-entry")?.dataset.imwTheme,
+    ).toBe("light");
+    adapter.dispose();
+  });
+
   it("真实宿站 functionHolder 中电台延迟展开后隐藏", async () => {
     document.body.innerHTML =
       '<div id="functionHolder"><div id="functionHolderExtBox"><div class="functionButtonExt"><div id="shareMediaBox"></div></div></div></div>';

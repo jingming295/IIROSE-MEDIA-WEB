@@ -11,6 +11,7 @@ export interface MediaHost {
   shareMediaDuration?: unknown;
   shareMedia?: HostFunction;
   socket?: { readyState: number };
+  mediaShareRoom?: boolean;
   theme?: unknown;
   Utils?: {
     service?: {
@@ -69,7 +70,16 @@ export class HostMediaBridge {
   ) {}
 
   get controlUnavailable(): boolean {
-    return typeof this.host.Utils?.service?.moveinputDo !== "function";
+    return (
+      this.host.mediaShareRoom === false ||
+      typeof this.host.Utils?.service?.moveinputDo !== "function"
+    );
+  }
+
+  get controlUnavailableMessage(): string {
+    return this.host.mediaShareRoom === false
+      ? "当前房间不支持媒体进度控制"
+      : "宿站进度控制不可用，请刷新页面后重试";
   }
 
   read(): MediaSnapshot {
@@ -118,7 +128,12 @@ export class HostMediaBridge {
 
   send(command: string, instance: number): boolean {
     const media = this.read();
-    if (media.instance !== instance || unavailableReason(media)) return false;
+    if (
+      media.instance !== instance ||
+      unavailableReason(media) ||
+      this.controlUnavailable
+    )
+      return false;
     try {
       this.sendControl(command);
       return true;

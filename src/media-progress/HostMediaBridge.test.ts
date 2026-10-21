@@ -92,6 +92,26 @@ describe("宿站桥接与交互生命周期", () => {
       session.dispose();
     }
   });
+  it("mediaShareRoom 明确为 false 时不调用控制函数或普通公聊", () => {
+    vi.useFakeTimers();
+    const { host, session: unused } = fixture();
+    unused.dispose();
+    host.mediaShareRoom = false;
+    const control = host.Utils!.service!.moveinputDo as ReturnType<
+      typeof vi.fn
+    >;
+    const publicSend = vi.spyOn(Socket.prototype, "sendMessage");
+    const session = new ProgressSession(new HostMediaBridge(host), vi.fn());
+    try {
+      session.step(60);
+      expect(control).not.toHaveBeenCalled();
+      expect(publicSend).not.toHaveBeenCalled();
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toBe("当前房间不支持媒体进度控制");
+    } finally {
+      session.dispose();
+    }
+  });
   it.each(["missing", "throws", "disconnect"])(
     "原生控制 %s 时安全失败且保护草稿",
     (mode) => {

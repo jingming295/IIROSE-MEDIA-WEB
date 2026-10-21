@@ -70,7 +70,7 @@
   transition: background-color 0.1s;
 }
 
-:root:has(link[href*="/dark.css"]) #imw-media-progress-entry {
+#imw-media-progress-entry[data-imw-theme="dark"] {
   --imw-entry-bg: #252525;
   --imw-entry-fg: #e5e7eb;
   --imw-entry-hover: #383838;

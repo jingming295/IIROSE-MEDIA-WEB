@@ -57,6 +57,16 @@ export class SidebarMediaEntry {
     if (button?.className === "mdi-pause") button.click();
   }
 
+  private isDarkSidebar(element: Element): boolean {
+    const sidebar = element.closest<HTMLElement>("#functionHolder") || element;
+    const color =
+      this.doc.defaultView?.getComputedStyle(sidebar).backgroundColor;
+    const match = color?.match(/rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)/);
+    if (!match) return false;
+    const [, red, green, blue] = match.map(Number);
+    return red * 299 + green * 587 + blue * 114 < 128000;
+  }
+
   private schedule() {
     if (this.queued || this.disposed) return;
     this.queued = true;
@@ -110,6 +120,7 @@ export class SidebarMediaEntry {
       this.entry.append(icon, label);
       this.entry.addEventListener("click", this.open);
     }
+    this.entry.dataset.imwTheme = this.isDarkSidebar(box) ? "dark" : "light";
     if (media.nextElementSibling !== this.entry) media.after(this.entry);
   }
 

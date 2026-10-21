@@ -369,6 +369,11 @@ export function MediaProgress({
           </button>
         ))}
       </div>
+      {media.controlNotice && (
+        <div className="mt-2 text-[11px] leading-4 opacity-65">
+          {media.controlNotice}
+        </div>
+      )}
       <div
         className="mt-2 min-h-8 text-[11px] leading-4 opacity-65"
         role="status"

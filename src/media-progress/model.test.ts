@@ -22,9 +22,6 @@ describe("媒体权限规则", () => {
       expect(mediaPermission(0, rank)).toBe("allowed");
     expect(mediaPermission("1", "4")).toBe("unknown");
     expect(mediaPermission(undefined, undefined)).toBe("unknown");
-    expect(mediaPermissionReason("denied", true)).toBe(
-      "本人点播不等于静默媒体管理权限",
-    );
     expect(mediaPermissionReason("denied")).toBe("当前房间无媒体管理权限");
     expect(mediaPermissionReason("unknown")).toBe(
       "权限信息未就绪，暂时无法调整",

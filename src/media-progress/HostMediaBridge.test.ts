@@ -139,7 +139,7 @@ describe("宿站桥接与交互生命周期", () => {
       session.dispose();
     }
   });
-  it("本人点播不构成普通身份的静默媒体管理权限", () => {
+  it("本人点播缺少宿站函数时禁用，不降级为静默发送", () => {
     const { host, bridge, session: unused, send } = fixture();
     unused.dispose();
     host.Info!.room = { identity: 0 };
@@ -152,9 +152,8 @@ describe("宿站桥接与交互生命周期", () => {
     const session = new ProgressSession(bridge, vi.fn());
     try {
       expect(session.state.media.permission).toBe("denied");
-      expect(session.state.media.permissionReason).toBe(
-        "本人点播不等于静默媒体管理权限",
-      );
+      expect(session.state.media.controlMode).toBe("owner");
+      expect(session.state.media.controlReason).toContain("本人点播控制不可用");
       session.step(1);
       expect(send).not.toHaveBeenCalled();
     } finally {
@@ -407,8 +406,8 @@ describe("宿站桥接与交互生命周期", () => {
         '{"m":"快进1s"}',
         '{"mc":"快进1s","i":"1"}',
       ]) {
-        expect(defaultBridge.send(command, 0)).toBe(false);
-        expect(bridge.send(command, 0)).toBe(false);
+        expect(defaultBridge.send(command, 0, "silent")).toBe(false);
+        expect(bridge.send(command, 0, "silent")).toBe(false);
       }
       expect(host.socket!.send).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();

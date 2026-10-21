@@ -65,6 +65,8 @@ beforeEach(() => {
     shareMediaDuration: 300,
     socket: { readyState: 1, send },
     rank: "0",
+    myself: "",
+    Probe: { admin: { blockPubChat: 0 } },
     roomnFull: "component-room",
     Info: { room: { identity: 1 } },
     ...chat,
@@ -112,6 +114,47 @@ afterEach(() => {
 });
 
 describe("浮窗原生交互与页面生命周期", () => {
+  it("本人通道允许操作，等待和回执均保留房间发言提示，禁言后禁用", () => {
+    const host = window as unknown as MediaHost;
+    const ownerSend = vi.fn();
+    host.myself = "测试账号";
+    host.Info!.room!.identity = 0;
+    host.Utils!.service!.moveinputDo = ownerSend;
+    const owner = document.createElement("div");
+    owner.id = "shareMediaUserName";
+    owner.title = "测试账号";
+    document.body.append(owner);
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    const notice = "本人点播模式：调整会在房间发送快进/快退消息";
+    expect(range.disabled).toBe(false);
+    expect(panel()!.textContent).toContain(notice);
+    const control = panel()!.querySelector<HTMLButtonElement>(
+      '[aria-label="快进1秒"]',
+    )!;
+    expect(control.disabled).toBe(false);
+    act(() => control.click());
+    expect(ownerSend).toHaveBeenCalledExactlyOnceWith("快进1s");
+    expect(send).not.toHaveBeenCalled();
+    expect(panel()!.textContent).toContain(notice);
+    expect(panel()!.textContent).toContain("等待宿站更新");
+    expect(range.disabled).toBe(true);
+    act(() => {
+      host.Utils!.service!.seekDemandMedia!(81);
+    });
+    expect(range.disabled).toBe(false);
+    expect(control.disabled).toBe(false);
+    expect(panel()!.textContent).toContain(notice);
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+    host.Probe!.admin!.blockPubChat = 1;
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(range.disabled).toBe(true);
+    expect(control.disabled).toBe(true);
+    expect(panel()!.textContent).toContain("当前被禁止公聊");
+  });
   it("普通身份即时禁用滑块和四个按钮，但仍显示媒体资料与权限原因", () => {
     const host = window as typeof window & {
       Info: { room: { identity: unknown } };

@@ -1,5 +1,11 @@
 import { HostMediaBridge } from "./HostMediaBridge";
-import { clamp, MediaSnapshot, seekCommand, unavailableReason } from "./model";
+import {
+  clamp,
+  MediaControlMode,
+  MediaSnapshot,
+  seekCommand,
+  unavailableReason,
+} from "./model";
 
 export interface ProgressState {
   media: MediaSnapshot;
@@ -11,7 +17,11 @@ export interface ProgressState {
 // 将手势与发送边界集中管理，避免 pointerup / blur / keyup 重复提交。
 export class ProgressSession {
   state: ProgressState;
-  private gesture: { instance: number; target: number } | null = null;
+  private gesture: {
+    instance: number;
+    controlMode: MediaControlMode;
+    target: number;
+  } | null = null;
   private pending: {
     instance: number;
     seekVersion: number;
@@ -40,16 +50,23 @@ export class ProgressSession {
 
   private receive(media: MediaSnapshot) {
     const changedMedia = this.state.media.instance !== media.instance;
+    const changedMode = this.state.media.controlMode !== media.controlMode;
+    const lostOwnership =
+      this.state.media.controlMode === "owner" &&
+      media.controlMode === "unavailable";
     const previousUnavailable = unavailableReason(this.state.media);
     const reason = unavailableReason(media);
     this.state.media = media;
-    if (changedMedia || reason) {
+    if (changedMedia || changedMode || reason) {
       const hadOperation = !!(this.gesture || this.pending);
       this.clearOperation();
       if (hadOperation || reason)
         this.state.message = changedMedia
           ? "媒体已切换，已取消上次操作"
-          : reason;
+          : lostOwnership && hadOperation
+            ? "当前媒体已非本人点播，已取消上次操作"
+            : reason || "控制通道已切换，已取消上次操作";
+      else if (changedMode) this.state.message = "";
     } else if (previousUnavailable && !reason) {
       this.state.message = "";
     } else if (
@@ -73,7 +90,11 @@ export class ProgressSession {
     const media = this.bridge.read();
     this.receive(media);
     if (this.disposed || this.pending || unavailableReason(media)) return false;
-    this.gesture = { instance: media.instance, target: media.current! };
+    this.gesture = {
+      instance: media.instance,
+      controlMode: media.controlMode,
+      target: media.current!,
+    };
     this.state.preview = media.current;
     this.state.message = "预览中，释放或按 Enter 提交";
     this.publish();
@@ -123,7 +144,7 @@ export class ProgressSession {
       this.state.message = "未收到调整确认，请稍后重试";
       this.publish();
     }, 5000);
-    if (!this.bridge.send(command, gesture.instance)) {
+    if (!this.bridge.send(command, gesture.instance, gesture.controlMode)) {
       this.clearOperation();
       this.state.message = this.bridge.controlUnavailable
         ? this.bridge.controlUnavailableMessage

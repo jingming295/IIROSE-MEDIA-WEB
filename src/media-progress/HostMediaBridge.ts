@@ -4,6 +4,7 @@ import {
   isSeekCommand,
   mediaPermission,
   mediaPermissionReason,
+  MediaControlMode,
   MediaSnapshot,
   unavailableReason,
 } from "./model";
@@ -24,10 +25,12 @@ export interface MediaHost {
   rank?: unknown;
   roomnFull?: unknown;
   Info?: { room?: RoomInfo };
+  Probe?: { admin?: { blockPubChat?: unknown } };
   Utils?: {
     service?: {
       isShareMediaPlaying?: () => boolean;
       seekDemandMedia?: HostFunction;
+      moveinputDo?: HostFunction;
     };
   };
 }
@@ -98,6 +101,21 @@ export class HostMediaBridge {
       typeof this.host.myself === "string" &&
       !!this.host.myself &&
       mediaUser === this.host.myself;
+    const controlMode: MediaControlMode =
+      permission === "allowed"
+        ? "silent"
+        : playing && ownMedia
+          ? "owner"
+          : "unavailable";
+    const controlReason = this.controlUnavailable
+      ? this.controlUnavailableMessage
+      : controlMode === "owner"
+        ? this.host.Probe?.admin?.blockPubChat
+          ? "当前被禁止公聊，无法使用本人点播模式"
+          : typeof this.host.Utils?.service?.moveinputDo !== "function"
+            ? "宿站本人点播控制不可用，请刷新页面后重试"
+            : ""
+        : "";
     const rawDuration = finiteTime(this.host.shareMediaDuration);
     const current = finiteTime(this.host.shareMediaCurrentTime);
     return {
@@ -117,7 +135,15 @@ export class HostMediaBridge {
       seekVersion: this.seekVersion,
       dark: !this.host.theme,
       permission,
-      permissionReason: mediaPermissionReason(permission, ownMedia),
+      permissionReason: mediaPermissionReason(permission),
+      controlMode,
+      controlNotice:
+        controlMode === "owner"
+          ? "本人点播模式：调整会在房间发送快进/快退消息"
+          : controlMode === "silent"
+            ? "媒体管理模式：静默调整播放进度"
+            : "",
+      controlReason,
     };
   }
 
@@ -137,20 +163,66 @@ export class HostMediaBridge {
     };
   }
 
-  send(command: string, instance: number): boolean {
+  send(
+    command: string,
+    instance: number,
+    controlMode: MediaControlMode,
+  ): boolean {
     const media = this.read();
     if (
       !isSeekCommand(command) ||
       media.instance !== instance ||
-      unavailableReason(media) ||
-      this.controlUnavailable
+      media.controlMode !== controlMode ||
+      unavailableReason(media)
     )
       return false;
     try {
-      this.sendControl(command);
+      if (controlMode === "silent") this.sendControl(command);
+      else if (controlMode === "owner") this.sendOwner(command);
+      else return false;
       return true;
     } catch {
       return false;
+    }
+  }
+
+  private sendOwner(command: string) {
+    // send 已校验白名单；只把方向与时间转换为宿站原生本人点播指令。
+    const [direction, amount] = JSON.parse(command.slice(3)) as [
+      string,
+      string,
+    ];
+    const service = this.host.Utils?.service;
+    if (typeof service?.moveinputDo !== "function")
+      throw new Error("宿站本人点播控制不可用");
+    const draft = this.doc.querySelector<
+      HTMLInputElement | HTMLTextAreaElement
+    >("input#moveinput, textarea#moveinput");
+    const saved = draft
+      ? {
+          value: draft.value,
+          start: draft.selectionStart,
+          end: draft.selectionEnd,
+          direction: draft.selectionDirection,
+        }
+      : null;
+    try {
+      // 隔离私聊等现存草稿；不触发输入事件，不走输入框的私聊发送逻辑。
+      if (draft) draft.value = "";
+      service.moveinputDo.call(
+        service,
+        `${direction === ">" ? "快进" : "快退"}${amount}`,
+      );
+    } finally {
+      if (draft && saved) {
+        draft.value = saved.value;
+        if (saved.start !== null && saved.end !== null)
+          draft.setSelectionRange(
+            saved.start,
+            saved.end,
+            saved.direction || "none",
+          );
+      }
     }
   }
 

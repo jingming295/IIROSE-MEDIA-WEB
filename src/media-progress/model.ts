@@ -1,4 +1,5 @@
 export type MediaPermission = "allowed" | "denied" | "unknown";
+export type MediaControlMode = "silent" | "owner" | "unavailable";
 
 export interface MediaSnapshot {
   instance: number;
@@ -12,6 +13,9 @@ export interface MediaSnapshot {
   dark: boolean;
   permission: MediaPermission;
   permissionReason: string;
+  controlMode: MediaControlMode;
+  controlNotice: string;
+  controlReason: string;
 }
 
 const globalMediaRanks = new Set(["1", "5", "3", "6", "7", "a"]);
@@ -29,15 +33,9 @@ export function mediaPermission(
   return "unknown";
 }
 
-export function mediaPermissionReason(
-  permission: MediaPermission,
-  ownMedia = false,
-): string {
+export function mediaPermissionReason(permission: MediaPermission): string {
   if (permission === "allowed") return "";
-  if (permission === "denied")
-    return ownMedia
-      ? "本人点播不等于静默媒体管理权限"
-      : "当前房间无媒体管理权限";
+  if (permission === "denied") return "当前房间无媒体管理权限";
   return "权限信息未就绪，暂时无法调整";
 }
 
@@ -91,7 +89,8 @@ export function isSeekCommand(command: string): boolean {
 }
 
 export function unavailableReason(media: MediaSnapshot): string {
-  if (media.permission !== "allowed") return media.permissionReason;
+  if (media.controlReason) return media.controlReason;
+  if (media.controlMode === "unavailable") return media.permissionReason;
   if (!media.connected) return "连接已断开，暂时无法调整";
   if (!media.playing) return "暂无播放内容";
   if (media.current === null || media.duration === null || media.duration <= 0)

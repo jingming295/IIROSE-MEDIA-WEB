@@ -3,7 +3,10 @@ import { MainAppControlLayer } from "./MainAppControlLayer";
 import { MediaProgress } from "./components/media-progress/MediaProgress";
 import { HostMediaBridge } from "../media-progress/HostMediaBridge";
 import { SidebarMediaEntry } from "../media-progress/SidebarMediaEntry";
-import type { MediaProgressPosition } from "../media-progress/model";
+import {
+  readMediaProgressPosition,
+  saveMediaProgressPosition,
+} from "../media-progress/PositionStorage";
 
 let disposeProgress: (() => void) | undefined;
 
@@ -15,8 +18,9 @@ function initMediaProgress() {
   document.body.appendChild(root);
   const bridge = new HostMediaBridge();
   let visible = false;
-  let lastPosition: MediaProgressPosition | undefined;
+  let lastPosition = readMediaProgressPosition();
   const close = (restoreFocus = true) => {
+    saveMediaProgressPosition(lastPosition);
     visible = false;
     render(null, root);
     const entry = document.getElementById("imw-media-progress-entry");
@@ -37,6 +41,7 @@ function initMediaProgress() {
           initialPosition={lastPosition}
           onPositionChange={(position) => {
             lastPosition = position;
+            saveMediaProgressPosition(position);
           }}
         />,
         root,
@@ -45,6 +50,7 @@ function initMediaProgress() {
     root.querySelector<HTMLElement>("#imw-media-progress")?.focus();
   });
   const onPageHide = (event: PageTransitionEvent) => {
+    saveMediaProgressPosition(lastPosition);
     if (!event.persisted) dispose();
   };
   const dispose = () => {

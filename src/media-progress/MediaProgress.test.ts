@@ -3,6 +3,11 @@ import { act } from "preact/test-utils";
 import { IMCInit } from "../page";
 import { Socket } from "../iirose_func/Socket";
 import type { MediaHost } from "./HostMediaBridge";
+import {
+  MEDIA_PROGRESS_POSITION_KEY,
+  readMediaProgressPosition,
+  saveMediaProgressPosition,
+} from "./PositionStorage";
 
 vi.mock("../page/MainAppControlLayer", () => ({
   MainAppControlLayer: () => null,
@@ -48,6 +53,7 @@ function pointer(type: string, x = 40) {
 beforeEach(() => {
   vi.useFakeTimers();
   send.mockClear();
+  localStorage.removeItem(MEDIA_PROGRESS_POSITION_KEY);
   for (const method of Object.values(chat)) method.mockClear();
   vi.spyOn(Socket.prototype, "sendMessage");
   vi.stubGlobal(
@@ -301,7 +307,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(panel()).toBeNull();
     expect(send).not.toHaveBeenCalled();
   });
-  it("关闭后重开保留同页位置，页面卸载后恢复默认位置", () => {
+  it("关闭后重开及页面重新初始化都恢复本地位置", () => {
     const floating = panel()!;
     Object.defineProperties(floating, {
       offsetWidth: { configurable: true, get: () => 320 },
@@ -349,7 +355,7 @@ describe("浮窗原生交互与页面生命周期", () => {
       IMCInit.init(document.getElementById("mainContainer") as HTMLDivElement);
       document.getElementById("imw-media-progress-entry")!.click();
     });
-    expect([panel()!.style.left, panel()!.style.top]).toEqual(["12px", "80px"]);
+    expect([panel()!.style.left, panel()!.style.top]).toEqual(saved);
   });
   it("关闭期间视口缩小，重开时把记忆位置收敛到可见范围", () => {
     const floating = panel()!;
@@ -698,5 +704,52 @@ describe("浮窗原生交互与页面生命周期", () => {
     });
     expect(vi.getTimerCount()).toBe(0);
     expect(send).toHaveBeenCalledOnce();
+  });
+});
+
+describe("本地播放进度浮窗位置存储", () => {
+  it.each([
+    ["非法 JSON", "{"],
+    ["null", "null"],
+    ["数组", "[1,2]"],
+    ["缺少 y", '{"x":1}'],
+    ["字符串坐标", '{"x":"1","y":2}'],
+    ["负数坐标", '{"x":-1,"y":2}'],
+    ["NaN", '{"x":null,"y":2}'],
+  ])("拒绝非法 %s", (_label, raw) => {
+    localStorage.setItem(MEDIA_PROGRESS_POSITION_KEY, raw);
+    expect(readMediaProgressPosition()).toBeUndefined();
+  });
+
+  it("读取有限的大坐标并在保存时只克隆 x/y", () => {
+    localStorage.setItem(
+      MEDIA_PROGRESS_POSITION_KEY,
+      JSON.stringify({ x: 1e300, y: 2e300, extra: "ignored" }),
+    );
+    expect(readMediaProgressPosition()).toEqual({ x: 1e300, y: 2e300 });
+
+    const position = { x: 12, y: 34 };
+    saveMediaProgressPosition(position);
+    position.x = 99;
+    expect(localStorage.getItem(MEDIA_PROGRESS_POSITION_KEY)).toBe(
+      '{"x":12,"y":34}',
+    );
+  });
+
+  it("localStorage 读写异常时降级且不抛错", () => {
+    const getItem = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new DOMException("blocked", "SecurityError");
+      });
+    expect(readMediaProgressPosition()).toBeUndefined();
+    getItem.mockRestore();
+
+    const setItem = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("full", "QuotaExceededError");
+      });
+    expect(() => saveMediaProgressPosition({ x: 12, y: 34 })).not.toThrow();
   });
 });

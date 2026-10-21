@@ -42,9 +42,21 @@ export function seekCommand(
   )
     return null;
   const delta = Math.round(clamp(target, 0, duration) - current);
-  if (!delta) return null;
+  if (!delta || !Number.isSafeInteger(delta)) return null;
   const amount = Math.abs(delta);
-  return `${delta > 0 ? "快进" : "快退"}${amount % 60 === 0 ? `${amount / 60}m` : `${amount}s`}`;
+  return `!15${JSON.stringify([
+    delta > 0 ? ">" : "<",
+    amount % 60 === 0 ? `${amount / 60}m` : `${amount}s`,
+  ])}`;
+}
+
+export function isSeekCommand(command: string): boolean {
+  // 仅接受已确认的独立控制协议，不接受聊天文本或其他宿站指令。
+  if (typeof command !== "string") return false;
+  const match = /^!15\["[<>]","([1-9]\d*)[sm]"\]$/.exec(command);
+  return (
+    !!match && match[0] === command && Number.isSafeInteger(Number(match[1]))
+  );
 }
 
 export function unavailableReason(media: MediaSnapshot): string {

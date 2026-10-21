@@ -1,6 +1,7 @@
 import {
   coverUrl,
   finiteTime,
+  isSeekCommand,
   MediaSnapshot,
   unavailableReason,
 } from "./model";
@@ -10,14 +11,13 @@ export interface MediaHost {
   shareMediaCurrentTime?: unknown;
   shareMediaDuration?: unknown;
   shareMedia?: HostFunction;
-  socket?: { readyState: number };
+  socket?: { readyState: number; send?: (command: string) => void };
   mediaShareRoom?: boolean;
   theme?: unknown;
   Utils?: {
     service?: {
       isShareMediaPlaying?: () => boolean;
       seekDemandMedia?: HostFunction;
-      moveinputDo?: (command: string) => unknown;
     };
   };
 }
@@ -38,41 +38,17 @@ export class HostMediaBridge {
     private host: MediaHost = window as unknown as MediaHost,
     private doc: Document = document,
     private sendControl: (command: string) => void = (command) => {
-      const service = this.host.Utils?.service;
-      if (typeof service?.moveinputDo !== "function")
+      const socket = this.host.socket;
+      if (typeof socket?.send !== "function")
         throw new Error("宿站进度控制不可用");
-      const input = this.doc.querySelector<
-        HTMLInputElement | HTMLTextAreaElement
-      >("#moveinput");
-      const draft = input?.value;
-      const selection = input
-        ? ([
-            input.selectionStart,
-            input.selectionEnd,
-            input.selectionDirection,
-          ] as const)
-        : null;
-      try {
-        // 显式传参交给宿站解析，不借用输入框，也不自行拼装控制报文。
-        service.moveinputDo(command);
-      } finally {
-        if (input && draft !== undefined) {
-          if (input.value !== draft) input.value = draft;
-          if (selection && selection[0] !== null && selection[1] !== null)
-            input.setSelectionRange(
-              selection[0],
-              selection[1],
-              selection[2] ?? "none",
-            );
-        }
-      }
+      socket.send(command);
     },
   ) {}
 
   get controlUnavailable(): boolean {
     return (
       this.host.mediaShareRoom === false ||
-      typeof this.host.Utils?.service?.moveinputDo !== "function"
+      typeof this.host.socket?.send !== "function"
     );
   }
 
@@ -129,6 +105,7 @@ export class HostMediaBridge {
   send(command: string, instance: number): boolean {
     const media = this.read();
     if (
+      !isSeekCommand(command) ||
       media.instance !== instance ||
       unavailableReason(media) ||
       this.controlUnavailable

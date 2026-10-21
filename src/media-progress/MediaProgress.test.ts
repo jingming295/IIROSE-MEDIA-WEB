@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "preact/test-utils";
 import { IMCInit } from "../page";
+import { Socket } from "../iirose_func/Socket";
 
 vi.mock("../page/MainAppControlLayer", () => ({
   MainAppControlLayer: () => null,
 }));
 const send = vi.fn();
+const chat = { moveinputDo: vi.fn(), msgfetch: vi.fn(), getcontents: vi.fn() };
 
 let range: HTMLInputElement;
 let resizePanel: () => void;
@@ -45,6 +47,8 @@ function pointer(type: string, x = 40) {
 beforeEach(() => {
   vi.useFakeTimers();
   send.mockClear();
+  for (const method of Object.values(chat)) method.mockClear();
+  vi.spyOn(Socket.prototype, "sendMessage");
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -58,13 +62,14 @@ beforeEach(() => {
   Object.assign(window, {
     shareMediaCurrentTime: 80,
     shareMediaDuration: 300,
-    socket: { readyState: 1 },
+    socket: { readyState: 1, send },
+    ...chat,
     shareMedia: () => {},
     Utils: {
       service: {
         isShareMediaPlaying: () => true,
         seekDemandMedia: () => {},
-        moveinputDo: send,
+        ...chat,
       },
     },
   });
@@ -91,7 +96,11 @@ afterEach(() => {
       new PageTransitionEvent("pagehide", { persisted: false }),
     );
   });
+  expect(Socket.prototype.sendMessage).not.toHaveBeenCalled();
+  for (const method of Object.values(chat))
+    expect(method).not.toHaveBeenCalled();
   document.body.innerHTML = "";
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
@@ -205,6 +214,26 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(panel()).toBeNull();
     expect(send).not.toHaveBeenCalled();
   });
+  it.each([
+    ["快进1秒", '!15[">","1s"]'],
+    ["快退1秒", '!15["<","1s"]'],
+    ["快进1分钟", '!15[">","1m"]'],
+    ["快退1分钟", '!15["<","1m"]'],
+  ])("%s 按钮仅发送 %s，8秒无回执显示未确认", (label, command) => {
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
+        .click();
+    });
+    expect(send.mock.calls).toEqual([[command]]);
+    expect(panel()!.textContent).toContain("等待宿站更新");
+    act(() => {
+      vi.advanceTimersByTime(8000);
+    });
+    expect(panel()!.textContent).toContain("未确认调整结果");
+    expect(panel()!.textContent).not.toContain("宿站进度已更新");
+    expect(send).toHaveBeenCalledTimes(1);
+  });
   it("原生 input 保持预览，change 只提交一次", () => {
     value("input", 120);
     act(() => {
@@ -214,7 +243,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     value("change", 120);
     value("change", 120);
-    expect(send.mock.calls).toEqual([["快进40s"]]);
+    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
   });
   it("原生预览 Escape 取消后晚到的 change 不提交，后续 input 可重新操作", () => {
     value("input", 120);
@@ -224,11 +253,11 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(panel()).not.toBeNull();
     value("input", 140);
     value("change", 140);
-    expect(send.mock.calls).toEqual([["快进1m"]]);
+    expect(send.mock.calls).toEqual([['!15[">","1m"]']]);
   });
   it("辅助技术仅 change 也能提交", () => {
     value("change", 140);
-    expect(send.mock.calls).toEqual([["快进1m"]]);
+    expect(send.mock.calls).toEqual([['!15[">","1m"]']]);
   });
   it("键盘仍需 Enter，原生事件不重复提交", () => {
     key("ArrowRight");
@@ -238,7 +267,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     key("Enter");
     value("change", 82);
-    expect(send.mock.calls).toEqual([["快进2s"]]);
+    expect(send.mock.calls).toEqual([['!15[">","2s"]']]);
   });
   it("指针释放提交一次，原生 change 不提前提交", () => {
     pointer("pointerdown");
@@ -247,7 +276,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).not.toHaveBeenCalled();
     pointer("pointerup");
     value("change", 120);
-    expect(send.mock.calls).toEqual([["快进40s"]]);
+    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
   });
   it("取消指针后晚到的 change 不发送", () => {
     pointer("pointerdown");

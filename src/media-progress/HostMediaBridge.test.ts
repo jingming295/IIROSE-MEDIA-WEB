@@ -8,7 +8,7 @@ function fixture() {
   const host: MediaHost = {
     shareMediaCurrentTime: 80,
     shareMediaDuration: "300",
-    socket: { readyState: 1 },
+    socket: { readyState: 1, send: vi.fn() },
     shareMedia: vi.fn(function (this: unknown) {
       host.shareMediaCurrentTime = 0;
       return this;
@@ -16,7 +16,6 @@ function fixture() {
     Utils: {
       service: {
         isShareMediaPlaying: () => playing,
-        moveinputDo: vi.fn(),
         seekDemandMedia: function (time: unknown) {
           host.shareMediaCurrentTime = time;
           return "seek-return";
@@ -47,25 +46,30 @@ afterEach(() => {
 });
 
 describe("宿站桥接与交互生命周期", () => {
-  it("默认发送器交给宿站原生解析，拖动与步进均不发送普通公聊", () => {
+  it("默认发送器仅发送独立控制报文，保留 socket 接收者及输入草稿选区", () => {
     vi.useFakeTimers();
     const { host, session: unused } = fixture();
     unused.dispose();
     const publicSend = vi.spyOn(Socket.prototype, "sendMessage");
-    const wireSend = vi.fn();
-    vi.stubGlobal("socket", { readyState: 1, send: wireSend });
+    const otherSocketSend = vi.fn();
+    vi.stubGlobal("socket", { readyState: 1, send: otherSocketSend });
     document.body.innerHTML = '<textarea id="moveinput"></textarea>';
     const draft = document.getElementById("moveinput") as HTMLTextAreaElement;
     draft.value = '保留草稿："未发送"\n第二行';
     draft.setSelectionRange(2, 5, "backward");
     const originalDraft = draft.value;
     const service = host.Utils!.service!;
+    const chat = {
+      moveinputDo: vi.fn(),
+      msgfetch: vi.fn(),
+      getcontents: vi.fn(),
+    };
+    Object.assign(service, chat);
+    Object.assign(host, chat);
     const control = vi.fn(function (this: unknown) {
-      expect(this).toBe(service);
-      // 即使宿站清理输入，桥接也必须恢复草稿和选择范围。
-      draft.value = "";
+      expect(this).toBe(host.socket);
     });
-    service.moveinputDo = control;
+    host.socket!.send = control;
     const session = new ProgressSession(new HostMediaBridge(host), vi.fn());
     try {
       session.begin();
@@ -73,15 +77,20 @@ describe("宿站桥接与交互生命周期", () => {
       expect(control).not.toHaveBeenCalled();
       session.commit();
       session.commit();
-      expect(control.mock.calls).toEqual([["快进40s"]]);
+      expect(control.mock.calls).toEqual([['!15[">","40s"]']]);
       expect(session.state.waiting).toBe(true);
       service.seekDemandMedia!(120);
       expect(session.state.media.current).toBe(120);
       expect(session.state.waiting).toBe(false);
       session.step(60);
-      expect(control.mock.calls).toEqual([["快进40s"], ["快进1m"]]);
+      expect(control.mock.calls).toEqual([
+        ['!15[">","40s"]'],
+        ['!15[">","1m"]'],
+      ]);
       expect(publicSend).not.toHaveBeenCalled();
-      expect(wireSend).not.toHaveBeenCalled();
+      for (const send of Object.values(chat))
+        expect(send).not.toHaveBeenCalled();
+      expect(otherSocketSend).not.toHaveBeenCalled();
       expect(draft.value).toBe(originalDraft);
       expect([
         draft.selectionStart,
@@ -97,9 +106,7 @@ describe("宿站桥接与交互生命周期", () => {
     const { host, session: unused } = fixture();
     unused.dispose();
     host.mediaShareRoom = false;
-    const control = host.Utils!.service!.moveinputDo as ReturnType<
-      typeof vi.fn
-    >;
+    const control = host.socket!.send as ReturnType<typeof vi.fn>;
     const publicSend = vi.spyOn(Socket.prototype, "sendMessage");
     const session = new ProgressSession(new HostMediaBridge(host), vi.fn());
     try {
@@ -112,8 +119,8 @@ describe("宿站桥接与交互生命周期", () => {
       session.dispose();
     }
   });
-  it.each(["missing", "throws", "disconnect"])(
-    "原生控制 %s 时安全失败且保护草稿",
+  it.each(["missing", "throws", "disconnect", "no-socket"])(
+    "socket %s 时安全失败且保护草稿选区",
     (mode) => {
       vi.useFakeTimers();
       const { host, session: unused } = fixture();
@@ -121,13 +128,20 @@ describe("宿站桥接与交互生命周期", () => {
       document.body.innerHTML =
         '<textarea id="moveinput">未发送草稿</textarea>';
       const draft = document.getElementById("moveinput") as HTMLTextAreaElement;
+      draft.setSelectionRange(1, 3, "backward");
       const control = vi.fn(() => {
-        draft.value = "";
         throw new Error("unavailable");
       });
-      host.Utils!.service!.moveinputDo =
-        mode === "missing" ? undefined : control;
+      host.socket!.send = mode === "missing" ? undefined : control;
       if (mode === "disconnect") host.socket!.readyState = 3;
+      if (mode === "no-socket") host.socket = undefined;
+      const chat = {
+        moveinputDo: vi.fn(),
+        msgfetch: vi.fn(),
+        getcontents: vi.fn(),
+      };
+      Object.assign(host.Utils!.service!, chat);
+      Object.assign(host, chat);
       const publicSend = vi.spyOn(Socket.prototype, "sendMessage");
       const session = new ProgressSession(new HostMediaBridge(host), vi.fn());
       try {
@@ -135,6 +149,13 @@ describe("宿站桥接与交互生命周期", () => {
         expect(publicSend).not.toHaveBeenCalled();
         expect(control).toHaveBeenCalledTimes(mode === "throws" ? 1 : 0);
         expect(draft.value).toBe("未发送草稿");
+        expect([
+          draft.selectionStart,
+          draft.selectionEnd,
+          draft.selectionDirection,
+        ]).toEqual([1, 3, "backward"]);
+        for (const send of Object.values(chat))
+          expect(send).not.toHaveBeenCalled();
         expect(session.state.waiting).toBe(false);
         if (mode === "missing")
           expect(session.state.message).toContain("控制不可用");
@@ -145,6 +166,78 @@ describe("宿站桥接与交互生命周期", () => {
       }
     },
   );
+  it.each([
+    [1, '!15[">","1s"]'],
+    [-1, '!15["<","1s"]'],
+    [60, '!15[">","1m"]'],
+    [-60, '!15["<","1m"]'],
+  ])("默认发送器步进 %s 只发 %s，无权限回执时8秒未确认", (seconds, command) => {
+    vi.useFakeTimers();
+    const { host, session: unused } = fixture();
+    unused.dispose();
+    const publicSend = vi.spyOn(Socket.prototype, "sendMessage");
+    const chat = {
+      moveinputDo: vi.fn(),
+      msgfetch: vi.fn(),
+      getcontents: vi.fn(),
+    };
+    Object.assign(host, chat);
+    Object.assign(host.Utils!.service!, chat);
+    const session = new ProgressSession(new HostMediaBridge(host), vi.fn());
+    try {
+      session.step(Number(seconds));
+      expect(host.socket!.send).toHaveBeenCalledExactlyOnceWith(command);
+      expect(session.state.waiting).toBe(true);
+      vi.advanceTimersByTime(7999);
+      expect(session.state.waiting).toBe(true);
+      vi.advanceTimersByTime(1);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toContain("未确认");
+      expect(session.state.message).toContain("房间可能限制");
+      vi.advanceTimersByTime(10000);
+      expect(host.socket!.send).toHaveBeenCalledTimes(1);
+      expect(publicSend).not.toHaveBeenCalled();
+      for (const send of Object.values(chat))
+        expect(send).not.toHaveBeenCalled();
+    } finally {
+      session.dispose();
+    }
+  });
+  it("发送边界拒绝任意文本、其他协议及非正安全整数，不调用任何发送器", () => {
+    const { host, bridge, session, send } = fixture();
+    const defaultBridge = new HostMediaBridge(host);
+    try {
+      for (const command of [
+        "快进1s",
+        "普通聊天",
+        '!16[">","1s"]',
+        '!15[">","0s"]',
+        '!15["<","-1m"]',
+        '!15[">","1.5s"]',
+        '!15[">","01s"]',
+        '!15[">","1e2s"]',
+        '!15[">","9007199254740992m"]',
+        '!15[">","Infinitys"]',
+        '!15[">","NaNs"]',
+        '!15["x","1s"]',
+        '!15[">","1h"]',
+        '!15[">",1]',
+        '!15[">","1s","m"]',
+        '!15[">","1s"]\n',
+        '!15[">","1s"]m聊天',
+        '{"m":"快进1s"}',
+        '{"mc":"快进1s","i":"1"}',
+      ]) {
+        expect(defaultBridge.send(command, 0)).toBe(false);
+        expect(bridge.send(command, 0)).toBe(false);
+      }
+      expect(host.socket!.send).not.toHaveBeenCalled();
+      expect(send).not.toHaveBeenCalled();
+    } finally {
+      session.dispose();
+      defaultBridge.dispose();
+    }
+  });
   it("拖动中零消息，释放按最新时间发一条并保护草稿", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();
@@ -156,7 +249,7 @@ describe("宿站桥接与交互生命周期", () => {
     session.commit();
     session.commit();
     session.step(1);
-    expect(send.mock.calls).toEqual([["快进40s"]]);
+    expect(send.mock.calls).toEqual([['!15[">","40s"]']]);
     expect((document.getElementById("draft") as HTMLInputElement).value).toBe(
       "未发送的草稿",
     );
@@ -192,7 +285,7 @@ describe("宿站桥接与交互生命周期", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();
     session.step(-60);
-    expect(send).toHaveBeenCalledWith("快退1m");
+    expect(send).toHaveBeenCalledWith('!15["<","1m"]');
     host.Utils!.service!.seekDemandMedia!(10);
     expect(session.state.waiting).toBe(true);
     host.shareMediaCurrentTime = 20;
@@ -210,7 +303,7 @@ describe("宿站桥接与交互生命周期", () => {
     const { session, host, send } = fixture();
     host.shareMediaCurrentTime = 10;
     session.step(-60);
-    expect(send).toHaveBeenCalledWith("快退10s");
+    expect(send).toHaveBeenCalledWith('!15["<","10s"]');
     host.Utils!.service!.seekDemandMedia!(0);
     session.step(-1);
     expect(send).toHaveBeenCalledTimes(1);

@@ -122,7 +122,7 @@ export class ProgressSession {
       this.clearOperation();
       this.state.message = "未收到调整确认，请稍后重试";
       this.publish();
-    }, 2000);
+    }, 5000);
     if (!this.bridge.send(command, gesture.instance)) {
       this.clearOperation();
       this.state.message = this.bridge.controlUnavailable

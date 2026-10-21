@@ -255,7 +255,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     ["快退1秒", '!15["<","1s"]'],
     ["快进1分钟", '!15[">","1m"]'],
     ["快退1分钟", '!15["<","1m"]'],
-  ])("%s 按钮仅发送 %s，2秒无回执显示未确认", (label, command) => {
+  ])("%s 按钮仅发送 %s，5秒无回执显示未确认", (label, command) => {
     act(() => {
       document
         .querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
@@ -264,13 +264,13 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send.mock.calls).toEqual([[command]]);
     expect(panel()!.textContent).toContain("等待宿站更新");
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(5000);
     });
     expect(panel()!.textContent).toContain("未收到调整确认，请稍后重试");
     expect(panel()!.textContent).not.toContain("宿站进度已更新");
     expect(send).toHaveBeenCalledTimes(1);
   });
-  it("授权操作同步定位回读立即确认并恢复控件，2秒后不超时或重发", () => {
+  it("授权操作同步定位回读立即确认并恢复控件，5秒后不超时或重发", () => {
     const host = window as unknown as MediaHost;
     send.mockImplementationOnce(() => {
       host.Utils!.service!.seekDemandMedia!(140);
@@ -290,7 +290,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(range.disabled).toBe(false);
     for (const control of controls) expect(control.disabled).toBe(false);
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(5000);
     });
     expect(panel()!.textContent).toContain("宿站进度已更新");
     expect(panel()!.textContent).not.toContain("未收到调整确认");

@@ -224,7 +224,7 @@ describe("宿站桥接与交互生命周期", () => {
       expect(session.state.preview).toBeNull();
       expect(session.state.media.permission).toBe("denied");
       expect(session.state.message).toBe("当前房间无媒体管理权限");
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(5000);
       expect(send).not.toHaveBeenCalled();
       expect(session.state.waiting).toBe(false);
       expect(session.state.message).toBe("当前房间无媒体管理权限");
@@ -253,7 +253,7 @@ describe("宿站桥接与交互生命周期", () => {
       expect(session.state.media.current).toBe(140);
       expect(session.state.waiting).toBe(false);
       expect(session.state.message).toBe(cancellation);
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(5000);
       expect(session.state.waiting).toBe(false);
       expect(session.state.preview).toBeNull();
       expect(session.state.message).toBe(cancellation);
@@ -350,7 +350,7 @@ describe("宿站桥接与交互生命周期", () => {
     [-1, '!15["<","1s"]'],
     [60, '!15[">","1m"]'],
     [-60, '!15["<","1m"]'],
-  ])("默认发送器步进 %s 只发 %s，无权限回执时2秒未确认", (seconds, command) => {
+  ])("默认发送器步进 %s 只发 %s，无权限回执时5秒未确认", (seconds, command) => {
     vi.useFakeTimers();
     const { host, session: unused } = fixture();
     unused.dispose();
@@ -367,7 +367,7 @@ describe("宿站桥接与交互生命周期", () => {
       session.step(Number(seconds));
       expect(host.socket!.send).toHaveBeenCalledExactlyOnceWith(command);
       expect(session.state.waiting).toBe(true);
-      vi.advanceTimersByTime(1999);
+      vi.advanceTimersByTime(4999);
       expect(session.state.waiting).toBe(true);
       vi.advanceTimersByTime(1);
       expect(session.state.waiting).toBe(false);
@@ -460,7 +460,7 @@ describe("宿站桥接与交互生命周期", () => {
     expect(send).toHaveBeenCalledTimes(1);
     session.dispose();
   });
-  it("2秒无定位确认则提示未确认，不重发", () => {
+  it("5秒无定位确认则提示未确认，不重发", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();
     session.step(-60);
@@ -468,7 +468,7 @@ describe("宿站桥接与交互生命周期", () => {
     host.Utils!.service!.seekDemandMedia!(10);
     expect(session.state.waiting).toBe(true);
     host.shareMediaCurrentTime = 20;
-    vi.advanceTimersByTime(1999);
+    vi.advanceTimersByTime(4999);
     expect(session.state.waiting).toBe(true);
     vi.advanceTimersByTime(1);
     expect(session.state.waiting).toBe(false);

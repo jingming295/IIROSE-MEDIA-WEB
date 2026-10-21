@@ -112,9 +112,23 @@ export class SidebarMediaEntry {
       this.entry.type = "button";
       this.entry.id = "imw-media-progress-entry";
       this.entry.setAttribute("aria-haspopup", "dialog");
-      const icon = this.doc.createElement("span");
+      const icon = this.doc.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg",
+      );
       icon.id = "imw-progress-entry-icon";
       icon.setAttribute("aria-hidden", "true");
+      icon.setAttribute("viewBox", "0 0 24 24");
+      icon.setAttribute("fill", "none");
+      icon.setAttribute("stroke", "currentColor");
+      icon.setAttribute("stroke-width", "1.6");
+      icon.setAttribute("stroke-linecap", "round");
+      const track = this.doc.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path",
+      );
+      track.setAttribute("d", "M3 8h10m4 0h4M3 16h4m4 0h10M13 5v6M7 13v6");
+      icon.append(track);
       const label = this.doc.createElement("span");
       label.textContent = "播放进度";
       this.entry.append(icon, label);

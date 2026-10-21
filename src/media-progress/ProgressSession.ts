@@ -1,6 +1,8 @@
 import { HostMediaBridge } from "./HostMediaBridge";
 import {
   absoluteSeekCommand,
+  absoluteSeekTarget,
+  seekOffset,
   clamp,
   MediaControlMode,
   MediaSnapshot,
@@ -28,6 +30,9 @@ export class ProgressSession {
     instance: number;
     seekVersion: number;
     target: number;
+    kind: "absolute" | "relative";
+    sentAt: number;
+    duration: number;
   } | null = null;
   private timeout?: ReturnType<typeof setTimeout>;
   private unsubscribe: () => void;
@@ -76,7 +81,7 @@ export class ProgressSession {
       media.instance === this.pending.instance &&
       media.seekVersion > this.pending.seekVersion &&
       media.current !== null &&
-      Math.abs(media.current - this.pending.target) <= 2
+      this.confirmsPending(media.current)
     ) {
       // 只认定位回调后的真实时间；普通时钟推进不构成确认。
       this.clearOperation();
@@ -86,6 +91,17 @@ export class ProgressSession {
       this.pending.seekVersion = media.seekVersion;
     }
     this.publish();
+  }
+
+  private confirmsPending(current: number): boolean {
+    const pending = this.pending!;
+    const elapsed = (performance.now() - pending.sentAt) / 1000;
+    if (elapsed < 0 || elapsed >= 5) return false;
+    const advance = pending.kind === "relative" ? elapsed : 0;
+    return (
+      current >= Math.max(0, pending.target - 2) &&
+      current <= Math.min(pending.duration, pending.target + advance + 2)
+    );
   }
 
   begin(kind: "slider" | "step" = "slider"): boolean {
@@ -109,8 +125,13 @@ export class ProgressSession {
     const media = this.bridge.read();
     this.receive(media);
     if (!this.gesture || unavailableReason(media)) return;
-    this.gesture.target = clamp(target, 0, media.duration!);
-    this.state.preview = this.gesture.target;
+    const normalized =
+      this.gesture.controlMode === "silent" && this.gesture.kind === "slider"
+        ? absoluteSeekTarget(target, media.duration!)
+        : clamp(target, 0, media.duration!);
+    if (normalized === null) return;
+    this.gesture.target = normalized;
+    this.state.preview = normalized;
     this.publish();
   }
 
@@ -127,11 +148,17 @@ export class ProgressSession {
       return;
     this.gesture = null;
     this.state.preview = null;
-    const target = clamp(gesture.target, 0, media.duration!);
+    const absolute =
+      gesture.controlMode === "silent" && gesture.kind === "slider";
+    const target = absolute
+      ? absoluteSeekTarget(gesture.target, media.duration!)
+      : clamp(gesture.target, 0, media.duration!);
     const command =
-      gesture.controlMode === "silent" && gesture.kind === "slider"
-        ? absoluteSeekCommand(target, media.duration!)
-        : seekCommand(media.current!, target, media.duration!);
+      target === null
+        ? null
+        : absolute
+          ? absoluteSeekCommand(target, media.duration!)
+          : seekCommand(media.current!, target, media.duration!);
     if (!command) {
       this.state.message = "已在目标位置";
       this.publish();
@@ -140,7 +167,18 @@ export class ProgressSession {
     this.pending = {
       instance: media.instance,
       seekVersion: media.seekVersion,
-      target,
+      // 相对报文按整秒偏移编码，确认目标必须采用实际发送的偏移。
+      target: absolute
+        ? target!
+        : clamp(
+            media.current! +
+              seekOffset(media.current!, target!, media.duration!)!,
+            0,
+            media.duration!,
+          ),
+      kind: absolute ? "absolute" : "relative",
+      sentAt: performance.now(),
+      duration: media.duration!,
     };
     this.state.waiting = true;
     this.state.message = "等待宿站更新…";

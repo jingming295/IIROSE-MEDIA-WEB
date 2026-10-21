@@ -31,7 +31,7 @@ export class SidebarMediaEntry {
             )
           )
             return true;
-          return [...record.addedNodes].some(
+          return [...record.addedNodes, ...record.removedNodes].some(
             (node) =>
               node instanceof Element &&
               (node.matches("#functionHolderBox, #functionHolderExtBox") ||
@@ -77,6 +77,16 @@ export class SidebarMediaEntry {
   }
 
   private adapt() {
+    for (const element of this.renamed.keys()) {
+      if (!element.isConnected) this.renamed.delete(element);
+    }
+    for (const element of this.hidden) {
+      if (!element.isConnected) this.hidden.delete(element);
+    }
+    if (this.entry && !this.entry.isConnected) {
+      this.entry.removeEventListener("click", this.open);
+      this.entry = undefined;
+    }
     const box = this.doc.getElementById("functionHolderExtBox");
     if (!box) return;
     const scope = box.closest("#functionHolderBox") || box.parentElement;
@@ -144,6 +154,7 @@ export class SidebarMediaEntry {
     this.doc.removeEventListener("play", this.onRadioPlay, true);
     this.entry?.removeEventListener("click", this.open);
     this.entry?.remove();
+    this.entry = undefined;
     this.renamed.forEach((text, element) => {
       if (element.textContent === "IIROSE-MEDIA-WEB")
         element.textContent = text;

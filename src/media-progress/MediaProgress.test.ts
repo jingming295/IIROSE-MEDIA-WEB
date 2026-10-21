@@ -591,6 +591,36 @@ describe("浮窗原生交互与页面生命周期", () => {
     for (const control of controls) expect(control.disabled).toBe(false);
     expect(send).toHaveBeenCalledTimes(1);
   });
+  it.each([
+    [300.8, 300],
+    [0.8, 0],
+  ])("时长%s按End预览并发送合法末尾%s", (duration, target) => {
+    const host = window as unknown as MediaHost;
+    host.shareMediaDuration = duration;
+    host.shareMediaCurrentTime = 0;
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    key("End");
+    expect(range.value).toBe(String(target));
+    expect(send).not.toHaveBeenCalled();
+    key("Enter");
+    expect(send).toHaveBeenCalledExactlyOnceWith(`!16["${target}s"]`);
+    act(() => {
+      host.Utils!.service!.seekDemandMedia!(target);
+    });
+    expect(range.disabled).toBe(false);
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+  });
+  it("取消后明确的新键盘或指针手势可立即开始", () => {
+    key("ArrowRight");
+    key("Escape");
+    pointer("pointerdown");
+    pointer("pointercancel");
+    key("ArrowRight");
+    key("Enter");
+    expect(send).toHaveBeenCalledExactlyOnceWith('!16["81s"]');
+  });
   it("原生 input 保持预览，change 只提交一次", () => {
     value("input", 120);
     act(() => {
@@ -634,6 +664,108 @@ describe("浮窗原生交互与页面生命周期", () => {
     pointer("pointerup");
     value("change", 120);
     expect(send.mock.calls).toEqual([['!16["120s"]']]);
+  });
+  it.each(["keyboard", "pointer"])(
+    "%s 提交确认后，下一轮 change-only 可提交且同轮尾随事件去重",
+    (source) => {
+      const host = window as unknown as MediaHost;
+      // 同步确认也不能让同一轮尾随 change 重新发送。
+      send.mockImplementationOnce(() =>
+        host.Utils!.service!.seekDemandMedia!(source === "keyboard" ? 81 : 120),
+      );
+      if (source === "keyboard") {
+        key("ArrowRight");
+        key("Enter");
+      } else {
+        pointer("pointerdown");
+        pointer("pointerup");
+      }
+      value("change", 140);
+      expect(send).toHaveBeenCalledOnce();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      value("change", 140);
+      value("change", 140);
+      expect(send.mock.calls).toEqual([
+        [source === "keyboard" ? '!16["81s"]' : '!16["120s"]'],
+        ['!16["140s"]'],
+      ]);
+    },
+  );
+  it.each([
+    ["keyboard", "Escape"],
+    ["keyboard", "blur"],
+    ["keyboard", "window-blur"],
+    ["pointer", "Escape"],
+    ["pointer", "pointercancel"],
+    ["pointer", "lostpointercapture"],
+    ["pointer", "blur"],
+    ["pointer", "window-blur"],
+    ["native", "Escape"],
+  ])(
+    "%s 经%s取消后抑制尾随 change，下一轮独立 change 有效",
+    (source, cancellation) => {
+      if (source === "keyboard") key("ArrowRight");
+      else if (source === "pointer") pointer("pointerdown");
+      else value("input", 120);
+      if (cancellation === "Escape") key("Escape");
+      else if (cancellation === "window-blur")
+        act(() => {
+          window.dispatchEvent(new Event("blur"));
+        });
+      else if (cancellation === "blur")
+        act(() => {
+          range.dispatchEvent(new FocusEvent("blur"));
+        });
+      else pointer(cancellation);
+      value("change", 120);
+      expect(send).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      value("change", 140);
+      expect(send).toHaveBeenCalledExactlyOnceWith('!16["140s"]');
+    },
+  );
+  it("权限变更取消手势后恢复，可使用 change-only 发起新操作", () => {
+    const host = window as unknown as MediaHost;
+    key("ArrowRight");
+    host.Info!.room!.identity = 0;
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    value("change", 120);
+    expect(send).not.toHaveBeenCalled();
+    host.Info!.room!.identity = 1;
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    value("change", 140);
+    expect(send).toHaveBeenCalledExactlyOnceWith('!16["140s"]');
+  });
+  it("相对请求三秒后回读143恢复UI，五秒后不覆盖确认", () => {
+    const host = window as unknown as MediaHost;
+    act(() => {
+      panel()!
+        .querySelector<HTMLButtonElement>('[aria-label="快进1分钟"]')!
+        .click();
+    });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(range.disabled).toBe(true);
+    act(() => {
+      host.Utils!.service!.seekDemandMedia!(143);
+    });
+    expect(range.disabled).toBe(false);
+    expect(range.value).toBe("143");
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+    expect(send).toHaveBeenCalledExactlyOnceWith('!15[">","1m"]');
   });
   it("取消指针后晚到的 change 不发送", () => {
     pointer("pointerdown");

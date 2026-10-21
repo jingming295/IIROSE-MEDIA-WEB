@@ -64,11 +64,11 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function seekCommand(
+export function seekOffset(
   current: number,
   target: number,
   duration: number,
-): string | null {
+): number | null {
   if (
     ![current, target, duration].every(Number.isFinite) ||
     current < 0 ||
@@ -76,7 +76,16 @@ export function seekCommand(
   )
     return null;
   const delta = Math.round(clamp(target, 0, duration) - current);
-  if (!delta || !Number.isSafeInteger(delta)) return null;
+  return delta && Number.isSafeInteger(delta) ? delta : null;
+}
+
+export function seekCommand(
+  current: number,
+  target: number,
+  duration: number,
+): string | null {
+  const delta = seekOffset(current, target, duration);
+  if (delta === null) return null;
   const amount = Math.abs(delta);
   return `!15${JSON.stringify([
     delta > 0 ? ">" : "<",
@@ -93,14 +102,25 @@ export function isSeekCommand(command: string): boolean {
   );
 }
 
+export function absoluteSeekTarget(
+  target: number,
+  duration: number,
+): number | null {
+  if (!Number.isFinite(target) || !Number.isFinite(duration) || duration <= 0)
+    return null;
+  const position = Math.min(
+    Math.round(clamp(target, 0, duration)),
+    Math.floor(duration),
+  );
+  return Number.isSafeInteger(position) ? position : null;
+}
+
 export function absoluteSeekCommand(
   target: number,
   duration: number,
 ): string | null {
-  if (!Number.isFinite(target) || !Number.isFinite(duration) || duration <= 0)
-    return null;
-  const position = Math.round(clamp(target, 0, duration));
-  if (position < 0 || !Number.isSafeInteger(position)) return null;
+  const position = absoluteSeekTarget(target, duration);
+  if (position === null) return null;
   return `!16${JSON.stringify([`${position}s`])}`;
 }
 

@@ -129,6 +129,80 @@ describe("侧栏媒体入口", () => {
     expect(open).toHaveBeenCalledOnce();
     adapter.dispose();
   });
+  it("三次完整重建只保留当前恢复记录，删除侧栏后释放入口及所有记录", async () => {
+    document.body.innerHTML = markup;
+    const open = vi.fn();
+    const adapter = new SidebarMediaEntry(open);
+    const records = adapter as unknown as {
+      renamed: Map<Element, string>;
+      hidden: Set<HTMLElement>;
+      entry?: HTMLButtonElement;
+    };
+    for (let index = 0; index < 3; index++) {
+      const oldEntry = document.getElementById("imw-media-progress-entry")!;
+      document.getElementById("functionHolderBox")!.outerHTML = markup;
+      await flush();
+      expect(records.renamed.size).toBe(1);
+      expect(records.hidden.size).toBe(1);
+      expect(
+        [...records.renamed.keys(), ...records.hidden].every(
+          (node) => node.isConnected,
+        ),
+      ).toBe(true);
+      expect(records.entry?.isConnected).toBe(true);
+      oldEntry.click();
+      expect(open).not.toHaveBeenCalled();
+    }
+    const oldEntry = records.entry!;
+    document.getElementById("functionHolderBox")!.remove();
+    await flush();
+    expect(records.renamed.size).toBe(0);
+    expect(records.hidden.size).toBe(0);
+    expect(records.entry).toBeUndefined();
+    oldEntry.click();
+    expect(open).not.toHaveBeenCalled();
+    document.body.insertAdjacentHTML("beforeend", markup);
+    await flush();
+    const title = document.querySelector(".functionBtnFont")!;
+    const radio = document.getElementById("radioHolder")!.parentElement!;
+    expect(title.textContent).toBe("IIROSE-MEDIA-WEB");
+    expect(radio.classList.contains("imw-hidden-radio")).toBe(true);
+    adapter.dispose();
+    expect(title.textContent).toBe("盒子");
+    expect(radio.classList.contains("imw-hidden-radio")).toBe(false);
+    expect(document.getElementById("imw-media-progress-entry")).toBeNull();
+  });
+  it("捕获非冒泡电台play调用宿站暂停，不影响房间媒体，dispose后停止拦截", async () => {
+    document.body.innerHTML = `${markup}<audio id="radioPlayer"></audio><audio id="roomPlayer"></audio>`;
+    const button = document.getElementById("radioPlayButton")!;
+    button.className = "mdi-play";
+    const radio = document.getElementById("radioPlayer") as HTMLAudioElement;
+    const room = document.getElementById("roomPlayer") as HTMLAudioElement;
+    const pauseRadio = vi.spyOn(radio, "pause").mockImplementation(() => {});
+    const pauseRoom = vi.spyOn(room, "pause").mockImplementation(() => {});
+    const stop = vi.fn(() => {
+      radio.pause();
+      button.className = "mdi-play";
+    });
+    button.onclick = stop;
+    const adapter = new SidebarMediaEntry(vi.fn());
+    await flush();
+    expect(stop).not.toHaveBeenCalled();
+    button.className = "mdi-pause";
+    room.dispatchEvent(new Event("play", { bubbles: false }));
+    expect(stop).not.toHaveBeenCalled();
+    radio.dispatchEvent(new Event("play", { bubbles: false }));
+    expect(stop).toHaveBeenCalledOnce();
+    expect(pauseRadio).toHaveBeenCalledOnce();
+    expect(pauseRoom).not.toHaveBeenCalled();
+    adapter.dispose();
+    button.className = "mdi-pause";
+    radio.dispatchEvent(new Event("play", { bubbles: false }));
+    expect(stop).toHaveBeenCalledOnce();
+    expect(pauseRoom).not.toHaveBeenCalled();
+    pauseRadio.mockRestore();
+    pauseRoom.mockRestore();
+  });
   it("dispose 取消已排队的适配", async () => {
     const adapter = new SidebarMediaEntry(vi.fn());
     document.body.innerHTML = markup;

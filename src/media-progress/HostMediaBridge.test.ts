@@ -430,6 +430,153 @@ describe("宿站桥接与交互生命周期", () => {
     }
   });
 
+  it.each([
+    [300.8, 300],
+    [0.8, 0],
+  ])("小数时长 %s 末尾预览、发送及确认统一为 %s", (duration, target) => {
+    vi.useFakeTimers();
+    const { session, host, bridge, send } = fixture();
+    try {
+      host.shareMediaDuration = duration;
+      host.shareMediaCurrentTime = 0;
+      session.begin();
+      session.preview(duration);
+      expect(session.state.preview).toBe(target);
+      session.commit();
+      expect(send).toHaveBeenCalledExactlyOnceWith(`!16["${target}s"]`);
+      expect(session.state.waiting).toBe(true);
+      expect(
+        bridge.send(
+          `!16["${target + 1}s"]`,
+          session.state.media.instance,
+          "silent",
+        ),
+      ).toBe(false);
+      host.Utils!.service!.seekDemandMedia!(target);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toBe("宿站进度已更新");
+      vi.advanceTimersByTime(5000);
+      expect(session.state.message).toBe("宿站进度已更新");
+      expect(send).toHaveBeenCalledOnce();
+    } finally {
+      session.dispose();
+    }
+  });
+  it.each(["silent", "owner"])(
+    "%s 相对控制三秒后真实回读143立即确认",
+    (mode) => {
+      vi.useFakeTimers();
+      const { session, host, send } = fixture();
+      const ownerSend = vi.fn();
+      try {
+        if (mode === "owner") {
+          host.Info!.room!.identity = 0;
+          host.myself = "测试账号";
+          document.getElementById("shareMediaUserName")!.title = "测试账号";
+          host.Utils!.service!.moveinputDo = ownerSend;
+          session.begin();
+          session.preview(140);
+          session.commit();
+        } else session.step(60);
+        vi.advanceTimersByTime(3000);
+        host.Utils!.service!.seekDemandMedia!(143);
+        expect(session.state.waiting).toBe(false);
+        expect(session.state.message).toBe("宿站进度已更新");
+        vi.advanceTimersByTime(5000);
+        expect(session.state.message).toBe("宿站进度已更新");
+        if (mode === "owner")
+          expect(ownerSend).toHaveBeenCalledExactlyOnceWith("快进1m");
+        else expect(send).toHaveBeenCalledExactlyOnceWith('!15[">","1m"]');
+      } finally {
+        session.dispose();
+      }
+    },
+  );
+  it("绝对目标不放宽延迟容差，无关回调及自然推进不能确认", () => {
+    vi.useFakeTimers();
+    const { session, host, send } = fixture();
+    try {
+      session.begin();
+      session.preview(140);
+      session.commit();
+      vi.advanceTimersByTime(3000);
+      host.Utils!.service!.seekDemandMedia!(143);
+      expect(session.state.waiting).toBe(true);
+      host.shareMediaCurrentTime = 140;
+      vi.advanceTimersByTime(250);
+      expect(session.state.waiting).toBe(true);
+      vi.advanceTimersByTime(1750);
+      expect(session.state.message).toBe("未收到调整确认，请稍后重试");
+      expect(send).toHaveBeenCalledOnce();
+    } finally {
+      session.dispose();
+    }
+  });
+  it.each([137, 146])(
+    "相对回读%s超出三秒区间，后续自然推进不确认",
+    (readback) => {
+      vi.useFakeTimers();
+      const { session, host, send } = fixture();
+      try {
+        session.step(60);
+        host.shareMediaCurrentTime = 140;
+        vi.advanceTimersByTime(3000);
+        expect(session.state.waiting).toBe(true);
+        host.Utils!.service!.seekDemandMedia!(readback);
+        expect(session.state.waiting).toBe(true);
+        host.shareMediaCurrentTime = 143;
+        vi.advanceTimersByTime(250);
+        expect(session.state.waiting).toBe(true);
+        vi.advanceTimersByTime(1750);
+        expect(session.state.waiting).toBe(false);
+        expect(session.state.message).toBe("未收到调整确认，请稍后重试");
+        host.Utils!.service!.seekDemandMedia!(145);
+        expect(session.state.message).toBe("未收到调整确认，请稍后重试");
+        expect(send).toHaveBeenCalledOnce();
+      } finally {
+        session.dispose();
+      }
+    },
+  );
+  it("相对确认以编码后的整秒偏移为准", () => {
+    vi.useFakeTimers();
+    const { session, host, send } = fixture();
+    try {
+      host.shareMediaCurrentTime = 80.4;
+      session.begin("step");
+      session.preview(140);
+      session.commit();
+      expect(send).toHaveBeenCalledExactlyOnceWith('!15[">","1m"]');
+      host.Utils!.service!.seekDemandMedia!(138.2);
+      expect(session.state.waiting).toBe(true);
+      host.Utils!.service!.seekDemandMedia!(142.3);
+      expect(session.state.waiting).toBe(false);
+    } finally {
+      session.dispose();
+    }
+  });
+  it("相对确认区间不越过媒体时长，且超过单调五秒预算不确认", () => {
+    vi.useFakeTimers();
+    const { session, host } = fixture();
+    try {
+      host.shareMediaCurrentTime = 280;
+      session.step(60);
+      vi.advanceTimersByTime(3000);
+      host.Utils!.service!.seekDemandMedia!(301);
+      expect(session.state.waiting).toBe(true);
+      host.Utils!.service!.seekDemandMedia!(300);
+      expect(session.state.waiting).toBe(false);
+      session.step(-60);
+      // 定时器尚未执行也必须拒绝预算外的回执。
+      vi.spyOn(performance, "now").mockReturnValue(performance.now() + 5000);
+      host.Utils!.service!.seekDemandMedia!(240);
+      expect(session.state.waiting).toBe(true);
+      vi.advanceTimersByTime(5000);
+      expect(session.state.message).toBe("未收到调整确认，请稍后重试");
+    } finally {
+      session.dispose();
+    }
+  });
   it("拖动中零消息，释放按最新时间发一条并保护草稿", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();

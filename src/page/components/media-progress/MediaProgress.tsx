@@ -73,6 +73,22 @@ export function MediaProgress({
   }>();
   const seekPointer = useRef<number>();
   const inputSource = useRef<"pointer" | "keyboard" | "native" | null>(null);
+  const trailingChange = useRef<ReturnType<typeof setTimeout>>();
+  const startInput = (source: "pointer" | "keyboard" | "native") => {
+    clearTimeout(trailingChange.current);
+    trailingChange.current = undefined;
+    inputSource.current = source;
+  };
+  const finishInput = () => {
+    if (inputSource.current === null) return;
+    inputSource.current = null;
+    seekPointer.current = undefined;
+    // 只屏蔽本轮事件的尾随 change；下一任务或明确的新手势可重新开始。
+    clearTimeout(trailingChange.current);
+    trailingChange.current = setTimeout(() => {
+      trailingChange.current = undefined;
+    }, 0);
+  };
   const media = state.media;
   const unavailable = unavailableReason(media);
   const disabled = !!unavailable || state.waiting;
@@ -101,7 +117,10 @@ export function MediaProgress({
   };
 
   useEffect(() => {
-    const active = new ProgressSession(bridge, setState);
+    const active = new ProgressSession(bridge, (next) => {
+      if (next.preview === null) finishInput();
+      setState(next);
+    });
     session.current = active;
     panel.current?.focus();
     const cancel = () => {
@@ -114,6 +133,10 @@ export function MediaProgress({
     return () => {
       window.removeEventListener("blur", cancel);
       active.dispose();
+      clearTimeout(trailingChange.current);
+      trailingChange.current = undefined;
+      inputSource.current = null;
+      seekPointer.current = undefined;
       session.current = undefined;
     };
   }, [bridge]);
@@ -347,13 +370,14 @@ export function MediaProgress({
           if (!active || active.state.waiting) return;
           const target = event.currentTarget.valueAsNumber;
           if (active.state.preview === null && !active.begin()) return;
-          inputSource.current = "native";
+          startInput("native");
           active.preview(target);
         }}
         onChange={(event) => {
           if (
             inputSource.current === "pointer" ||
-            inputSource.current === "keyboard"
+            inputSource.current === "keyboard" ||
+            trailingChange.current !== undefined
           )
             return;
           const active = session.current;
@@ -369,9 +393,10 @@ export function MediaProgress({
             )
               return;
           }
+          startInput("native");
           active.preview(target);
+          finishInput();
           active.commit();
-          inputSource.current = null;
         }}
         onPointerDown={(event) => {
           if (
@@ -382,7 +407,7 @@ export function MediaProgress({
             return;
           event.preventDefault();
           event.currentTarget.focus();
-          inputSource.current = "pointer";
+          startInput("pointer");
           seekPointer.current = event.pointerId;
           event.currentTarget.setPointerCapture(event.pointerId);
           pointerTarget(event.currentTarget, event.clientX);
@@ -394,7 +419,7 @@ export function MediaProgress({
         onPointerUp={(event) => {
           if (seekPointer.current !== event.pointerId) return;
           pointerTarget(event.currentTarget, event.clientX);
-          seekPointer.current = undefined;
+          finishInput();
           session.current?.commit();
         }}
         onPointerCancel={() => {
@@ -410,6 +435,7 @@ export function MediaProgress({
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.preventDefault();
+            finishInput();
             session.current?.commit();
             return;
           }
@@ -433,7 +459,7 @@ export function MediaProgress({
             !session.current.begin()
           )
             return;
-          inputSource.current = "keyboard";
+          startInput("keyboard");
           const current = session.current?.state.preview ?? media.current ?? 0;
           session.current?.preview(
             event.key === "Home"

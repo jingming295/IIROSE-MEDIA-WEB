@@ -9,6 +9,7 @@ import {
   isAbsoluteSeekCommand,
   isSeekCommand,
   absoluteSeekCommand,
+  absoluteSeekTarget,
   seekCommand,
 } from "./model";
 
@@ -70,6 +71,28 @@ describe("进度时间与指令边界", () => {
       expect(
         isAbsoluteSeekCommand(`!16${JSON.stringify([`${target}s`])}`),
       ).toBe(true);
+  });
+  it.each([
+    [300.8, 300.8, 300],
+    [301, 300.8, 300],
+    [0.8, 0.8, 0],
+    [0, 0.8, 0],
+    [10.6, 300.8, 11],
+  ])("绝对目标 %s / %s 归一化为合法整数 %s", (target, duration, expected) => {
+    expect(absoluteSeekTarget(target, duration)).toBe(expected);
+    expect(absoluteSeekCommand(target, duration)).toBe(`!16["${expected}s"]`);
+  });
+  it.each([
+    [NaN, 300],
+    [Infinity, 300],
+    [0, NaN],
+    [0, Infinity],
+    [0, 0],
+    [0, -1],
+    [Number.MAX_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER + 1],
+  ])("拒绝非法绝对目标或时长 %s / %s", (target, duration) => {
+    expect(absoluteSeekTarget(target, duration)).toBeNull();
+    expect(absoluteSeekCommand(target, duration)).toBeNull();
   });
   it("绝对定位拒绝相对协议、前导零和非法值", () => {
     for (const command of [

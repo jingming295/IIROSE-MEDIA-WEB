@@ -120,7 +120,7 @@ export class ProgressSession {
     // 先登记等待状态，允许宿站同步触发回调。
     this.timeout = setTimeout(() => {
       this.clearOperation();
-      this.state.message = "未确认调整结果，房间可能限制进度控制";
+      this.state.message = "未收到调整确认，请稍后重试";
       this.publish();
     }, 2000);
     if (!this.bridge.send(command, gesture.instance)) {

@@ -13,6 +13,8 @@ import {
 describe("媒体权限规则", () => {
   it("只接受明确的身份数值或全局角色首字符", () => {
     expect(mediaPermission(0, "4")).toBe("denied");
+    for (const rank of [undefined, null, 4, ""])
+      expect(mediaPermission(0, rank)).toBe("unknown");
     expect(mediaPermission(1, "4")).toBe("allowed");
     expect(mediaPermission(2, "4")).toBe("allowed");
     expect(mediaPermission(3, "4")).toBe("allowed");

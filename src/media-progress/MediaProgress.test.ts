@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "preact/test-utils";
 import { IMCInit } from "../page";
 import { Socket } from "../iirose_func/Socket";
+import type { MediaHost } from "./HostMediaBridge";
 
 vi.mock("../page/MainAppControlLayer", () => ({
   MainAppControlLayer: () => null,
@@ -63,13 +64,17 @@ beforeEach(() => {
     shareMediaCurrentTime: 80,
     shareMediaDuration: 300,
     socket: { readyState: 1, send },
-    Info: { room: { identity: 1, rank: "0", roomnFull: "component-room" } },
+    rank: "0",
+    roomnFull: "component-room",
+    Info: { room: { identity: 1 } },
     ...chat,
     shareMedia: () => {},
     Utils: {
       service: {
         isShareMediaPlaying: () => true,
-        seekDemandMedia: () => {},
+        seekDemandMedia: vi.fn((time: number) => {
+          window.shareMediaCurrentTime = time;
+        }),
         ...chat,
       },
     },
@@ -109,10 +114,11 @@ afterEach(() => {
 describe("浮窗原生交互与页面生命周期", () => {
   it("普通身份即时禁用滑块和四个按钮，但仍显示媒体资料与权限原因", () => {
     const host = window as typeof window & {
-      Info: { room: { identity: unknown; rank: unknown } };
+      Info: { room: { identity: unknown } };
+      rank: unknown;
     };
     host.Info.room.identity = 0;
-    host.Info.room.rank = "4";
+    host.rank = "4";
     act(() => {
       vi.advanceTimersByTime(250);
     });
@@ -260,8 +266,36 @@ describe("浮窗原生交互与页面生命周期", () => {
     act(() => {
       vi.advanceTimersByTime(2000);
     });
-    expect(panel()!.textContent).toContain("未确认调整结果");
+    expect(panel()!.textContent).toContain("未收到调整确认，请稍后重试");
     expect(panel()!.textContent).not.toContain("宿站进度已更新");
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+  it("授权操作同步定位回读立即确认并恢复控件，2秒后不超时或重发", () => {
+    const host = window as unknown as MediaHost;
+    send.mockImplementationOnce(() => {
+      host.Utils!.service!.seekDemandMedia!(140);
+    });
+    const controls = ["快退1分钟", "快退1秒", "快进1秒", "快进1分钟"].map(
+      (label) =>
+        panel()!.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!,
+    );
+    act(() => {
+      controls[3].click();
+    });
+    expect(send).toHaveBeenCalledExactlyOnceWith('!15[">","1m"]');
+    expect(host.shareMediaCurrentTime).toBe(140);
+    expect(range.value).toBe("140");
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+    expect(panel()!.textContent).not.toContain("等待宿站更新");
+    expect(range.disabled).toBe(false);
+    for (const control of controls) expect(control.disabled).toBe(false);
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(panel()!.textContent).toContain("宿站进度已更新");
+    expect(panel()!.textContent).not.toContain("未收到调整确认");
+    expect(range.disabled).toBe(false);
+    for (const control of controls) expect(control.disabled).toBe(false);
     expect(send).toHaveBeenCalledTimes(1);
   });
   it("原生 input 保持预览，change 只提交一次", () => {

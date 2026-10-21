@@ -16,15 +16,14 @@ declare global {
     Info?: {
       room?: {
         identity?: unknown;
-        rank?: unknown;
-        roomnFull?: unknown;
       };
     };
     shareMediaCurrentTime?: unknown;
     shareMediaDuration?: unknown;
-    shareMediaUserName?: { title?: unknown } | unknown;
     mediaShareRoom?: boolean;
     theme?: unknown;
+    rank?: unknown;
+    roomnFull?: unknown;
     socket?: { readyState: number; send?: (command: string) => void };
     shareMedia?: (...args: unknown[]) => unknown;
 

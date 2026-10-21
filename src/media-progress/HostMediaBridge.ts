@@ -11,19 +11,18 @@ import {
 type HostFunction = (...args: unknown[]) => unknown;
 interface RoomInfo {
   identity?: unknown;
-  rank?: unknown;
-  roomnFull?: unknown;
 }
 
 export interface MediaHost {
   shareMediaCurrentTime?: unknown;
   shareMediaDuration?: unknown;
   shareMedia?: HostFunction;
-  shareMediaUserName?: { title?: unknown } | unknown;
   socket?: { readyState: number; send?: (command: string) => void };
   mediaShareRoom?: boolean;
   theme?: unknown;
   myself?: unknown;
+  rank?: unknown;
+  roomnFull?: unknown;
   Info?: { room?: RoomInfo };
   Utils?: {
     service?: {
@@ -74,8 +73,8 @@ export class HostMediaBridge {
   private readRoom() {
     const room = this.host.Info?.room;
     const roomKey =
-      typeof room?.roomnFull === "string" && room.roomnFull.trim()
-        ? room.roomnFull
+      typeof this.host.roomnFull === "string" && this.host.roomnFull.trim()
+        ? this.host.roomnFull
         : null;
     if (this.roomKeyInitialized && roomKey !== this.roomKey) this.instance++;
     this.roomKey = roomKey;
@@ -91,13 +90,10 @@ export class HostMediaBridge {
       /* 宿站初始化过程中暂缺节点 */
     }
     const room = this.readRoom();
-    const permission = mediaPermission(room?.identity, room?.rank);
+    const permission = mediaPermission(room?.identity, this.host.rank);
     const mediaUser =
-      typeof this.host.shareMediaUserName === "object" &&
-      this.host.shareMediaUserName !== null &&
-      "title" in this.host.shareMediaUserName
-        ? String(this.host.shareMediaUserName.title || "")
-        : "";
+      this.doc.getElementById("shareMediaUserName")?.getAttribute("title") ||
+      "";
     const ownMedia =
       typeof this.host.myself === "string" &&
       !!this.host.myself &&

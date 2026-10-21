@@ -20,11 +20,12 @@ export function mediaPermission(
   identity: unknown,
   rank: unknown,
 ): MediaPermission {
+  const hasKnownRank = typeof rank === "string" && /^\S+$/.test(rank);
   const hasGlobalMediaRole =
-    typeof rank === "string" && globalMediaRanks.has(rank.charAt(0));
+    hasKnownRank && globalMediaRanks.has((rank as string).charAt(0));
   if (hasGlobalMediaRole) return "allowed";
   if (identity === 1 || identity === 2 || identity === 3) return "allowed";
-  if (identity === 0) return "denied";
+  if (identity === 0 && hasKnownRank) return "denied";
   return "unknown";
 }
 

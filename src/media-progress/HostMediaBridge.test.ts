@@ -9,7 +9,9 @@ function fixture() {
     shareMediaCurrentTime: 80,
     shareMediaDuration: "300",
     socket: { readyState: 1, send: vi.fn() },
-    Info: { room: { identity: 1, rank: "0", roomnFull: "fixture-room" } },
+    rank: "0",
+    roomnFull: "fixture-room",
+    Info: { room: { identity: 1 } },
     shareMedia: vi.fn(function (this: unknown) {
       host.shareMediaCurrentTime = 0;
       return this;
@@ -25,7 +27,7 @@ function fixture() {
     },
   };
   document.body.innerHTML =
-    '<div id="shareMediaSongName">同名媒体</div><input id="draft" value="未发送的草稿">';
+    '<div id="shareMediaSongName">同名媒体</div><div id="shareMediaUserName"></div><input id="draft" value="未发送的草稿">';
   const send = vi.fn();
   const bridge = new HostMediaBridge(host, document, send);
   const session = new ProgressSession(bridge, vi.fn());
@@ -102,11 +104,27 @@ describe("宿站桥接与交互生命周期", () => {
       session.dispose();
     }
   });
+  it("顶层全局媒体角色允许普通身份控制", () => {
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    host.Info!.room = { identity: 0 };
+    host.rank = "5";
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      expect(session.state.media.permission).toBe("allowed");
+      session.step(1);
+      expect(send).toHaveBeenCalledOnce();
+    } finally {
+      session.dispose();
+    }
+  });
   it("普通身份无全局角色时立即拒绝，不创建等待或发送", () => {
     vi.useFakeTimers();
     const { host, bridge, session: unused, send } = fixture();
     unused.dispose();
-    host.Info!.room = { identity: 0, rank: "4", roomnFull: "ordinary" };
+    host.Info!.room = { identity: 0 };
+    host.rank = "4";
+    host.roomnFull = "ordinary";
     const session = new ProgressSession(bridge, vi.fn());
     try {
       expect(session.state.media.permission).toBe("denied");
@@ -124,9 +142,13 @@ describe("宿站桥接与交互生命周期", () => {
   it("本人点播不构成普通身份的静默媒体管理权限", () => {
     const { host, bridge, session: unused, send } = fixture();
     unused.dispose();
-    host.Info!.room = { identity: 0, rank: "4", roomnFull: "ordinary" };
+    host.Info!.room = { identity: 0 };
+    host.rank = "4";
+    host.roomnFull = "ordinary";
     host.myself = "测试账号";
-    host.shareMediaUserName = { title: "测试账号" };
+    document
+      .getElementById("shareMediaUserName")!
+      .setAttribute("title", "测试账号");
     const session = new ProgressSession(bridge, vi.fn());
     try {
       expect(session.state.media.permission).toBe("denied");
@@ -142,7 +164,9 @@ describe("宿站桥接与交互生命周期", () => {
   it("缺失或非法权限字段保守禁用并提示信息未就绪", () => {
     const { host, bridge, session: unused, send } = fixture();
     unused.dispose();
-    host.Info = { room: { identity: "1", rank: 4, roomnFull: "unknown" } };
+    host.Info = { room: { identity: "1" } };
+    host.rank = 4;
+    host.roomnFull = "unknown";
     const session = new ProgressSession(bridge, vi.fn());
     try {
       expect(session.state.media.permission).toBe("unknown");
@@ -160,23 +184,80 @@ describe("宿站桥接与交互生命周期", () => {
     vi.useFakeTimers();
     const { host, bridge, session: unused, send } = fixture();
     unused.dispose();
-    host.Info!.room = { identity: 0, rank: "4", roomnFull: "changing" };
+    host.Info!.room = { identity: 0 };
+    host.rank = "4";
+    host.roomnFull = "changing";
     const session = new ProgressSession(bridge, vi.fn());
     try {
       session.step(1);
       expect(session.state.message).toBe("当前房间无媒体管理权限");
-      host.Info!.room.identity = 1;
+      host.Info!.room!.identity = 1;
       vi.advanceTimersByTime(250);
       expect(session.state.media.permission).toBe("allowed");
       expect(session.state.message).toBe("");
       session.step(1);
       expect(send).toHaveBeenCalledOnce();
       expect(session.state.waiting).toBe(true);
-      host.Info!.room.identity = 0;
+      host.Info!.room!.identity = 0;
       vi.advanceTimersByTime(250);
       expect(session.state.waiting).toBe(false);
       expect(session.state.media.permission).toBe("denied");
       expect(session.state.message).toBe("当前房间无媒体管理权限");
+    } finally {
+      session.dispose();
+    }
+  });
+  it("预览后失权在轮询前提交仍零发送、零等待", () => {
+    vi.useFakeTimers();
+    const { host, session, send } = fixture();
+    try {
+      expect(session.begin()).toBe(true);
+      session.preview(120);
+      expect(session.state.preview).toBe(120);
+      host.Info!.room!.identity = 0;
+      host.rank = "4";
+      // 不推进轮询：提交边界必须重新读取宿站权限。
+      expect(session.state.media.permission).toBe("allowed");
+      session.commit();
+      expect(send).not.toHaveBeenCalled();
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.preview).toBeNull();
+      expect(session.state.media.permission).toBe("denied");
+      expect(session.state.message).toBe("当前房间无媒体管理权限");
+      vi.advanceTimersByTime(2000);
+      expect(send).not.toHaveBeenCalled();
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toBe("当前房间无媒体管理权限");
+    } finally {
+      session.dispose();
+    }
+  });
+  it("等待期间换房后旧定位回调与超时不覆盖取消状态", () => {
+    vi.useFakeTimers();
+    const { host, session, send } = fixture();
+    try {
+      session.step(60);
+      expect(session.state.waiting).toBe(true);
+      expect(send).toHaveBeenCalledExactlyOnceWith('!15[">","1m"]');
+      const previousInstance = session.state.media.instance;
+      const oldSeek = host.Utils!.service!.seekDemandMedia!;
+      host.roomnFull = "another-room";
+      vi.advanceTimersByTime(250);
+      expect(session.state.media.instance).not.toBe(previousInstance);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.preview).toBeNull();
+      const cancellation = "媒体已切换，已取消上次操作";
+      expect(session.state.message).toBe(cancellation);
+      // 回调时间恰好命中旧目标，也不能确认已取消的操作。
+      oldSeek(140);
+      expect(session.state.media.current).toBe(140);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toBe(cancellation);
+      vi.advanceTimersByTime(2000);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.preview).toBeNull();
+      expect(session.state.message).toBe(cancellation);
+      expect(send).toHaveBeenCalledTimes(1);
     } finally {
       session.dispose();
     }
@@ -189,7 +270,7 @@ describe("宿站桥接与交互生命周期", () => {
     try {
       session.begin();
       session.preview(120);
-      host.Info!.room!.roomnFull = "another-room";
+      host.roomnFull = "another-room";
       session.commit();
       expect(send).not.toHaveBeenCalled();
       expect(session.state.preview).toBeNull();
@@ -290,8 +371,8 @@ describe("宿站桥接与交互生命周期", () => {
       expect(session.state.waiting).toBe(true);
       vi.advanceTimersByTime(1);
       expect(session.state.waiting).toBe(false);
-      expect(session.state.message).toContain("未确认");
-      expect(session.state.message).toContain("房间可能限制");
+      expect(session.state.message).toBe("未收到调整确认，请稍后重试");
+
       vi.advanceTimersByTime(10000);
       expect(host.socket!.send).toHaveBeenCalledTimes(1);
       expect(publicSend).not.toHaveBeenCalled();
@@ -391,7 +472,7 @@ describe("宿站桥接与交互生命周期", () => {
     expect(session.state.waiting).toBe(true);
     vi.advanceTimersByTime(1);
     expect(session.state.waiting).toBe(false);
-    expect(session.state.message).toContain("未确认");
+    expect(session.state.message).toBe("未收到调整确认，请稍后重试");
     vi.advanceTimersByTime(20000);
     expect(send).toHaveBeenCalledTimes(1);
     session.dispose();

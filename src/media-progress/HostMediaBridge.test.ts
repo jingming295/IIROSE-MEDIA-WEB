@@ -9,6 +9,7 @@ function fixture() {
     shareMediaCurrentTime: 80,
     shareMediaDuration: "300",
     socket: { readyState: 1, send: vi.fn() },
+    Info: { room: { identity: 1, rank: "0", roomnFull: "fixture-room" } },
     shareMedia: vi.fn(function (this: unknown) {
       host.shareMediaCurrentTime = 0;
       return this;
@@ -101,6 +102,103 @@ describe("宿站桥接与交互生命周期", () => {
       session.dispose();
     }
   });
+  it("普通身份无全局角色时立即拒绝，不创建等待或发送", () => {
+    vi.useFakeTimers();
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    host.Info!.room = { identity: 0, rank: "4", roomnFull: "ordinary" };
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      expect(session.state.media.permission).toBe("denied");
+      expect(session.state.media.permissionReason).toBe(
+        "当前房间无媒体管理权限",
+      );
+      session.step(60);
+      expect(send).not.toHaveBeenCalled();
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toBe("当前房间无媒体管理权限");
+    } finally {
+      session.dispose();
+    }
+  });
+  it("本人点播不构成普通身份的静默媒体管理权限", () => {
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    host.Info!.room = { identity: 0, rank: "4", roomnFull: "ordinary" };
+    host.myself = "测试账号";
+    host.shareMediaUserName = { title: "测试账号" };
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      expect(session.state.media.permission).toBe("denied");
+      expect(session.state.media.permissionReason).toBe(
+        "本人点播不等于静默媒体管理权限",
+      );
+      session.step(1);
+      expect(send).not.toHaveBeenCalled();
+    } finally {
+      session.dispose();
+    }
+  });
+  it("缺失或非法权限字段保守禁用并提示信息未就绪", () => {
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    host.Info = { room: { identity: "1", rank: 4, roomnFull: "unknown" } };
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      expect(session.state.media.permission).toBe("unknown");
+      expect(session.state.media.permissionReason).toBe(
+        "权限信息未就绪，暂时无法调整",
+      );
+      session.step(1);
+      expect(send).not.toHaveBeenCalled();
+      expect(session.state.waiting).toBe(false);
+    } finally {
+      session.dispose();
+    }
+  });
+  it("权限恢复后清除旧拒绝提示，失权时取消等待", () => {
+    vi.useFakeTimers();
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    host.Info!.room = { identity: 0, rank: "4", roomnFull: "changing" };
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      session.step(1);
+      expect(session.state.message).toBe("当前房间无媒体管理权限");
+      host.Info!.room.identity = 1;
+      vi.advanceTimersByTime(250);
+      expect(session.state.media.permission).toBe("allowed");
+      expect(session.state.message).toBe("");
+      session.step(1);
+      expect(send).toHaveBeenCalledOnce();
+      expect(session.state.waiting).toBe(true);
+      host.Info!.room.identity = 0;
+      vi.advanceTimersByTime(250);
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.media.permission).toBe("denied");
+      expect(session.state.message).toBe("当前房间无媒体管理权限");
+    } finally {
+      session.dispose();
+    }
+  });
+  it("房间标识变化使预览和等待实例失效", () => {
+    vi.useFakeTimers();
+    const { host, bridge, session: unused, send } = fixture();
+    unused.dispose();
+    const session = new ProgressSession(bridge, vi.fn());
+    try {
+      session.begin();
+      session.preview(120);
+      host.Info!.room!.roomnFull = "another-room";
+      session.commit();
+      expect(send).not.toHaveBeenCalled();
+      expect(session.state.preview).toBeNull();
+      expect(session.state.waiting).toBe(false);
+      expect(session.state.message).toContain("媒体已切换");
+    } finally {
+      session.dispose();
+    }
+  });
   it("mediaShareRoom 明确为 false 时不调用控制函数或普通公聊", () => {
     vi.useFakeTimers();
     const { host, session: unused } = fixture();
@@ -171,7 +269,7 @@ describe("宿站桥接与交互生命周期", () => {
     [-1, '!15["<","1s"]'],
     [60, '!15[">","1m"]'],
     [-60, '!15["<","1m"]'],
-  ])("默认发送器步进 %s 只发 %s，无权限回执时8秒未确认", (seconds, command) => {
+  ])("默认发送器步进 %s 只发 %s，无权限回执时2秒未确认", (seconds, command) => {
     vi.useFakeTimers();
     const { host, session: unused } = fixture();
     unused.dispose();
@@ -188,7 +286,7 @@ describe("宿站桥接与交互生命周期", () => {
       session.step(Number(seconds));
       expect(host.socket!.send).toHaveBeenCalledExactlyOnceWith(command);
       expect(session.state.waiting).toBe(true);
-      vi.advanceTimersByTime(7999);
+      vi.advanceTimersByTime(1999);
       expect(session.state.waiting).toBe(true);
       vi.advanceTimersByTime(1);
       expect(session.state.waiting).toBe(false);
@@ -281,7 +379,7 @@ describe("宿站桥接与交互生命周期", () => {
     expect(send).toHaveBeenCalledTimes(1);
     session.dispose();
   });
-  it("8秒无定位确认则提示未确认，不重发", () => {
+  it("2秒无定位确认则提示未确认，不重发", () => {
     vi.useFakeTimers();
     const { session, host, send } = fixture();
     session.step(-60);
@@ -289,7 +387,7 @@ describe("宿站桥接与交互生命周期", () => {
     host.Utils!.service!.seekDemandMedia!(10);
     expect(session.state.waiting).toBe(true);
     host.shareMediaCurrentTime = 20;
-    vi.advanceTimersByTime(7999);
+    vi.advanceTimersByTime(1999);
     expect(session.state.waiting).toBe(true);
     vi.advanceTimersByTime(1);
     expect(session.state.waiting).toBe(false);

@@ -40,14 +40,18 @@ export class ProgressSession {
 
   private receive(media: MediaSnapshot) {
     const changedMedia = this.state.media.instance !== media.instance;
+    const previousUnavailable = unavailableReason(this.state.media);
+    const reason = unavailableReason(media);
     this.state.media = media;
-    if (changedMedia || unavailableReason(media)) {
+    if (changedMedia || reason) {
       const hadOperation = !!(this.gesture || this.pending);
       this.clearOperation();
-      if (hadOperation)
+      if (hadOperation || reason)
         this.state.message = changedMedia
           ? "媒体已切换，已取消上次操作"
-          : unavailableReason(media);
+          : reason;
+    } else if (previousUnavailable && !reason) {
+      this.state.message = "";
     } else if (
       this.pending &&
       media.instance === this.pending.instance &&
@@ -118,7 +122,7 @@ export class ProgressSession {
       this.clearOperation();
       this.state.message = "未确认调整结果，房间可能限制进度控制";
       this.publish();
-    }, 8000);
+    }, 2000);
     if (!this.bridge.send(command, gesture.instance)) {
       this.clearOperation();
       this.state.message = this.bridge.controlUnavailable

@@ -63,6 +63,7 @@ beforeEach(() => {
     shareMediaCurrentTime: 80,
     shareMediaDuration: 300,
     socket: { readyState: 1, send },
+    Info: { room: { identity: 1, rank: "0", roomnFull: "component-room" } },
     ...chat,
     shareMedia: () => {},
     Utils: {
@@ -106,6 +107,35 @@ afterEach(() => {
 });
 
 describe("浮窗原生交互与页面生命周期", () => {
+  it("普通身份即时禁用滑块和四个按钮，但仍显示媒体资料与权限原因", () => {
+    const host = window as typeof window & {
+      Info: { room: { identity: unknown; rank: unknown } };
+    };
+    host.Info.room.identity = 0;
+    host.Info.room.rank = "4";
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(range.disabled).toBe(true);
+    expect(
+      [
+        ...document.querySelectorAll<HTMLButtonElement>(
+          "#imw-media-progress button",
+        ),
+      ]
+        .filter(
+          (button) =>
+            button !== document.querySelector('[aria-label="关闭播放进度"]'),
+        )
+        .every((button) => button.disabled),
+    ).toBe(true);
+    expect(panel()!.textContent).toContain("当前房间无媒体管理权限");
+    expect(panel()!.textContent).toContain("未命名媒体");
+    act(() => {
+      range.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
   it("0.8缩放下标题栏拖动与视口收缩保持浮窗和关闭按钮可达", () => {
     const viewport = Object.assign(new EventTarget(), {
       width: 400,
@@ -219,7 +249,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     ["快退1秒", '!15["<","1s"]'],
     ["快进1分钟", '!15[">","1m"]'],
     ["快退1分钟", '!15["<","1m"]'],
-  ])("%s 按钮仅发送 %s，8秒无回执显示未确认", (label, command) => {
+  ])("%s 按钮仅发送 %s，2秒无回执显示未确认", (label, command) => {
     act(() => {
       document
         .querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
@@ -228,7 +258,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send.mock.calls).toEqual([[command]]);
     expect(panel()!.textContent).toContain("等待宿站更新");
     act(() => {
-      vi.advanceTimersByTime(8000);
+      vi.advanceTimersByTime(2000);
     });
     expect(panel()!.textContent).toContain("未确认调整结果");
     expect(panel()!.textContent).not.toContain("宿站进度已更新");

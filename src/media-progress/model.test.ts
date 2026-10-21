@@ -3,10 +3,32 @@ import {
   constrainPosition,
   coverUrl,
   finiteTime,
+  mediaPermission,
+  mediaPermissionReason,
   formatTime,
   isSeekCommand,
   seekCommand,
 } from "./model";
+
+describe("媒体权限规则", () => {
+  it("只接受明确的身份数值或全局角色首字符", () => {
+    expect(mediaPermission(0, "4")).toBe("denied");
+    expect(mediaPermission(1, "4")).toBe("allowed");
+    expect(mediaPermission(2, "4")).toBe("allowed");
+    expect(mediaPermission(3, "4")).toBe("allowed");
+    for (const rank of ["1", "5", "3", "6", "7", "a", "1-admin"])
+      expect(mediaPermission(0, rank)).toBe("allowed");
+    expect(mediaPermission("1", "4")).toBe("unknown");
+    expect(mediaPermission(undefined, undefined)).toBe("unknown");
+    expect(mediaPermissionReason("denied", true)).toBe(
+      "本人点播不等于静默媒体管理权限",
+    );
+    expect(mediaPermissionReason("denied")).toBe("当前房间无媒体管理权限");
+    expect(mediaPermissionReason("unknown")).toBe(
+      "权限信息未就绪，暂时无法调整",
+    );
+  });
+});
 
 describe("进度时间与指令边界", () => {
   it.each([

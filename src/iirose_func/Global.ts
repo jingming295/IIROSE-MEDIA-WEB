@@ -13,6 +13,21 @@ declare global {
      */
     myself?: string;
 
+    Info?: {
+      room?: {
+        identity?: unknown;
+        rank?: unknown;
+        roomnFull?: unknown;
+      };
+    };
+    shareMediaCurrentTime?: unknown;
+    shareMediaDuration?: unknown;
+    shareMediaUserName?: { title?: unknown } | unknown;
+    mediaShareRoom?: boolean;
+    theme?: unknown;
+    socket?: { readyState: number; send?: (command: string) => void };
+    shareMedia?: (...args: unknown[]) => unknown;
+
     functionBtnDo(e: number, t?: undefined, o?: undefined): void;
 
     /**

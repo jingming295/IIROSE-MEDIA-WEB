@@ -2,18 +2,29 @@ import {
   coverUrl,
   finiteTime,
   isSeekCommand,
+  mediaPermission,
+  mediaPermissionReason,
   MediaSnapshot,
   unavailableReason,
 } from "./model";
 
 type HostFunction = (...args: unknown[]) => unknown;
+interface RoomInfo {
+  identity?: unknown;
+  rank?: unknown;
+  roomnFull?: unknown;
+}
+
 export interface MediaHost {
   shareMediaCurrentTime?: unknown;
   shareMediaDuration?: unknown;
   shareMedia?: HostFunction;
+  shareMediaUserName?: { title?: unknown } | unknown;
   socket?: { readyState: number; send?: (command: string) => void };
   mediaShareRoom?: boolean;
   theme?: unknown;
+  myself?: unknown;
+  Info?: { room?: RoomInfo };
   Utils?: {
     service?: {
       isShareMediaPlaying?: () => boolean;
@@ -25,6 +36,8 @@ export interface MediaHost {
 // 包装仅观察宿站已发生的行为；不主动调用播放器或定位函数。
 export class HostMediaBridge {
   private instance = 0;
+  private roomKey: string | null = null;
+  private roomKeyInitialized = false;
   private seekVersion = 0;
   private listeners = new Set<(snapshot: MediaSnapshot) => void>();
   private restorers: (() => void)[] = [];
@@ -58,6 +71,18 @@ export class HostMediaBridge {
       : "宿站进度控制不可用，请刷新页面后重试";
   }
 
+  private readRoom() {
+    const room = this.host.Info?.room;
+    const roomKey =
+      typeof room?.roomnFull === "string" && room.roomnFull.trim()
+        ? room.roomnFull
+        : null;
+    if (this.roomKeyInitialized && roomKey !== this.roomKey) this.instance++;
+    this.roomKey = roomKey;
+    this.roomKeyInitialized = true;
+    return room;
+  }
+
   read(): MediaSnapshot {
     let playing = false;
     try {
@@ -65,6 +90,18 @@ export class HostMediaBridge {
     } catch {
       /* 宿站初始化过程中暂缺节点 */
     }
+    const room = this.readRoom();
+    const permission = mediaPermission(room?.identity, room?.rank);
+    const mediaUser =
+      typeof this.host.shareMediaUserName === "object" &&
+      this.host.shareMediaUserName !== null &&
+      "title" in this.host.shareMediaUserName
+        ? String(this.host.shareMediaUserName.title || "")
+        : "";
+    const ownMedia =
+      typeof this.host.myself === "string" &&
+      !!this.host.myself &&
+      mediaUser === this.host.myself;
     const rawDuration = finiteTime(this.host.shareMediaDuration);
     const current = finiteTime(this.host.shareMediaCurrentTime);
     return {
@@ -83,6 +120,8 @@ export class HostMediaBridge {
       connected: this.host.socket?.readyState === 1,
       seekVersion: this.seekVersion,
       dark: !this.host.theme,
+      permission,
+      permissionReason: mediaPermissionReason(permission, ownMedia),
     };
   }
 

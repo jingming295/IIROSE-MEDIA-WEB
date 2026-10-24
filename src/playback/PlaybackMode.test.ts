@@ -21,6 +21,9 @@ describe("播放模式状态机", () => {
       mode: "none",
       loop: { enabled: false, reason: "直播或时间未知，无法使用" },
       shuffle: { enabled: false, reason: "直播或时间未知，无法使用" },
+      standby: false,
+      standbyReason: "",
+      cleared: null,
     });
     mode.applySnapshot(snapshot());
     // 首帧快照还不够：媒体存在性要等首次 adapt 回报。
@@ -30,6 +33,9 @@ describe("播放模式状态机", () => {
       mode: "none",
       loop: { enabled: true, reason: "" },
       shuffle: { enabled: true, reason: "" },
+      standby: false,
+      standbyReason: "",
+      cleared: null,
     });
   });
 

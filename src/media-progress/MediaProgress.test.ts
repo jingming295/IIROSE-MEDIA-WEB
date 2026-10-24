@@ -838,6 +838,37 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).toHaveBeenCalledOnce();
   });
 
+  it("重复注入时后注入者接管：行、入口与订阅始终只有一份", async () => {
+    const container = document.getElementById(
+      "mainContainer",
+    ) as HTMLDivElement;
+    const first = document.getElementById("imw-playback-controls")!;
+    // 同一份 bundle 内重复初始化（热更新/多入口）。
+    act(() => IMCInit.init(container));
+    expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
+    expect(first.isConnected).toBe(false);
+    const second = document.getElementById("imw-playback-controls")!;
+    expect(second).not.toBe(first);
+    // 另一份 bundle 实例：模块级标记是全新的，只能靠页面级单例键接管。
+    vi.resetModules();
+    const reloaded = await import("../page");
+    act(() => reloaded.IMCInit.init(container));
+    expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
+    expect(document.querySelectorAll("#imw-media-progress-entry")).toHaveLength(
+      1,
+    );
+    expect(document.querySelectorAll("#imw-media-progress-root")).toHaveLength(
+      1,
+    );
+    const third = document.getElementById("imw-playback-controls")!;
+    expect(third).not.toBe(second);
+    expect(second.isConnected).toBe(false);
+    // 新实例的接线完整：快照与媒体存在性都接通后才能点亮。
+    const loop = third.querySelector<HTMLButtonElement>("#imw-toggle-loop")!;
+    act(() => loop.click());
+    expect(loop.getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("组合根装配开关行：断线或媒体消失都灰化，卸载后移除且无遗留定时器", async () => {
     const host = window as unknown as MediaHost;
     const alert = vi.fn();

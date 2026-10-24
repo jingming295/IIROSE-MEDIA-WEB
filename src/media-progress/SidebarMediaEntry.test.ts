@@ -291,12 +291,15 @@ describe("侧栏媒体入口", () => {
     expect(
       document.getElementById("imw-toggle-loop")!.getAttribute("aria-disabled"),
     ).toBe("false");
+    // 适配器只解除适配，行元素归 SidebarPlaybackRow 自己移除。
     adapter.dispose();
-    expect(document.querySelector("#imw-playback-controls")).toBeNull();
     expect(document.querySelector("#imw-media-progress-entry")).toBeNull();
+    expect(document.querySelector("#imw-playback-controls")).toBe(row.element);
+    row.dispose();
+    expect(document.querySelector("#imw-playback-controls")).toBeNull();
   });
 
-  it("开关行继承侧栏主题，卸载后与入口一起移除", async () => {
+  it("开关行继承侧栏主题，适配器卸载后仍由行自行移除", async () => {
     document.body.innerHTML = `<div id="functionHolder" style="background-color: rgb(16, 16, 16)">${markup}</div>`;
     const row = new SidebarPlaybackRow(new PlaybackMode());
     const adapter = new SidebarMediaEntry(vi.fn(), document, row.element);
@@ -307,7 +310,30 @@ describe("侧栏媒体入口", () => {
     expect(document.getElementById("imw-playback-controls")).toBe(row.element);
     expect(row.element.dataset.imwTheme).toBe("light");
     adapter.dispose();
-    expect(document.getElementById("imw-playback-controls")).toBeNull();
     expect(document.querySelector("#imw-media-progress-entry")).toBeNull();
+    expect(document.getElementById("imw-playback-controls")).toBe(row.element);
+    row.dispose();
+    expect(document.getElementById("imw-playback-controls")).toBeNull();
+  });
+
+  it("分组缺失时不抛错、不创建行元素，并回报无当前媒体", () => {
+    document.body.innerHTML =
+      '<div class="functionBtnFont">盒子</div><div id="shareMediaBox"></div>';
+    const row = new SidebarPlaybackRow(new PlaybackMode());
+    const changes: boolean[] = [];
+    let adapter: SidebarMediaEntry | undefined;
+    expect(() => {
+      adapter = new SidebarMediaEntry(
+        vi.fn(),
+        document,
+        row.element,
+        (present) => changes.push(present),
+      );
+    }).not.toThrow();
+    expect(changes).toEqual([false]);
+    expect(document.querySelector("#imw-playback-controls")).toBeNull();
+    expect(document.querySelector("#imw-media-progress-entry")).toBeNull();
+    adapter?.dispose();
+    row.dispose();
   });
 });

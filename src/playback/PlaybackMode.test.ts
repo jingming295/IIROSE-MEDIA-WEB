@@ -5,6 +5,14 @@ import type { PlaybackModeAvailability } from "./PlaybackMode";
 
 const reasonOf = (value: PlaybackModeAvailability) => value.reason;
 
+// 「有当前媒体且时长已知」的起始态：present 默认 false，须由适配器显式回报存在。
+function ready(): PlaybackMode {
+  const mode = new PlaybackMode();
+  mode.setMediaPresent(true);
+  mode.applySnapshot(snapshot());
+  return mode;
+}
+
 describe("播放模式状态机", () => {
   it("收到快照前按「时长未知」处理：熄灭且不可用", () => {
     const mode = new PlaybackMode();
@@ -15,6 +23,9 @@ describe("播放模式状态机", () => {
       shuffle: { enabled: false, reason: "直播或时间未知，无法使用" },
     });
     mode.applySnapshot(snapshot());
+    // 首帧快照还不够：媒体存在性要等首次 adapt 回报。
+    expect(mode.state.loop.enabled).toBe(false);
+    mode.setMediaPresent(true);
     expect(mode.state).toEqual({
       mode: "none",
       loop: { enabled: true, reason: "" },
@@ -23,8 +34,7 @@ describe("播放模式状态机", () => {
   });
 
   it("互斥单选，再次点击已点亮项回到熄灭", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     mode.toggle("loop");
     expect(mode.mode).toBe("loop");
     mode.toggle("shuffle");
@@ -34,8 +44,7 @@ describe("播放模式状态机", () => {
   });
 
   it("不可用模式拒绝点亮且保留原因", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     mode.setAvailability("loop", {
       enabled: false,
       reason: "无媒体管理权限，且该曲目不由插件点播，无法循环",
@@ -49,8 +58,7 @@ describe("播放模式状态机", () => {
   });
 
   it("媒体行消失即灰化并清零点亮态，恢复存在也不自动重新点亮", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     mode.toggle("loop");
     // 删卡后宿站仍可能保留 shareMediaDuration，只有 DOM 存在性能判定「无当前媒体」。
     mode.setMediaPresent(false);
@@ -67,7 +75,7 @@ describe("播放模式状态机", () => {
   });
 
   it("连接未就绪或断开时灰化，文案不假定已断开", () => {
-    const mode = new PlaybackMode();
+    const mode = ready();
     mode.toggle("loop");
     mode.applySnapshot(snapshot({ connected: false }));
     expect(mode.mode).toBe("none");
@@ -78,7 +86,7 @@ describe("播放模式状态机", () => {
   });
 
   it("时长未知或为 0 按直播原因禁用，暂停不影响", () => {
-    const mode = new PlaybackMode();
+    const mode = ready();
     mode.applySnapshot(snapshot({ duration: null }));
     expect(mode.state.loop).toEqual({
       enabled: false,
@@ -94,7 +102,7 @@ describe("播放模式状态机", () => {
   });
 
   it("可用性派生顺序：无媒体 → 断线 → 时长未知 → 单模式原因", () => {
-    const mode = new PlaybackMode();
+    const mode = ready();
     mode.setAvailability("shuffle", {
       enabled: false,
       reason: "当前页面没有收藏",
@@ -113,8 +121,7 @@ describe("播放模式状态机", () => {
   });
 
   it("待命原因可用但不灰化", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     mode.setAvailability("shuffle", {
       enabled: true,
       reason: "当前曲目由他人点播，暂不自动续播",
@@ -128,8 +135,7 @@ describe("播放模式状态机", () => {
   });
 
   it("订阅立即回调，只在状态变化时通知，取消后静默", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     const listener = vi.fn();
     const unsubscribe = mode.subscribe(listener);
     expect(listener).toHaveBeenCalledOnce();
@@ -145,8 +151,7 @@ describe("播放模式状态机", () => {
   });
 
   it("dispose 后不再改状态也不再通知", () => {
-    const mode = new PlaybackMode();
-    mode.applySnapshot(snapshot());
+    const mode = ready();
     mode.toggle("loop");
     const listener = vi.fn();
     mode.subscribe(listener);

@@ -26,7 +26,8 @@ const available = (): PlaybackModeAvailability => ({
 // 开关状态只存内存：互斥单选、不可用即熄灭、刷新即失。
 export class PlaybackMode {
   private current: PlaybackModeName = "none";
-  private present = true;
+  // 首次适配（SidebarMediaEntry 的 onMediaChange）到来前不承诺可用。
+  private present = false;
   private connected = true;
   // 未收到任何快照前按「时长未知」处理：不承诺可用。
   private duration: number | null = null;

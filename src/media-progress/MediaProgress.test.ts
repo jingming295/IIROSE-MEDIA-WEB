@@ -838,32 +838,45 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(send).toHaveBeenCalledOnce();
   });
 
-  it("组合根装配开关行：侧栏内可见，断线灰化，卸载后移除且无遗留定时器", () => {
+  it("组合根装配开关行：断线或媒体消失都灰化，卸载后移除且无遗留定时器", async () => {
     const host = window as unknown as MediaHost;
+    const alert = vi.fn();
+    Object.assign(window, { _alert: alert });
     const row = document.getElementById("imw-playback-controls")!;
     expect(row.closest("#functionHolderExtBox")).not.toBeNull();
     const buttons = [...row.querySelectorAll("button")];
+    const attrs = (name: string) =>
+      buttons.map((item) => item.getAttribute(name));
     expect(buttons.map((item) => item.id)).toEqual([
       "imw-toggle-loop",
       "imw-toggle-shuffle",
     ]);
-    expect(buttons.map((item) => item.getAttribute("aria-disabled"))).toEqual([
-      "false",
-      "false",
-    ]);
-    expect(buttons.map((item) => item.getAttribute("aria-pressed"))).toEqual([
-      "false",
-      "false",
-    ]);
-    // 桥接订阅或第三参数漏接时，这条断言会失败（装配掉线仍全绿的防线）。
+    expect(attrs("aria-disabled")).toEqual(["false", "false"]);
+    expect(attrs("aria-pressed")).toEqual(["false", "false"]);
+    // 点亮循环：只有 onMediaChange/setMediaPresent 与快照都接通时才可能成功。
+    buttons[0].click();
+    expect(attrs("aria-pressed")).toEqual(["true", "false"]);
+    // 媒体行消失（时长与连接都还在）：第四个实参漏接时按钮会一直亮着可点。
+    const card = document.getElementById("shareMediaBox")!.parentElement!;
+    card.remove();
+    for (let index = 0; index < 5; index++) await Promise.resolve();
+    expect(host.shareMediaDuration).toBe(300);
+    expect(host.socket!.readyState).toBe(1);
+    expect(attrs("aria-disabled")).toEqual(["true", "true"]);
+    expect(attrs("aria-pressed")).toEqual(["false", "false"]);
+    expect(
+      document.getElementById("functionHolderExtBox")!.lastElementChild,
+    ).toBe(row);
+    expect(alert.mock.calls).toEqual([["直播或时间未知，无法使用"]]);
+    // 媒体回来后重新可用，可继续验证 bridge.subscribe 这根线。
+    document.getElementById("functionHolderExtBox")!.append(card);
+    for (let index = 0; index < 5; index++) await Promise.resolve();
+    expect(attrs("aria-disabled")).toEqual(["false", "false"]);
     host.socket!.readyState = 3;
     act(() => {
       vi.advanceTimersByTime(250);
     });
-    expect(buttons.map((item) => item.getAttribute("aria-disabled"))).toEqual([
-      "true",
-      "true",
-    ]);
+    expect(attrs("aria-disabled")).toEqual(["true", "true"]);
     act(() => {
       window.dispatchEvent(
         new PageTransitionEvent("pagehide", { persisted: false }),
@@ -874,6 +887,7 @@ describe("浮窗原生交互与页面生命周期", () => {
       vi.runOnlyPendingTimers();
     });
     expect(vi.getTimerCount()).toBe(0);
+    delete (window as { _alert?: unknown })._alert;
   });
 });
 

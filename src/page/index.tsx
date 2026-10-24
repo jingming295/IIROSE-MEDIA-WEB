@@ -68,6 +68,8 @@ function initMediaProgress() {
   const dispose = () => {
     close(false);
     lastPosition = undefined;
+    // 释放顺序：先断订阅，再让状态机与适配器、行、桥接依次停摆。
+    // 行元素由 SidebarPlaybackRow 自己移除，SidebarMediaEntry 只解除适配。
     unsubscribePlayback();
     playback.dispose();
     sidebar.dispose();

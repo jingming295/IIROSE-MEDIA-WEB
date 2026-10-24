@@ -16,6 +16,7 @@ const disabled = (id: string) => button(id).getAttribute("aria-disabled");
 
 function setup() {
   const mode = new PlaybackMode();
+  mode.setMediaPresent(true);
   mode.applySnapshot(snapshot());
   const row = new SidebarPlaybackRow(mode);
   document.body.append(row.element);
@@ -92,6 +93,29 @@ describe("侧栏播放模式开关行", () => {
     expect(mode.mode).toBe("none");
   });
 
+  it("灰化按钮仍可聚焦，Enter 触发同样的原因提示", () => {
+    const { mode } = setup();
+    mode.setMediaPresent(false);
+    const loop = button("imw-toggle-loop");
+    loop.focus();
+    expect(document.activeElement).toBe(loop);
+    loop.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    expect(show).toHaveBeenCalledExactlyOnceWith("直播或时间未知，无法使用");
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(mode.mode).toBe("none");
+    // 读屏用的原因文本同步写入状态区。
+    expect(
+      document.querySelector("#imw-playback-controls [role='status']")!
+        .textContent,
+    ).toBe("直播或时间未知，无法使用");
+  });
+
   it("连点灰化按钮同一原因 10 秒内只提示一次", () => {
     vi.useFakeTimers();
     const { mode } = setup();
@@ -152,5 +176,10 @@ describe("侧栏播放模式开关行", () => {
     expect(document.getElementById("imw-playback-controls")).toBeNull();
     mode.toggle("shuffle");
     expect(loop.getAttribute("aria-pressed")).toBe("true");
+    // 卸载后游离节点上的点击也不得再改状态或提示。
+    loop.click();
+    expect(mode.mode).toBe("shuffle");
+    expect(show).not.toHaveBeenCalled();
+    row.dispose();
   });
 });

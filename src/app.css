@@ -54,6 +54,8 @@
   --imw-entry-accent: #2563eb;
   --imw-entry-pressed: rgba(37, 99, 235, 0.12);
   --imw-entry-divider: rgba(148, 163, 184, 0.18);
+  /* 入口与开关行共用同一行高，避免两处字面量漂移。 */
+  --imw-row-height: 56px;
   background: var(--imw-entry-bg);
   color: var(--imw-entry-fg);
   font:
@@ -78,8 +80,8 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 56px;
-  min-height: 56px;
+  height: var(--imw-row-height);
+  min-height: var(--imw-row-height);
   margin: 0;
   padding: 0 18px;
   border: 0;
@@ -141,10 +143,12 @@
   display: flex;
   align-items: stretch;
   width: 100%;
-  height: 56px;
-  min-height: 56px;
+  height: var(--imw-row-height);
+  min-height: var(--imw-row-height);
   margin: 0;
   padding: 0;
+  /* 窄侧栏按容器宽度收起文字，而不是把「单曲循环」截成「单曲…」。 */
+  container-type: inline-size;
 }
 
 #imw-playback-controls button {
@@ -192,6 +196,25 @@
 
 #imw-playback-controls button[aria-pressed="true"] svg {
   opacity: 1;
+}
+
+/* 读屏原因文本：视觉隐藏但仍在可访问树内。 */
+#imw-playback-controls [role="status"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* 侧栏窄到放不下「单曲循环」时只留图标（按钮另有 aria-label）。 */
+@container (max-width: 200px) {
+  #imw-playback-controls button span {
+    display: none;
+  }
 }
 
 @media (hover: hover) {

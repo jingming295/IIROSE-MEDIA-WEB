@@ -10,6 +10,8 @@ export class SidebarMediaEntry {
     private open: () => void,
     private doc: Document = document,
     private row?: HTMLElement,
+    // 媒体存在性回调：构造期与每次 adapt() 都同步触发（不只在变化时），
+    // 侧栏分组被拆掉时回报 false，避免点亮态跨「分组消失」存活。
     private onMediaChange?: (present: boolean) => void,
   ) {
     this.observer = new MutationObserver((records) => {
@@ -90,7 +92,11 @@ export class SidebarMediaEntry {
       this.entry = undefined;
     }
     const box = this.doc.getElementById("functionHolderExtBox");
-    if (!box) return;
+    if (!box) {
+      // 分组被宿站整块拆掉：媒体行随之消失，点亮态不能留到分组重建之后。
+      this.onMediaChange?.(false);
+      return;
+    }
     const scope = box.closest("#functionHolderBox") || box.parentElement;
     scope?.querySelectorAll(".functionButtonGroup").forEach((group) => {
       const title = group.querySelector(".functionBtnFont");
@@ -174,7 +180,7 @@ export class SidebarMediaEntry {
     this.entry?.removeEventListener("click", this.open);
     this.entry?.remove();
     this.entry = undefined;
-    this.row?.remove();
+    // 行元素归 SidebarPlaybackRow 所有：这里只解除适配，移除由它自己的 dispose() 完成。
     this.renamed.forEach((text, element) => {
       if (element.textContent === "IIROSE-MEDIA-WEB")
         element.textContent = text;

@@ -1,6 +1,4 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PlaybackMode } from "../playback/PlaybackMode";
-import { SidebarPlaybackRow } from "../playback/SidebarPlaybackRow";
 import { SidebarMediaEntry } from "./SidebarMediaEntry";
 
 const markup = `<div id="functionHolderBox"><div class="functionButtonGroup"><span class="mdi-inbox"></span><span class="functionBtnFont">盒子</span></div><div id="functionHolderExtBox"><div class="functionButtonExt"><div id="radioHolder"><button id="radioPlayButton" class="mdi-pause"></button></div></div><div class="functionButtonExt"><div id="shareMediaBox"><a href="#media">当前媒体</a></div></div></div></div>`;
@@ -210,75 +208,6 @@ describe("侧栏媒体入口", () => {
     document.body.innerHTML = markup;
     adapter.dispose();
     await flush();
-    expect(document.querySelector("#imw-media-progress-entry")).toBeNull();
-  });
-
-  it("开关行常驻入口之后，媒体消失退回分组末尾，重建后仍唯一且保留点亮", async () => {
-    document.body.innerHTML = markup;
-    const mode = new PlaybackMode();
-    const row = new SidebarPlaybackRow(mode);
-    const adapter = new SidebarMediaEntry(vi.fn(), document, row.element);
-    await flush();
-    expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
-    expect(row.element.previousElementSibling?.id).toBe(
-      "imw-media-progress-entry",
-    );
-    document.getElementById("imw-toggle-loop")!.click();
-    expect(
-      document.getElementById("imw-toggle-loop")!.getAttribute("aria-pressed"),
-    ).toBe("true");
-    for (let index = 0; index < 2; index++) {
-      document.getElementById("functionHolderBox")!.outerHTML = markup;
-      await flush();
-      expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(
-        1,
-      );
-      expect(document.getElementById("imw-playback-controls")).toBe(
-        row.element,
-      );
-      expect(row.element.previousElementSibling?.id).toBe(
-        "imw-media-progress-entry",
-      );
-      expect(
-        document
-          .getElementById("imw-toggle-loop")!
-          .getAttribute("aria-pressed"),
-      ).toBe("true");
-    }
-    document
-      .getElementById("shareMediaBox")!
-      .closest(".functionButtonExt")!
-      .remove();
-    await flush();
-    expect(document.getElementById("imw-media-progress-entry")).toBeNull();
-    expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
-    const box = document.getElementById("functionHolderExtBox")!;
-    expect(box.lastElementChild).toBe(row.element);
-    box.insertAdjacentHTML(
-      "beforeend",
-      '<div class="functionButtonExt"><div id="shareMediaBox"></div></div>',
-    );
-    await flush();
-    expect(row.element.previousElementSibling?.id).toBe(
-      "imw-media-progress-entry",
-    );
-    adapter.dispose();
-    expect(document.querySelector("#imw-playback-controls")).toBeNull();
-  });
-
-  it("开关行继承侧栏主题，卸载后一并移除", async () => {
-    document.body.innerHTML = `<div id="functionHolder" style="background-color: rgb(16, 16, 16)">${markup}</div>`;
-    const mode = new PlaybackMode();
-    const row = new SidebarPlaybackRow(mode);
-    const adapter = new SidebarMediaEntry(vi.fn(), document, row.element);
-    expect(row.element.dataset.imwTheme).toBe("dark");
-    document.getElementById("functionHolder")!.outerHTML =
-      `<div id="functionHolder" style="background-color: rgb(224, 224, 224)">${markup}</div>`;
-    await flush();
-    expect(document.getElementById("imw-playback-controls")).toBe(row.element);
-    expect(row.element.dataset.imwTheme).toBe("light");
-    adapter.dispose();
-    expect(document.getElementById("imw-playback-controls")).toBeNull();
     expect(document.querySelector("#imw-media-progress-entry")).toBeNull();
   });
 });

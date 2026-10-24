@@ -9,7 +9,6 @@ export class SidebarMediaEntry {
   constructor(
     private open: () => void,
     private doc: Document = document,
-    private row?: HTMLElement,
   ) {
     this.observer = new MutationObserver((records) => {
       // 只响应侧栏或承载侧栏节点的增删，不跟踪聊天消息和媒体时钟文本。
@@ -109,7 +108,6 @@ export class SidebarMediaEntry {
       radio.classList.add("imw-hidden-radio");
       this.hidden.add(radio);
     }
-    const theme = this.isDarkSidebar(box) ? "dark" : "light";
     const media = box
       .querySelector("#shareMediaBox")
       ?.closest(".functionButtonExt");
@@ -117,7 +115,6 @@ export class SidebarMediaEntry {
       this.entry?.removeEventListener("click", this.open);
       this.entry?.remove();
       this.entry = undefined;
-      this.placeRow(box, theme);
       return;
     }
     if (!this.entry) {
@@ -147,21 +144,8 @@ export class SidebarMediaEntry {
       this.entry.append(icon, label);
       this.entry.addEventListener("click", this.open);
     }
-    this.entry.dataset.imwTheme = theme;
+    this.entry.dataset.imwTheme = this.isDarkSidebar(box) ? "dark" : "light";
     if (media.nextElementSibling !== this.entry) media.after(this.entry);
-    this.placeRow(box, theme);
-  }
-
-  // 开关行常驻分组：有入口插其后，否则退回分组末尾；始终复用同一元素保证唯一。
-  private placeRow(box: HTMLElement, theme: string) {
-    const row = this.row;
-    if (!row) return;
-    row.dataset.imwTheme = theme;
-    if (this.entry) {
-      if (this.entry.nextElementSibling !== row) this.entry.after(row);
-    } else if (box.lastElementChild !== row) {
-      box.append(row);
-    }
   }
 
   dispose() {
@@ -171,7 +155,6 @@ export class SidebarMediaEntry {
     this.entry?.removeEventListener("click", this.open);
     this.entry?.remove();
     this.entry = undefined;
-    this.row?.remove();
     this.renamed.forEach((text, element) => {
       if (element.textContent === "IIROSE-MEDIA-WEB")
         element.textContent = text;

@@ -8,6 +8,7 @@ import {
   formatTime,
   isAbsoluteSeekCommand,
   isSeekCommand,
+  rewindCommand,
   absoluteSeekCommand,
   absoluteSeekTarget,
   ownMediaOf,
@@ -173,5 +174,17 @@ describe("进度时间与指令边界", () => {
       x: 52,
       y: 32,
     });
+  });
+});
+
+describe("相对快退指令", () => {
+  it("只生成白名单格式，非法秒数返回 null", () => {
+    expect(rewindCommand(196)).toBe('!15["<","196s"]');
+    expect(rewindCommand(1)).toBe('!15["<","1s"]');
+    expect(rewindCommand(0)).toBeNull();
+    expect(rewindCommand(-3)).toBeNull();
+    expect(rewindCommand(1.5)).toBeNull();
+    expect(rewindCommand(Number.NaN)).toBeNull();
+    expect(rewindCommand(Number.POSITIVE_INFINITY)).toBeNull();
   });
 });

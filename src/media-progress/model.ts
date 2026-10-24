@@ -114,6 +114,12 @@ export function seekCommand(
   ])}`;
 }
 
+/** 相对快退到开头：秒数必须是正整数，与 `isSeekCommand` 的白名单一致。 */
+export function rewindCommand(seconds: number): string | null {
+  if (!Number.isSafeInteger(seconds) || seconds < 1) return null;
+  return `!15["<","${seconds}s"]`;
+}
+
 export function isSeekCommand(command: string): boolean {
   // 仅接受已确认的独立控制协议，不接受聊天文本或其他宿站指令。
   if (typeof command !== "string") return false;

@@ -144,6 +144,13 @@ export class PlaybackMode {
     this.listeners.clear();
   }
 
+  /** 守卫/动作侧主动熄灭（如循环失败）：已点亮时熄灭并留一次性原因给行提示。 */
+  stop(reason: string): void {
+    if (this.disposed) return;
+    this.extinguish(reason);
+    this.publish();
+  }
+
   // 不可用即清零点亮态；恢复可用也不自动重新点亮。
   private settle(): void {
     if (this.current !== "none" && !this.availability(this.current).enabled)

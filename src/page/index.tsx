@@ -5,6 +5,10 @@ import { HostMediaBridge } from "../media-progress/HostMediaBridge";
 import { SidebarMediaEntry } from "../media-progress/SidebarMediaEntry";
 import { PlaybackMode } from "../playback/PlaybackMode";
 import { SidebarPlaybackRow } from "../playback/SidebarPlaybackRow";
+import { LoopController } from "../playback/LoopController";
+import { MediaPayloadMemory } from "../playback/MediaPayloadMemory";
+import { Announce } from "../iirose_func/Socket/Announce";
+import { Socket } from "../iirose_func/Socket";
 import {
   readMediaProgressPosition,
   saveMediaProgressPosition,
@@ -47,6 +51,8 @@ function initMediaProgress() {
   let bridge!: HostMediaBridge;
   let playback!: PlaybackMode;
   let playbackRow!: SidebarPlaybackRow;
+  let loop!: LoopController;
+  let memory: MediaPayloadMemory | undefined;
   let sidebar!: SidebarMediaEntry;
   let unsubscribePlayback: (() => void) | undefined;
   let close: (restoreFocus?: boolean) => void = () => {};
@@ -68,6 +74,10 @@ function initMediaProgress() {
       // 行元素由 SidebarPlaybackRow 自己移除，SidebarMediaEntry 只解除适配。
       safely(() => close(false));
       safely(() => unsubscribePlayback?.());
+      safely(() => loop?.dispose());
+      // 只摘掉属于自己的观察者：后注入者接管后不能清掉新实例的钩子。
+      if (Socket.observe === observeSocket) Socket.observe = undefined;
+      safely(() => memory?.clear());
       safely(() => playback?.dispose());
       safely(() => sidebar?.dispose());
       safely(() => playbackRow?.dispose());
@@ -85,6 +95,14 @@ function initMediaProgress() {
   bridge = new HostMediaBridge();
   playback = new PlaybackMode();
   playbackRow = new SidebarPlaybackRow(playback);
+  memory = new MediaPayloadMemory();
+  // 只观察插件自己发出的报文：重播只对插件点播过的曲目可用。
+  const observeSocket = (data: string) => memory?.record(data);
+  Socket.observe = observeSocket;
+  loop = new LoopController(playback, bridge, memory, {
+    sendCard: (card) => Announce.sendMediaCard(new Socket(), card),
+    sendPayload: (payload) => new Socket().send(payload),
+  });
   let visible = false;
   let lastPosition = readMediaProgressPosition();
   close = (restoreFocus = true) => {
@@ -125,6 +143,7 @@ function initMediaProgress() {
   unsubscribePlayback = bridge.subscribe((snapshot) =>
     playback.applySnapshot(snapshot),
   );
+  loop.attach();
   onPageHide = (event: PageTransitionEvent) => {
     saveMediaProgressPosition(lastPosition);
     if (!event.persisted) dispose();

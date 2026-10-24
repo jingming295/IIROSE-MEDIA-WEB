@@ -313,4 +313,22 @@ describe("点播归属与生命周期守卫", () => {
     expect(reloaded.mode).toBe("none");
     expect(reloaded.state.standby).toBe(false);
   });
+
+  it("stop 熄灭已点亮的模式并写一次性原因，熄灭时保持不变", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.stop("循环失败：无法回到开头");
+    expect(mode.mode).toBe("none");
+    expect(mode.state.cleared).toEqual({
+      id: 1,
+      reason: "循环失败：无法回到开头",
+    });
+    mode.stop("循环失败：无法回到开头");
+    expect(mode.state.cleared?.id).toBe(1);
+    mode.stop("循环失败：无法重新点播当前曲目");
+    expect(mode.state.cleared).toEqual({
+      id: 1,
+      reason: "循环失败：无法回到开头",
+    });
+  });
 });

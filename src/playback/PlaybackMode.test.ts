@@ -165,3 +165,142 @@ describe("播放模式状态机", () => {
     expect(listener).toHaveBeenCalledOnce();
   });
 });
+
+describe("点播归属与生命周期守卫", () => {
+  const STANDBY = "当前曲目由他人点播，暂不自动续播";
+  const ROOM_CHANGED = "已切换房间，播放模式已关闭";
+
+  it("本人点播：无待命原因，可用性不受归属影响", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    expect(mode.state.standby).toBe(false);
+    expect(mode.state.standbyReason).toBe("");
+    expect(mode.state.loop).toEqual({ enabled: true, reason: "" });
+    expect(mode.state.cleared).toBeNull();
+  });
+
+  it("他人点播：保留点亮并进入待命，可用性不变", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(mode.mode).toBe("loop");
+    expect(mode.state.standby).toBe(true);
+    expect(mode.state.standbyReason).toBe(STANDBY);
+    expect(mode.state.loop).toEqual({ enabled: true, reason: "" });
+    expect(mode.state.cleared).toBeNull();
+  });
+
+  it("点播者信息缺失（ownMedia 为 false）一律按非本人待命", () => {
+    const mode = ready();
+    mode.toggle("shuffle");
+    // 桥接把「title 缺失 / myself 非字符串 / 不相等」都折算成 false。
+    mode.applySnapshot(snapshot({ ownMedia: false, title: "" }));
+    expect(mode.state.standby).toBe(true);
+    expect(mode.mode).toBe("shuffle");
+  });
+
+  it("未点亮时他人点播不进入待命，点亮后立即待命", () => {
+    const mode = ready();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(mode.state.standby).toBe(false);
+    mode.toggle("shuffle");
+    expect(mode.mode).toBe("shuffle");
+    expect(mode.state.standby).toBe(true);
+  });
+
+  it("本人重新点播立即退出待命，保留原模式", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(mode.state.standby).toBe(true);
+    mode.applySnapshot(snapshot({ ownMedia: true }));
+    expect(mode.state.standby).toBe(false);
+    expect(mode.state.standbyReason).toBe("");
+    expect(mode.mode).toBe("loop");
+  });
+
+  it("待命变化按签名发布，同一待命快照不重复通知", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    const listener = vi.fn();
+    mode.subscribe(listener);
+    expect(listener).toHaveBeenCalledOnce();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.calls[1][0]).toMatchObject({
+      standby: true,
+      standbyReason: STANDBY,
+    });
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(listener).toHaveBeenCalledTimes(2);
+    mode.applySnapshot(snapshot({ ownMedia: true }));
+    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener.mock.calls[2][0]).toMatchObject({ standby: false });
+  });
+
+  it("换房熄灭并暴露一次性原因，可用性不受影响", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(mode.mode).toBe("none");
+    expect(mode.state.standby).toBe(false);
+    expect(mode.state.loop.enabled).toBe(true);
+    expect(mode.state.cleared).toEqual({ id: 1, reason: ROOM_CHANGED });
+    // 同一房间的后续快照不再产生新令牌（行据此只提示一次）。
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(mode.state.cleared).toEqual({ id: 1, reason: ROOM_CHANGED });
+  });
+
+  it("换房时未点亮不产生提示令牌", () => {
+    const mode = ready();
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(mode.mode).toBe("none");
+    expect(mode.state.cleared).toBeNull();
+  });
+
+  it("换房后再点亮，再次换房给出新令牌", () => {
+    const mode = ready();
+    mode.toggle("shuffle");
+    mode.applySnapshot(snapshot({ roomKey: "room-b" }));
+    expect(mode.state.cleared?.id).toBe(1);
+    mode.toggle("shuffle");
+    expect(mode.mode).toBe("shuffle");
+    mode.applySnapshot(snapshot({ roomKey: "room-c" }));
+    expect(mode.mode).toBe("none");
+    expect(mode.state.cleared).toEqual({ id: 2, reason: ROOM_CHANGED });
+  });
+
+  it("无房间标识视为未变化，不熄灭也不提示", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.applySnapshot(snapshot({ roomKey: null }));
+    expect(mode.mode).toBe("loop");
+    expect(mode.state.cleared).toBeNull();
+    // 读到标识后仍与首次记录的一致：同样不熄灭。
+    mode.applySnapshot(snapshot({ roomKey: "fixture-room" }));
+    expect(mode.mode).toBe("loop");
+  });
+
+  it("换房优先于断线与媒体消失，只留房间原因", () => {
+    const mode = ready();
+    mode.toggle("loop");
+    mode.applySnapshot(
+      snapshot({ roomKey: "room-b", connected: false, duration: null }),
+    );
+    expect(mode.mode).toBe("none");
+    expect(mode.state.cleared).toEqual({ id: 1, reason: ROOM_CHANGED });
+    expect(mode.state.loop.enabled).toBe(false);
+  });
+
+  it("刷新页面后新实例默认熄灭", () => {
+    const mode = ready();
+    mode.toggle("shuffle");
+    const reloaded = new PlaybackMode();
+    expect(reloaded.mode).toBe("none");
+    expect(reloaded.state.cleared).toBeNull();
+    reloaded.setMediaPresent(true);
+    reloaded.applySnapshot(snapshot());
+    expect(reloaded.mode).toBe("none");
+    expect(reloaded.state.standby).toBe(false);
+  });
+});

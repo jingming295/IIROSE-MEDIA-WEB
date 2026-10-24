@@ -49,6 +49,9 @@ export class SidebarPlaybackRow {
   private notices = new Map<string, number>();
   private unsubscribe: () => void;
   private status: HTMLSpanElement;
+  private standby = false;
+  private standbyReason = "";
+  private clearedId = 0;
   private disposed = false;
 
   constructor(
@@ -129,6 +132,15 @@ export class SidebarPlaybackRow {
 
   private render(state: PlaybackModeState) {
     if (this.disposed) return;
+    this.renderStandby(state);
+    // 守卫清灭（如换房）自带一次性原因：令牌变化才提示，避免轮询刷屏；
+    // 同一帧不再叠加「转为不可用」的原因，一次事件只提示一次。
+    const cleared = state.cleared;
+    const clearedNow = !!cleared && cleared.id !== this.clearedId;
+    if (cleared) {
+      this.clearedId = cleared.id;
+      if (clearedNow) this.notice(cleared.reason);
+    }
     for (const control of CONTROLS) {
       const button = this.buttons.get(control.mode);
       if (!button) continue;
@@ -136,7 +148,12 @@ export class SidebarPlaybackRow {
       // 不可用时 aria-pressed 恒为 false，点亮由 enabled 前提保证。
       const pressed = state.mode === control.mode && availability.enabled;
       // 上一帧点亮、这一帧转为不可用：状态机已清灭，由行补一次原因提示。
-      if (!pressed && this.pressed.get(control.mode) && !availability.enabled)
+      if (
+        !clearedNow &&
+        !pressed &&
+        this.pressed.get(control.mode) &&
+        !availability.enabled
+      )
         this.notice(availability.reason || FALLBACK_NOTICE);
       this.pressed.set(control.mode, pressed);
       button.setAttribute("aria-pressed", pressed ? "true" : "false");
@@ -144,9 +161,27 @@ export class SidebarPlaybackRow {
         "aria-disabled",
         availability.enabled ? "false" : "true",
       );
-      // 待命（可用但暂不动作）等原因通过 title 暴露，不灰化。
-      button.title = availability.reason || control.label;
+      // 待命（点亮但不动作）与生效态共用点亮视觉，只以 title 说明差异，不灰化。
+      button.title =
+        pressed && state.standby
+          ? state.standbyReason
+          : availability.reason || control.label;
     }
+  }
+
+  // 待命不弹提示：只在进入/退出时改写读屏状态区，避免别人每点一首就刷屏。
+  private renderStandby(state: PlaybackModeState) {
+    if (state.standby === this.standby) return;
+    this.standby = state.standby;
+    if (state.standby) {
+      this.standbyReason = state.standbyReason;
+      this.status.textContent = state.standbyReason;
+      return;
+    }
+    // 状态区可能已被后来的提示覆盖，只清理仍属于待命的那条。
+    if (this.status.textContent === this.standbyReason)
+      this.status.textContent = "";
+    this.standbyReason = "";
   }
 
   // 同一原因 10 秒内只提示一次，避免连点灰化按钮或反复转不可用时刷屏。

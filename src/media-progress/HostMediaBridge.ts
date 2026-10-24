@@ -7,6 +7,8 @@ import {
   mediaPermissionReason,
   MediaControlMode,
   MediaSnapshot,
+  ownMediaOf,
+  roomIdentifier,
   unavailableReason,
 } from "./model";
 
@@ -76,10 +78,8 @@ export class HostMediaBridge {
 
   private readRoom() {
     const room = this.host.Info?.room;
-    const roomKey =
-      typeof this.host.roomnFull === "string" && this.host.roomnFull.trim()
-        ? this.host.roomnFull
-        : null;
+    // 房间标识只用于「换房」判定；instance 另有语义，不复用这个值。
+    const roomKey = roomIdentifier(this.host.roomnFull);
     if (this.roomKeyInitialized && roomKey !== this.roomKey) this.instance++;
     this.roomKey = roomKey;
     this.roomKeyInitialized = true;
@@ -98,10 +98,7 @@ export class HostMediaBridge {
     const mediaUser =
       this.doc.getElementById("shareMediaUserName")?.getAttribute("title") ||
       "";
-    const ownMedia =
-      typeof this.host.myself === "string" &&
-      !!this.host.myself &&
-      mediaUser === this.host.myself;
+    const ownMedia = ownMediaOf(mediaUser, this.host.myself);
     const controlMode: MediaControlMode =
       permission === "allowed"
         ? "silent"
@@ -133,6 +130,8 @@ export class HostMediaBridge {
       duration: rawDuration && rawDuration > 0 ? rawDuration : null,
       playing,
       connected: this.host.socket?.readyState === 1,
+      ownMedia,
+      roomKey: this.roomKey,
       seekVersion: this.seekVersion,
       dark: !this.host.theme,
       permission,

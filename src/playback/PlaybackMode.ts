@@ -8,15 +8,28 @@ export interface PlaybackModeAvailability {
   reason: string;
 }
 
+// 守卫触发的外部熄灭：令牌变化才提示，250ms 轮询同一原因不重复刷屏。
+export interface PlaybackModeClear {
+  id: number;
+  reason: string;
+}
+
 export interface PlaybackModeState {
   mode: PlaybackModeName;
   loop: PlaybackModeAvailability;
   shuffle: PlaybackModeAvailability;
+  // 当前曲目非本人点播：保留点亮但不动作，视觉与生效态相同。
+  standby: boolean;
+  standbyReason: string;
+  // 最近一次「已点亮被守卫清灭」（如换房）的原因。
+  cleared: PlaybackModeClear | null;
 }
 
 // 文案取自 sidebar-controls.md 的不可用原因表。
 const MEDIA_UNAVAILABLE = "直播或时间未知，无法使用";
 const DISCONNECTED = "连接未就绪或已断开，暂时无法调整";
+const STANDBY_REASON = "当前曲目由他人点播，暂不自动续播";
+const ROOM_CHANGED_REASON = "已切换房间，播放模式已关闭";
 
 const available = (): PlaybackModeAvailability => ({
   enabled: true,
@@ -31,6 +44,11 @@ export class PlaybackMode {
   private connected = true;
   // 未收到任何快照前按「时长未知」处理：不承诺可用。
   private duration: number | null = null;
+  // 归属与房间标识只来自快照，不缓存判定结果（快照本身就是每 250ms 重读）。
+  private ownMedia = false;
+  private roomKey: string | null = null;
+  private cleared: PlaybackModeClear | null = null;
+  private clearedId = 0;
   private extras: Record<PlaybackModeKind, PlaybackModeAvailability> = {
     loop: available(),
     shuffle: available(),
@@ -48,15 +66,21 @@ export class PlaybackMode {
   }
 
   get state(): PlaybackModeState {
+    // 待命只对已点亮的模式成立：熄灭时没有「等待恢复」的对象。
+    const standby = this.current !== "none" && !this.ownMedia;
     return {
       mode: this.current,
       loop: { ...this.availability("loop") },
       shuffle: { ...this.availability("shuffle") },
+      standby,
+      standbyReason: standby ? STANDBY_REASON : "",
+      cleared: this.cleared ? { ...this.cleared } : null,
     };
   }
 
   // 派生顺序：媒体不存在 → 连接未就绪/断开 → 时长未知 → 单个模式自身原因。
   // 前三种是更根本的原因，优先于模式自身（如收藏为空）。
+  // 归属不参与可用性：他人点播只是待命，按钮保持可点、不灰化。
   private availability(kind: PlaybackModeKind): PlaybackModeAvailability {
     if (!this.present) return { enabled: false, reason: MEDIA_UNAVAILABLE };
     if (!this.connected) return { enabled: false, reason: DISCONNECTED };
@@ -84,6 +108,13 @@ export class PlaybackMode {
     if (this.disposed) return;
     this.connected = snapshot.connected;
     this.duration = snapshot.duration;
+    this.ownMedia = snapshot.ownMedia;
+    // 无房间标识（null）视为未变化：换房瞬间宿站可能读不到 roomnFull。
+    if (snapshot.roomKey !== null) {
+      if (this.roomKey !== null && this.roomKey !== snapshot.roomKey)
+        this.extinguish(ROOM_CHANGED_REASON);
+      this.roomKey = snapshot.roomKey;
+    }
     this.settle();
     this.publish();
   }
@@ -117,6 +148,13 @@ export class PlaybackMode {
       this.current = "none";
   }
 
+  // 守卫清灭：与 settle 的区别是留一条一次性原因给行提示（如换房）。
+  private extinguish(reason: string): void {
+    if (this.current === "none") return;
+    this.current = "none";
+    this.cleared = { id: ++this.clearedId, reason };
+  }
+
   // 按状态签名去重：250ms 轮询同一快照不重复渲染。
   private publish(): void {
     const state = this.state;
@@ -133,6 +171,9 @@ export class PlaybackMode {
       state.loop.reason,
       state.shuffle.enabled,
       state.shuffle.reason,
+      state.standby,
+      state.cleared?.id ?? "",
+      state.cleared?.reason ?? "",
     ].join("\u0000");
   }
 }

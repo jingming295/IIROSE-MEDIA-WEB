@@ -9,6 +9,10 @@ export interface MediaSnapshot {
   duration: number | null;
   playing: boolean;
   connected: boolean;
+  // 当前曲目点播者与本人昵称一致；任一缺失或不等即为 false（保守）。
+  ownMedia: boolean;
+  // 宿站房间标识（roomnFull 字符串化）；缺失为 null，无标识视为未变化。
+  roomKey: string | null;
   seekVersion: number;
   dark: boolean;
   permission: MediaPermission;
@@ -16,6 +20,22 @@ export interface MediaSnapshot {
   controlMode: MediaControlMode;
   controlNotice: string;
   controlReason: string;
+}
+
+// 归属判定：两侧去除首尾空白后严格相等；非字符串、空白或不等都不是本人。
+// 不做 HTML 实体/全角归一化，宁可判定为非本人也不误动他人的曲目。
+export function ownMediaOf(owner: unknown, myself: unknown): boolean {
+  if (typeof owner !== "string" || typeof myself !== "string") return false;
+  const mediaOwner = owner.trim();
+  const self = myself.trim();
+  return !!mediaOwner && !!self && mediaOwner === self;
+}
+
+// 房间标识与 instance 语义分离：instance 会在每次点播时自增，不能代表房间。
+export function roomIdentifier(value: unknown): string | null {
+  if (typeof value === "string") return value.trim() ? value : null;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
 }
 
 export interface MediaProgressPosition {

@@ -736,3 +736,54 @@ describe("宿站桥接与交互生命周期", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe("快照中的点播归属与房间标识", () => {
+  it("ownMedia 取两侧去首尾空白后的严格相等，未知与不等一律 false", () => {
+    const { host, bridge, session } = fixture();
+    const owner = document.getElementById("shareMediaUserName")!;
+    try {
+      // 点播者信息缺失（title 与 myself 都没有）
+      expect(bridge.read().ownMedia).toBe(false);
+      host.myself = "测试账号";
+      expect(bridge.read().ownMedia).toBe(false);
+      owner.setAttribute("title", "  测试账号  ");
+      host.myself = " 测试账号 ";
+      expect(bridge.read().ownMedia).toBe(true);
+      owner.setAttribute("title", "测试账号2");
+      expect(bridge.read().ownMedia).toBe(false);
+      owner.setAttribute("title", "   ");
+      expect(bridge.read().ownMedia).toBe(false);
+      // window.myself 不是字符串时不做隐式转换。
+      owner.setAttribute("title", "42");
+      host.myself = 42;
+      expect(bridge.read().ownMedia).toBe(false);
+      // 不做 HTML 实体/全角归一化：形近即视为非本人。
+      host.myself = "测试账号";
+      owner.setAttribute("title", "测试帐号");
+      expect(bridge.read().ownMedia).toBe(false);
+    } finally {
+      session.dispose();
+    }
+  });
+
+  it("roomKey 暴露 roomnFull 字符串化值，缺失为 null 且不影响 instance 语义", () => {
+    const { host, bridge, session } = fixture();
+    try {
+      expect(bridge.read().roomKey).toBe("fixture-room");
+      host.roomnFull = 1024;
+      expect(bridge.read().roomKey).toBe("1024");
+      host.roomnFull = "   ";
+      expect(bridge.read().roomKey).toBeNull();
+      delete host.roomnFull;
+      expect(bridge.read().roomKey).toBeNull();
+      // 换房仍靠 instance 失效：每次读取只在房间标识变化时自增一次。
+      const instance = bridge.read().instance;
+      host.roomnFull = "another-room";
+      expect(bridge.read().instance).toBe(instance + 1);
+      expect(bridge.read().instance).toBe(instance + 1);
+      expect(bridge.read().roomKey).toBe("another-room");
+    } finally {
+      session.dispose();
+    }
+  });
+});

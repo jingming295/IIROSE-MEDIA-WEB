@@ -13,6 +13,8 @@ const show = ShowMessage.show as unknown as ReturnType<typeof vi.fn>;
 const button = (id: string) => document.getElementById(id) as HTMLButtonElement;
 const pressed = (id: string) => button(id).getAttribute("aria-pressed");
 const disabled = (id: string) => button(id).getAttribute("aria-disabled");
+const status = () =>
+  document.querySelector("#imw-playback-controls [role='status']")!.textContent;
 
 function setup() {
   const mode = new PlaybackMode();
@@ -181,5 +183,72 @@ describe("侧栏播放模式开关行", () => {
     expect(mode.mode).toBe("shuffle");
     expect(show).not.toHaveBeenCalled();
     row.dispose();
+  });
+});
+
+describe("开关行的点播归属与生命周期", () => {
+  const STANDBY = "当前曲目由他人点播，暂不自动续播";
+  const ROOM_CHANGED = "已切换房间，播放模式已关闭";
+
+  it("他人点播：仍点亮、不灰化，只以 title 与读屏文本说明", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(pressed("imw-toggle-loop")).toBe("true");
+    expect(disabled("imw-toggle-loop")).toBe("false");
+    expect(button("imw-toggle-loop").title).toBe(STANDBY);
+    expect(status()).toBe(STANDBY);
+    // 未点亮的另一枚不显示待命原因，也不承担待命语义。
+    expect(button("imw-toggle-shuffle").title).toBe("收藏随机");
+    // 待命不弹提示，避免别人每点一首就刷屏。
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it("本人重新点播立即退出待命，title 与读屏文本恢复", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(status()).toBe(STANDBY);
+    mode.applySnapshot(snapshot({ ownMedia: true }));
+    expect(pressed("imw-toggle-loop")).toBe("true");
+    expect(button("imw-toggle-loop").title).toBe("单曲循环");
+    expect(status()).toBe("");
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it("换房熄灭并只提示一次原因，按钮不灰化", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(disabled("imw-toggle-loop")).toBe("false");
+    expect(button("imw-toggle-loop").title).toBe("单曲循环");
+    expect(show).toHaveBeenCalledExactlyOnceWith(ROOM_CHANGED);
+    expect(status()).toBe(ROOM_CHANGED);
+    // 同一房间的后续快照（250ms 轮询）不再重复提示。
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(show).toHaveBeenCalledOnce();
+  });
+
+  it("换房同时断线时只提示房间原因一次", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ roomKey: "another-room", connected: false }));
+    expect(show).toHaveBeenCalledExactlyOnceWith(ROOM_CHANGED);
+    expect(status()).toBe(ROOM_CHANGED);
+  });
+
+  it("待命后关闭开关即清除读屏文本，不影响后续原因提示", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(status()).toBe(STANDBY);
+    button("imw-toggle-loop").click();
+    expect(status()).toBe("");
+    expect(button("imw-toggle-loop").title).toBe("单曲循环");
+    mode.setMediaPresent(false);
+    button("imw-toggle-loop").click();
+    expect(status()).toBe("直播或时间未知，无法使用");
+    expect(show).toHaveBeenCalledExactlyOnceWith("直播或时间未知，无法使用");
   });
 });

@@ -33,7 +33,8 @@ export function ownMediaOf(owner: unknown, myself: unknown): boolean {
 
 // 房间标识与 instance 语义分离：instance 会在每次点播时自增，不能代表房间。
 export function roomIdentifier(value: unknown): string | null {
-  if (typeof value === "string") return value.trim() ? value : null;
+  // 去首尾空白后返回：「room-a 」与「room-a」是同一房间，不能触发误熄灭。
+  if (typeof value === "string") return value.trim() || null;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return null;
 }

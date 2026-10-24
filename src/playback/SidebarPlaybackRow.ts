@@ -139,7 +139,8 @@ export class SidebarPlaybackRow {
     const clearedNow = !!cleared && cleared.id !== this.clearedId;
     if (cleared) {
       this.clearedId = cleared.id;
-      if (clearedNow) this.notice(cleared.reason);
+      // 令牌本身已保证同一 id 只消费一次；换房文案重复出现时不能被 10 秒文本去重吞掉。
+      if (clearedNow) this.notice(cleared.reason, false);
     }
     for (const control of CONTROLS) {
       const button = this.buttons.get(control.mode);
@@ -185,13 +186,14 @@ export class SidebarPlaybackRow {
   }
 
   // 同一原因 10 秒内只提示一次，避免连点灰化按钮或反复转不可用时刷屏。
-  private notice(message: string) {
+  // 带令牌的守卫提示（如换房）传 dedupe=false：由令牌保证只消费一次。
+  private notice(message: string, dedupe = true) {
     const now = Date.now();
     // 键是原因文案，随会话增长：写入前先丢弃已过窗口的旧键。
     for (const [reason, at] of this.notices)
       if (now - at >= NOTICE_INTERVAL) this.notices.delete(reason);
-    if (this.notices.has(message)) return;
-    this.notices.set(message, now);
+    if (dedupe && this.notices.has(message)) return;
+    if (dedupe) this.notices.set(message, now);
     this.status.textContent = message;
     ShowMessage.show(message);
   }

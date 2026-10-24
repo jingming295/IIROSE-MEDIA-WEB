@@ -251,4 +251,37 @@ describe("开关行的点播归属与生命周期", () => {
     expect(status()).toBe("直播或时间未知，无法使用");
     expect(show).toHaveBeenCalledExactlyOnceWith("直播或时间未知，无法使用");
   });
+
+  it("退出待命不清掉后到的原因提示", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ ownMedia: false }));
+    expect(status()).toBe(STANDBY);
+    // 待命期间另一枚按钮因模式自身原因灰化，点击写入新的提示文本。
+    mode.setAvailability("shuffle", {
+      enabled: false,
+      reason: "当前页面没有收藏",
+    });
+    button("imw-toggle-shuffle").click();
+    expect(status()).toBe("当前页面没有收藏");
+    expect(show).toHaveBeenCalledExactlyOnceWith("当前页面没有收藏");
+    // 此时退出待命（关闭循环）只清待命文案，不覆盖已经写入的原因提示。
+    button("imw-toggle-loop").click();
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(status()).toBe("当前页面没有收藏");
+    expect(show).toHaveBeenCalledOnce();
+  });
+
+  it("两次换房各提示一次，不被同因 10 秒去重吞掉", () => {
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ roomKey: "room-b" }));
+    expect(show).toHaveBeenCalledExactlyOnceWith(ROOM_CHANGED);
+    mode.toggle("loop");
+    expect(pressed("imw-toggle-loop")).toBe("true");
+    mode.applySnapshot(snapshot({ roomKey: "room-c" }));
+    expect(show).toHaveBeenCalledTimes(2);
+    expect(show.mock.calls).toEqual([[ROOM_CHANGED], [ROOM_CHANGED]]);
+    expect(pressed("imw-toggle-loop")).toBe("false");
+  });
 });

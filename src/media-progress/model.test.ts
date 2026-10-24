@@ -10,8 +10,49 @@ import {
   isSeekCommand,
   absoluteSeekCommand,
   absoluteSeekTarget,
+  ownMediaOf,
+  roomIdentifier,
   seekCommand,
 } from "./model";
+
+describe("点播归属与房间标识", () => {
+  it.each([
+    ["测试账号", "测试账号", true],
+    ["  测试账号  ", " 测试账号 ", true],
+    ["测试账号", "测试账号2", false],
+    ["测试帐号", "测试账号", false],
+    ["", "", false],
+    ["   ", "   ", false],
+    ["测试账号", "", false],
+    ["", "测试账号", false],
+    ["测试账号", undefined, false],
+    ["测试账号", null, false],
+    ["测试账号", 42, false],
+    [undefined, "测试账号", false],
+    [null, "测试账号", false],
+    [42, "测试账号", false],
+  ])("ownMediaOf(%j, %j) = %s", (owner, myself, expected) => {
+    expect(ownMediaOf(owner, myself)).toBe(expected);
+  });
+
+  it.each([
+    ["room-a", "room-a"],
+    ["  room-a  ", "room-a"],
+    ["", null],
+    ["   ", null],
+    [1024, "1024"],
+    [0, "0"],
+    [-3, "-3"],
+    [NaN, null],
+    [Infinity, null],
+    [true, null],
+    [{ id: 1 }, null],
+    [undefined, null],
+    [null, null],
+  ])("roomIdentifier(%j) = %j", (value, expected) => {
+    expect(roomIdentifier(value)).toBe(expected);
+  });
+});
 
 describe("媒体权限规则", () => {
   it("只接受明确的身份数值或全局角色首字符", () => {

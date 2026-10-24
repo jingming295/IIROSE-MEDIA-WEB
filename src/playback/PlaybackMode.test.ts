@@ -285,6 +285,10 @@ describe("点播归属与生命周期守卫", () => {
     // 读到标识后仍与首次记录的一致：同样不熄灭。
     mode.applySnapshot(snapshot({ roomKey: "fixture-room" }));
     expect(mode.mode).toBe("loop");
+    // null 不写入基准：之后真正的换房仍能识别（与桥接的 null 处理刻意不同）。
+    mode.applySnapshot(snapshot({ roomKey: "another-room" }));
+    expect(mode.mode).toBe("none");
+    expect(mode.state.cleared).toEqual({ id: 1, reason: ROOM_CHANGED });
   });
 
   it("换房优先于断线与媒体消失，只留房间原因", () => {

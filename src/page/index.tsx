@@ -43,12 +43,51 @@ function initMediaProgress() {
   root.id = "imw-media-progress-root";
   // 宿站 mainContainer 和插件主面板都会平移；独立挂到 body。
   document.body.appendChild(root);
-  const bridge = new HostMediaBridge();
-  const playback = new PlaybackMode();
-  const playbackRow = new SidebarPlaybackRow(playback);
+  // 构造阶段的资源先占位后赋值：dispose 可能在构造中途（或构造抛错后）被调用。
+  let bridge!: HostMediaBridge;
+  let playback!: PlaybackMode;
+  let playbackRow!: SidebarPlaybackRow;
+  let sidebar!: SidebarMediaEntry;
+  let unsubscribePlayback: (() => void) | undefined;
+  let close: (restoreFocus?: boolean) => void = () => {};
+  let onPageHide: (event: PageTransitionEvent) => void = () => {};
+  let disposed = false;
+  // 每一步独立兜错：任一环节抛错都不能跳过后面的解绑（定时器、pagehide、页面键）。
+  const safely = (step: () => void) => {
+    try {
+      step();
+    } catch {
+      /* 继续释放其余环节 */
+    }
+  };
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    try {
+      // 释放顺序：先断订阅，再让状态机与适配器、行、桥接依次停摆。
+      // 行元素由 SidebarPlaybackRow 自己移除，SidebarMediaEntry 只解除适配。
+      safely(() => close(false));
+      safely(() => unsubscribePlayback?.());
+      safely(() => playback?.dispose());
+      safely(() => sidebar?.dispose());
+      safely(() => playbackRow?.dispose());
+      safely(() => bridge?.dispose());
+      safely(() => root.remove());
+    } finally {
+      window.removeEventListener("pagehide", onPageHide);
+      // 只摘掉属于自己的标记：后注入者接管后这里不能清掉新实例。
+      if (page[CONTROLLER_KEY] === dispose) delete page[CONTROLLER_KEY];
+    }
+  };
+  // 先登记页面键再构造：构造中途抛错时，后注入者仍能释放已创建的实例（含 250ms 轮询）。
+  page[CONTROLLER_KEY] = dispose;
+  disposeProgress = dispose;
+  bridge = new HostMediaBridge();
+  playback = new PlaybackMode();
+  playbackRow = new SidebarPlaybackRow(playback);
   let visible = false;
   let lastPosition = readMediaProgressPosition();
-  const close = (restoreFocus = true) => {
+  close = (restoreFocus = true) => {
     saveMediaProgressPosition(lastPosition);
     visible = false;
     render(null, root);
@@ -60,7 +99,7 @@ function initMediaProgress() {
     )
       entry.focus({ preventScroll: true });
   };
-  const sidebar = new SidebarMediaEntry(
+  sidebar = new SidebarMediaEntry(
     () => {
       if (!visible) {
         visible = true;
@@ -83,34 +122,14 @@ function initMediaProgress() {
     playbackRow.element,
     (present) => playback.setMediaPresent(present),
   );
-  const unsubscribePlayback = bridge.subscribe((snapshot) =>
+  unsubscribePlayback = bridge.subscribe((snapshot) =>
     playback.applySnapshot(snapshot),
   );
-  const onPageHide = (event: PageTransitionEvent) => {
+  onPageHide = (event: PageTransitionEvent) => {
     saveMediaProgressPosition(lastPosition);
     if (!event.persisted) dispose();
   };
-  let disposed = false;
-  const dispose = () => {
-    if (disposed) return;
-    disposed = true;
-    close(false);
-    lastPosition = undefined;
-    // 释放顺序：先断订阅，再让状态机与适配器、行、桥接依次停摆。
-    // 行元素由 SidebarPlaybackRow 自己移除，SidebarMediaEntry 只解除适配。
-    unsubscribePlayback();
-    playback.dispose();
-    sidebar.dispose();
-    playbackRow.dispose();
-    bridge.dispose();
-    root.remove();
-    window.removeEventListener("pagehide", onPageHide);
-    // 只摘掉属于自己的标记：后注入者接管后这里不能清掉新实例。
-    if (page[CONTROLLER_KEY] === dispose) delete page[CONTROLLER_KEY];
-  };
   window.addEventListener("pagehide", onPageHide);
-  page[CONTROLLER_KEY] = dispose;
-  disposeProgress = dispose;
 }
 
 export class IMCInit {

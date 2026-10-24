@@ -21,7 +21,7 @@ export interface PlaybackModeState {
   // 当前曲目非本人点播：保留点亮但不动作，视觉与生效态相同。
   standby: boolean;
   standbyReason: string;
-  // 最近一次「已点亮被守卫清灭」（如换房）的原因。
+  // 最近一次「已点亮被守卫清灭」（如换房）的原因；消费方按 id 消费一次即可。
   cleared: PlaybackModeClear | null;
 }
 
@@ -109,7 +109,9 @@ export class PlaybackMode {
     this.connected = snapshot.connected;
     this.duration = snapshot.duration;
     this.ownMedia = snapshot.ownMedia;
-    // 无房间标识（null）视为未变化：换房瞬间宿站可能读不到 roomnFull。
+    // 无房间标识（null）视为未变化：换房瞬间宿站可能读不到 roomnFull，
+    // 而桥接那边的 null 会参与 instance 失效（instance 只影响「同一播放实例」判定，
+    // 这里若跟着熄灭就会把「标识短暂缺失」误判成换房）。两处刻意不一致。
     if (snapshot.roomKey !== null) {
       if (this.roomKey !== null && this.roomKey !== snapshot.roomKey)
         this.extinguish(ROOM_CHANGED_REASON);
@@ -172,6 +174,7 @@ export class PlaybackMode {
       state.shuffle.enabled,
       state.shuffle.reason,
       state.standby,
+      state.standbyReason,
       state.cleared?.id ?? "",
       state.cleared?.reason ?? "",
     ].join("\u0000");

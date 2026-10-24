@@ -122,6 +122,111 @@
   font-family: "md";
 }
 
+/* 播放模式开关行：宿站 DOM，Tailwind 无法作用，等分按钮 + 点亮/灰化态。 */
+#imw-playback-controls {
+  --imw-entry-bg: #fafafa;
+  --imw-entry-fg: #475569;
+  --imw-entry-hover: rgba(59, 130, 246, 0.07);
+  --imw-entry-focus: #2563eb;
+  --imw-entry-accent: #2563eb;
+  --imw-entry-pressed: rgba(37, 99, 235, 0.12);
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 56px;
+  min-height: 56px;
+  margin: 0;
+  padding: 0;
+  background: var(--imw-entry-bg);
+  box-sizing: border-box;
+}
+
+#imw-playback-controls[data-imw-theme="dark"] {
+  --imw-entry-bg: #181818;
+  --imw-entry-fg: #cbd5e1;
+  --imw-entry-hover: rgba(147, 197, 253, 0.08);
+  --imw-entry-focus: #93c5fd;
+  --imw-entry-accent: #93c5fd;
+  --imw-entry-pressed: rgba(147, 197, 253, 0.16);
+}
+
+#imw-playback-controls button {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--imw-entry-fg);
+  font:
+    500 13px/1.4 "Microsoft YaHei",
+    sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.1s;
+}
+
+#imw-playback-controls button + button {
+  border-left: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+#imw-playback-controls button svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+}
+
+#imw-playback-controls button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#imw-playback-controls button[aria-pressed="true"] {
+  color: var(--imw-entry-accent);
+  background: var(--imw-entry-pressed);
+}
+
+#imw-playback-controls button[aria-pressed="true"] svg {
+  opacity: 1;
+}
+
+#imw-playback-controls button[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  #imw-playback-controls
+    button:hover:not([aria-disabled="true"]):not([aria-pressed="true"]) {
+    background: var(--imw-entry-hover);
+  }
+}
+
+#imw-playback-controls button:active:not([aria-disabled="true"]) {
+  background: var(--imw-entry-hover);
+}
+
+#imw-playback-controls button:focus-visible {
+  outline: 2px solid var(--imw-entry-focus);
+  outline-offset: -2px;
+}
+
+@media (max-width: 768px) {
+  #imw-playback-controls button {
+    gap: 4px;
+    padding: 0 4px;
+  }
+}
+
 /* --- 1. 动画 --- */
 @keyframes spin {
   0% {

@@ -3,6 +3,8 @@ import { MainAppControlLayer } from "./MainAppControlLayer";
 import { MediaProgress } from "./components/media-progress/MediaProgress";
 import { HostMediaBridge } from "../media-progress/HostMediaBridge";
 import { SidebarMediaEntry } from "../media-progress/SidebarMediaEntry";
+import { PlaybackMode } from "../playback/PlaybackMode";
+import { SidebarPlaybackRow } from "../playback/SidebarPlaybackRow";
 import {
   readMediaProgressPosition,
   saveMediaProgressPosition,
@@ -17,6 +19,8 @@ function initMediaProgress() {
   // 宿站 mainContainer 和插件主面板都会平移；独立挂到 body。
   document.body.appendChild(root);
   const bridge = new HostMediaBridge();
+  const playback = new PlaybackMode();
+  const playbackRow = new SidebarPlaybackRow(playback);
   let visible = false;
   let lastPosition = readMediaProgressPosition();
   const close = (restoreFocus = true) => {
@@ -31,24 +35,31 @@ function initMediaProgress() {
     )
       entry.focus({ preventScroll: true });
   };
-  const sidebar = new SidebarMediaEntry(() => {
-    if (!visible) {
-      visible = true;
-      render(
-        <MediaProgress
-          bridge={bridge}
-          close={close}
-          initialPosition={lastPosition}
-          onPositionChange={(position) => {
-            lastPosition = position;
-            saveMediaProgressPosition(position);
-          }}
-        />,
-        root,
-      );
-    }
-    root.querySelector<HTMLElement>("#imw-media-progress")?.focus();
-  });
+  const sidebar = new SidebarMediaEntry(
+    () => {
+      if (!visible) {
+        visible = true;
+        render(
+          <MediaProgress
+            bridge={bridge}
+            close={close}
+            initialPosition={lastPosition}
+            onPositionChange={(position) => {
+              lastPosition = position;
+              saveMediaProgressPosition(position);
+            }}
+          />,
+          root,
+        );
+      }
+      root.querySelector<HTMLElement>("#imw-media-progress")?.focus();
+    },
+    document,
+    playbackRow.element,
+  );
+  const unsubscribePlayback = bridge.subscribe((snapshot) =>
+    playback.applySnapshot(snapshot),
+  );
   const onPageHide = (event: PageTransitionEvent) => {
     saveMediaProgressPosition(lastPosition);
     if (!event.persisted) dispose();
@@ -56,7 +67,10 @@ function initMediaProgress() {
   const dispose = () => {
     close(false);
     lastPosition = undefined;
+    unsubscribePlayback();
+    playback.dispose();
     sidebar.dispose();
+    playbackRow.dispose();
     bridge.dispose();
     root.remove();
     window.removeEventListener("pagehide", onPageHide);

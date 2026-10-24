@@ -41,6 +41,8 @@ export class MediaPayloadMemory {
   private roomKey: string | null = null;
   private payload: { text: string; title: string; at: number } | null = null;
   private card: { text: string; title: string } | null = null;
+  // 卡片先于报文到达（各平台都是先发卡片再发 mediaEvent）：先缓存，等报文到再绑定。
+  private pendingCard: { text: string; title: string } | null = null;
 
   constructor(
     private roomOf: () => string | null = () =>
@@ -56,13 +58,17 @@ export class MediaPayloadMemory {
       this.roomKey = room;
       this.payload = null;
       this.card = null;
+      this.pendingCard = null;
     }
     if (text.startsWith(PAYLOAD_PREFIX)) {
       const title = payloadTitle(text);
       if (!title) return;
       this.payload = { text, title, at: this.now() };
-      // 上一首的卡片不能配给这一首。
+      // 上一首的卡片不能配给这一首；同曲的「先到卡片」在这里绑定。
       if (this.card && this.card.title !== title) this.card = null;
+      if (!this.card && this.pendingCard?.title === title)
+        this.card = this.pendingCard;
+      this.pendingCard = null;
       return;
     }
     if (text.startsWith("{")) {
@@ -71,6 +77,7 @@ export class MediaPayloadMemory {
       // 卡片只在与当前报文同曲时才有用（summary 档会抑制逐曲卡片）。
       if (this.payload && this.payload.title === title)
         this.card = { text, title };
+      else if (!this.payload) this.pendingCard = { text, title };
     }
   }
 
@@ -91,5 +98,6 @@ export class MediaPayloadMemory {
     this.roomKey = null;
     this.payload = null;
     this.card = null;
+    this.pendingCard = null;
   }
 }

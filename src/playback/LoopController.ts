@@ -174,7 +174,8 @@ export class LoopController {
     threshold: number,
     hit: MediaPayloadHit | null,
   ): void {
-    if (!finiteNumber(snapshot.current) || !finiteNumber(snapshot.duration)) return;
+    if (!finiteNumber(snapshot.current) || !finiteNumber(snapshot.duration))
+      return;
     const command = rewindCommand(Math.floor(snapshot.current));
     if (!command || !isSeekCommand(command)) return;
     this.armed = false;

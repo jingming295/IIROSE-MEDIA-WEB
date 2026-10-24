@@ -20,15 +20,20 @@ const card = (title: string) =>
   });
 
 describe("播放报文缓存", () => {
-  it("报文先到才绑定卡片，命中同时返回两者", () => {
-    let room: string | null = "room-a";
-    const memory = new MediaPayloadMemory(() => room);
+  it("卡片先到也能绑定（各平台先发卡片再发报文）", () => {
+    const memory = new MediaPayloadMemory(() => "room-a");
     memory.record(card("甲"));
     memory.record(payload("甲"));
     expect(memory.hit("room-a", "甲")).toEqual({
-      card: null,
+      card: card("甲"),
       payload: payload("甲"),
     });
+  });
+
+  it("报文先到、卡片后到同样绑定", () => {
+    const memory = new MediaPayloadMemory(() => "room-a");
+    memory.record(payload("甲"));
+    expect(memory.hit("room-a", "甲")?.card).toBeNull();
     memory.record(card("甲"));
     expect(memory.hit("room-a", "甲")).toEqual({
       card: card("甲"),

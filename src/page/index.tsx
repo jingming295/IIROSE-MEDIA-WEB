@@ -7,10 +7,10 @@ import { PlaybackMode } from "../playback/PlaybackMode";
 import { SidebarPlaybackRow } from "../playback/SidebarPlaybackRow";
 import { LoopController } from "../playback/LoopController";
 import { ShuffleController } from "../playback/ShuffleController";
-import { FavoritesStorageService } from "../storage/FavoritesStorageService";
-import { NetEasePlatform } from "../platforms/NetEasePlatform";
-import { BilibiliPlatform } from "../platforms/BilibiliPlatform";
-import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
+import {
+  prepareShuffleTarget,
+  queryShuffleCandidates,
+} from "../playback/shuffleTargets";
 import { MediaPayloadMemory } from "../playback/MediaPayloadMemory";
 import { Announce } from "../iirose_func/Socket/Announce";
 import { Socket } from "../iirose_func/Socket";
@@ -41,58 +41,6 @@ function releasePlaybackController(page: ControllerWindow) {
     "imw-media-progress-root",
   ])
     document.getElementById(id)?.remove();
-}
-
-/** 收藏记录 → 可播目标；专辑/歌单只取其中随机一首。 */
-async function prepareShuffleTarget(
-  record: import("../storage/FavoritesStorageService").FavoriteRecord,
-): Promise<{ title: string; play: () => void } | null> {
-  if (record.type === "song" || record.type === "video") {
-    const data = FavoritesStorageService.restorePlatformData(record);
-    return {
-      title: record.title,
-      play: () =>
-        record.platform === "bilibili"
-          ? // 自动随机不能停下来等选集：多分 P 直接播第一集。
-            BilibiliPlatform.VOD(data, 1)
-          : NetEasePlatform.MOD(data),
-    };
-  }
-  const id = record.platformData.neteaseMusic?.id;
-  if (record.platform !== "netease" || !id) return null;
-  let trackId: number | null = null;
-  let title = "";
-  let cover = record.coverImg;
-  let author = record.author;
-  if (record.type === "album") {
-    const detail = await NeteaseMusicAPI.getAlbumDetail(id);
-    const songs = detail?.songs ?? [];
-    if (!songs.length) return null;
-    const pick = songs[Math.floor(Math.random() * songs.length)];
-    trackId = pick.id;
-    title = pick.name;
-    cover = pick.al?.picUrl || cover;
-    author = pick.ar?.[0]?.name || author;
-  } else {
-    const list = await NeteaseMusicAPI.getSongListDetail(id);
-    const ids = list?.playlist.trackIds ?? [];
-    if (!ids.length) return null;
-    trackId = ids[Math.floor(Math.random() * ids.length)].id;
-    const detail = await NeteaseMusicAPI.getNeteaseSongDetail([trackId]);
-    const song = detail?.[0];
-    if (!song) return null;
-    title = song.name;
-    cover = song.album?.picUrl || cover;
-    author = song.artists?.[0]?.name || author;
-  }
-  const data = {
-    title,
-    coverImg: (cover || "").replace(/^http:\/\//, "https://"),
-    author,
-    websiteUrl: `https://music.163.com/#/song?id=${trackId}`,
-    neteaseMusic: { id: trackId, fee: 0 },
-  };
-  return { title, play: () => NetEasePlatform.MOD(data) };
 }
 
 function initMediaProgress() {
@@ -160,13 +108,7 @@ function initMediaProgress() {
   Socket.observe = observeSocket;
   shuffle = new ShuffleController(playback, bridge, {
     query: (platform, includeCollections) =>
-      FavoritesStorageService.query({ platform }).then((records) =>
-        includeCollections
-          ? records
-          : records.filter(
-              (record) => record.type === "song" || record.type === "video",
-            ),
-      ),
+      queryShuffleCandidates(platform, includeCollections),
     prepare: (record) => prepareShuffleTarget(record),
     now: () => Date.now(),
   });

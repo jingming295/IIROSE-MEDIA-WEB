@@ -4,6 +4,7 @@ import { PluginSettings } from "../settings/pluginSettings/PluginSettings";
 import type { PlaybackMode } from "./PlaybackMode";
 import { platformOf, readPanelFocus } from "./PanelFocus";
 import type { FocusPlatform } from "./PanelFocus";
+import { endWindow, finiteNumber } from "./endWindow";
 
 /** 抽中的一个可播目标：标题用于回读校验，play 真正发起点播。 */
 export interface ShuffleTarget {
@@ -288,6 +289,7 @@ export class ShuffleController {
       return;
     }
     // 换下一首：当前曲目结束时立刻补发，避免整段空档。
-    if (snapshot.playing && finite(snapshot.duration)) void this.send(snapshot);
+    if (snapshot.playing && finiteNumber(snapshot.duration))
+      void this.send(snapshot);
   }
 }

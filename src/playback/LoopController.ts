@@ -2,6 +2,7 @@ import type { MediaSnapshot } from "../media-progress/model";
 import type { MediaPayloadHit, MediaPayloadMemory } from "./MediaPayloadMemory";
 import type { PlaybackMode } from "./PlaybackMode";
 import { isSeekCommand, rewindCommand } from "../media-progress/model";
+import { endWindow, finiteNumber } from "./endWindow";
 
 /** 循环动作与宿站的唯一接口：卡片走播报档位，报文直发。 */
 export interface LoopIo {
@@ -23,18 +24,8 @@ export const LOOP_REASONS = {
   tooShort: "曲目过短，已停止循环",
 } as const;
 
-const LOOP_BASE_SECONDS = 5;
-const LOOP_RATIO = 0.25;
-const LOOP_MIN_SECONDS = 1;
-
-/** 触发阈值：剩余 5 秒，且不超过时长 25%（最短 1 秒）。 */
-export function loopThreshold(duration: number): number {
-  if (!Number.isFinite(duration) || duration <= 0) return LOOP_MIN_SECONDS;
-  return Math.min(
-    LOOP_BASE_SECONDS,
-    Math.max(LOOP_MIN_SECONDS, duration * LOOP_RATIO),
-  );
-}
+/** 循环的触发窗口与单曲随机的发送窗口共用同一口径。 */
+export const loopThreshold = endWindow;
 
 const REPLAY_WINDOW_SECONDS = 2;
 const SEEK_VERIFY_MS = 2000;
@@ -51,10 +42,6 @@ interface Pending {
   instance: number;
   threshold: number;
   duration: number;
-}
-
-function finite(value: number | null): value is number {
-  return value !== null && Number.isFinite(value);
 }
 
 /** 切换曲目时宿站可能短暂清空标题，占位值不算换曲。 */
@@ -120,8 +107,8 @@ export class LoopController {
     if (state.standby) return;
     if (
       !snapshot.playing ||
-      !finite(snapshot.current) ||
-      !finite(snapshot.duration) ||
+      !finiteNumber(snapshot.current) ||
+      !finiteNumber(snapshot.duration) ||
       snapshot.duration <= 0
     )
       return;
@@ -169,7 +156,7 @@ export class LoopController {
   }
 
   private tooShort(snapshot: MediaSnapshot, threshold: number): boolean {
-    if (!finite(snapshot.duration) || snapshot.duration > threshold * 3)
+    if (!finiteNumber(snapshot.duration) || snapshot.duration > threshold * 3)
       return false;
     const now = this.now();
     this.recent = this.recent.filter((at) => now - at < SHORT_TRACK_WINDOW_MS);
@@ -187,7 +174,7 @@ export class LoopController {
     threshold: number,
     hit: MediaPayloadHit | null,
   ): void {
-    if (!finite(snapshot.current) || !finite(snapshot.duration)) return;
+    if (!finiteNumber(snapshot.current) || !finiteNumber(snapshot.duration)) return;
     const command = rewindCommand(Math.floor(snapshot.current));
     if (!command || !isSeekCommand(command)) return;
     this.armed = false;
@@ -219,7 +206,7 @@ export class LoopController {
       title: snapshot.title,
       instance: snapshot.instance,
       threshold,
-      duration: finite(snapshot.duration) ? snapshot.duration : 0,
+      duration: finiteNumber(snapshot.duration) ? snapshot.duration : 0,
     };
     if (hit.card) this.io.sendCard(hit.card);
     this.io.sendPayload(hit.payload);
@@ -244,7 +231,7 @@ export class LoopController {
       return;
     }
     const started =
-      finite(snapshot.current) &&
+      finiteNumber(snapshot.current) &&
       snapshot.playing &&
       snapshot.current < pending.threshold;
     if (pending.kind === "seek" && started) {
@@ -272,8 +259,8 @@ export class LoopController {
       return;
     }
     const resumed =
-      finite(snapshot.duration) &&
-      finite(snapshot.current) &&
+      finiteNumber(snapshot.duration) &&
+      finiteNumber(snapshot.current) &&
       snapshot.current < snapshot.duration / 2;
     if (resumed) {
       this.pending = undefined;

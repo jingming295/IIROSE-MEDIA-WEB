@@ -1,0 +1,156 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ShowMessage } from "../iirose_func/ShowMessage";
+import { Socket } from "../iirose_func/Socket";
+import { snapshot } from "./fixtures";
+import { PlaybackMode } from "./PlaybackMode";
+import { SidebarPlaybackRow } from "./SidebarPlaybackRow";
+
+vi.mock("../iirose_func/ShowMessage", () => ({
+  ShowMessage: { show: vi.fn() },
+}));
+const show = ShowMessage.show as unknown as ReturnType<typeof vi.fn>;
+
+const button = (id: string) => document.getElementById(id) as HTMLButtonElement;
+const pressed = (id: string) => button(id).getAttribute("aria-pressed");
+const disabled = (id: string) => button(id).getAttribute("aria-disabled");
+
+function setup() {
+  const mode = new PlaybackMode();
+  mode.applySnapshot(snapshot());
+  const row = new SidebarPlaybackRow(mode);
+  document.body.append(row.element);
+  return { mode, row };
+}
+
+afterEach(() => {
+  document.body.innerHTML = "";
+  show.mockClear();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+describe("侧栏播放模式开关行", () => {
+  it("渲染一行两枚熄灭按钮与自包含图标", () => {
+    const { row } = setup();
+    expect(row.element.id).toBe("imw-playback-controls");
+    expect(row.element.getAttribute("role")).toBe("group");
+    expect(row.element.getAttribute("aria-label")).toBe("播放模式");
+    expect(row.element.querySelectorAll("button")).toHaveLength(2);
+    expect(button("imw-toggle-loop").textContent).toBe("单曲循环");
+    expect(button("imw-toggle-shuffle").textContent).toBe("收藏随机");
+    for (const id of ["imw-toggle-loop", "imw-toggle-shuffle"]) {
+      expect(pressed(id)).toBe("false");
+      expect(disabled(id)).toBe("false");
+      expect(button(id).title).toBe(
+        id === "imw-toggle-loop" ? "单曲循环" : "收藏随机",
+      );
+      const icon = button(id).querySelector("svg")!;
+      expect(icon.getAttribute("aria-hidden")).toBe("true");
+      expect(icon.getAttribute("viewBox")).toBe("0 0 24 24");
+      expect(icon.querySelector("path")!.getAttribute("d")).toBeTruthy();
+    }
+  });
+
+  it("点击互斥点亮，两枚按钮的 aria-pressed 同步更新", () => {
+    setup();
+    button("imw-toggle-loop").click();
+    expect(pressed("imw-toggle-loop")).toBe("true");
+    expect(pressed("imw-toggle-shuffle")).toBe("false");
+    button("imw-toggle-shuffle").click();
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(pressed("imw-toggle-shuffle")).toBe("true");
+    button("imw-toggle-shuffle").click();
+    expect(pressed("imw-toggle-shuffle")).toBe("false");
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it("点击只改状态与外观，不构造 socket 也不发任何报文", () => {
+    const send = vi.fn();
+    vi.stubGlobal("socket", { readyState: 1, send });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const socketSend = vi.spyOn(Socket.prototype, "sendMessage");
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    button("imw-toggle-shuffle").click();
+    expect(mode.mode).toBe("shuffle");
+    expect(send).not.toHaveBeenCalled();
+    expect(socketSend).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("无当前媒体时灰化，点击仅提示原因且不点亮", () => {
+    const { mode } = setup();
+    mode.setMediaPresent(false);
+    expect(disabled("imw-toggle-loop")).toBe("true");
+    expect(disabled("imw-toggle-shuffle")).toBe("true");
+    expect(button("imw-toggle-loop").title).toBe("直播或时间未知，无法使用");
+    button("imw-toggle-loop").click();
+    expect(show).toHaveBeenCalledExactlyOnceWith("直播或时间未知，无法使用");
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(mode.mode).toBe("none");
+  });
+
+  it("连点灰化按钮同一原因 10 秒内只提示一次", () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+    mode.applySnapshot(snapshot({ connected: false }));
+    const reason = "连接未就绪或已断开，暂时无法调整";
+    button("imw-toggle-loop").click();
+    button("imw-toggle-loop").click();
+    expect(show).toHaveBeenCalledExactlyOnceWith(reason);
+    vi.advanceTimersByTime(5000);
+    button("imw-toggle-loop").click();
+    expect(show).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(5001);
+    button("imw-toggle-loop").click();
+    expect(show).toHaveBeenCalledTimes(2);
+  });
+
+  it("点亮后转为不可用即熄灭并提示一次原因", () => {
+    vi.useFakeTimers();
+    const { mode } = setup();
+    button("imw-toggle-loop").click();
+    expect(pressed("imw-toggle-loop")).toBe("true");
+    mode.applySnapshot(snapshot({ duration: null }));
+    expect(pressed("imw-toggle-loop")).toBe("false");
+    expect(disabled("imw-toggle-loop")).toBe("true");
+    expect(button("imw-toggle-loop").title).toBe("直播或时间未知，无法使用");
+    expect(show).toHaveBeenCalledExactlyOnceWith("直播或时间未知，无法使用");
+    // 同一个原因在 10 秒窗口内不再重复（含用户点击灰化按钮）。
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot());
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ duration: 0 }));
+    expect(show).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(10001);
+    mode.applySnapshot(snapshot());
+    button("imw-toggle-loop").click();
+    mode.applySnapshot(snapshot({ duration: 0 }));
+    expect(show).toHaveBeenCalledTimes(2);
+  });
+
+  it("未知 data-imw-mode 点击直接忽略，不抛错也不改状态", () => {
+    const { mode, row } = setup();
+    const stray = document.createElement("button");
+    stray.dataset.imwMode = "repeat-all";
+    row.element.append(stray);
+    expect(() => stray.click()).not.toThrow();
+    const plain = document.createElement("button");
+    row.element.append(plain);
+    expect(() => plain.click()).not.toThrow();
+    expect(mode.mode).toBe("none");
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it("dispose 移除容器并停止响应状态变化", () => {
+    const { mode, row } = setup();
+    const loop = button("imw-toggle-loop");
+    loop.click();
+    row.dispose();
+    expect(document.getElementById("imw-playback-controls")).toBeNull();
+    mode.toggle("shuffle");
+    expect(loop.getAttribute("aria-pressed")).toBe("true");
+  });
+});

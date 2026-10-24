@@ -837,6 +837,44 @@ describe("浮窗原生交互与页面生命周期", () => {
     expect(vi.getTimerCount()).toBe(0);
     expect(send).toHaveBeenCalledOnce();
   });
+
+  it("组合根装配开关行：侧栏内可见，断线灰化，卸载后移除且无遗留定时器", () => {
+    const host = window as unknown as MediaHost;
+    const row = document.getElementById("imw-playback-controls")!;
+    expect(row.closest("#functionHolderExtBox")).not.toBeNull();
+    const buttons = [...row.querySelectorAll("button")];
+    expect(buttons.map((item) => item.id)).toEqual([
+      "imw-toggle-loop",
+      "imw-toggle-shuffle",
+    ]);
+    expect(buttons.map((item) => item.getAttribute("aria-disabled"))).toEqual([
+      "false",
+      "false",
+    ]);
+    expect(buttons.map((item) => item.getAttribute("aria-pressed"))).toEqual([
+      "false",
+      "false",
+    ]);
+    // 桥接订阅或第三参数漏接时，这条断言会失败（装配掉线仍全绿的防线）。
+    host.socket!.readyState = 3;
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(buttons.map((item) => item.getAttribute("aria-disabled"))).toEqual([
+      "true",
+      "true",
+    ]);
+    act(() => {
+      window.dispatchEvent(
+        new PageTransitionEvent("pagehide", { persisted: false }),
+      );
+    });
+    expect(document.getElementById("imw-playback-controls")).toBeNull();
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
 
 describe("本地播放进度浮窗位置存储", () => {

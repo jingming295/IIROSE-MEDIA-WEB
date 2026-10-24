@@ -1,3 +1,4 @@
+import { setPanelFocus } from "../playback/PanelFocus";
 import { Component } from "preact";
 import { MediaSearchBar } from "./components/mediaContainerBar/MediaSearchBar";
 import { PlatformSelector } from "./components/mediaContainerBar/PlatformSelector";
@@ -62,6 +63,10 @@ export class MainAppContainer extends Component<
   private discoveryOldItems: OldItems | null = null;
 
   componentDidMount() {
+    setPanelFocus({
+      category: this.props.CategoriesIndex,
+      platform: this.state.PlatformIndex,
+    });
     FavoritesStorageService.init();
     // 云端拉取落地后刷新已渲染的收藏列表（外部变更通知，不会反向触发上传）
     FavoritesStorageService.onExternalChange(() => {
@@ -80,6 +85,7 @@ export class MainAppContainer extends Component<
     prevState: Readonly<MainAppContainerState>,
   ): void {
     if (prevProps.CategoriesIndex !== this.props.CategoriesIndex) {
+      setPanelFocus({ category: this.props.CategoriesIndex, platform: 0 });
       this.discoveryOldItems = null;
       this.setState({
         PlatformIndex: 0,
@@ -522,6 +528,7 @@ export class MainAppContainer extends Component<
      * @param index
      */
     switchPlatform: (index: number) => {
+      setPanelFocus({ category: this.props.CategoriesIndex, platform: index });
       this.setState({
         PlatformIndex: index,
         SubNavBarIndex: 0,

@@ -38,10 +38,20 @@ export interface PluginSettingsInterface {
   defaultPage: number;
   searchViewMode: SearchViewMode;
   announceMode: AnnounceMode;
+  /** 收藏随机是否把专辑/歌单纳入候选（抽中后只播其中随机一首） */
+  shuffleIncludeCollections: boolean;
   sync: PluginSyncSettings;
 }
 
 export class PluginSettings {
+  /** 收藏随机是否包含专辑/歌单：读改写回 imwPluginSetting。 */
+  public static toggleShuffleIncludeCollections(): boolean {
+    const settings = PluginSettings.getPluginSetting();
+    settings.shuffleIncludeCollections = !settings.shuffleIncludeCollections;
+    localStorage.setItem("imwPluginSetting", JSON.stringify(settings));
+    return settings.shuffleIncludeCollections;
+  }
+
   public static isProxyAtInputSetting(
     changeActionTitleAction: (actionTitle?: string) => void,
     changeSearchKeyword: (keyword: string | null) => void,
@@ -206,6 +216,9 @@ export class PluginSettings {
         parsed.announceMode,
       );
       parsed.sync = PluginSettings.normalizeSyncSettings(parsed.sync);
+      // 老用户没有这个字段：默认开启（与 LocalStorageUtils 的默认值一致）。
+      if (typeof parsed.shuffleIncludeCollections !== "boolean")
+        parsed.shuffleIncludeCollections = true;
       return parsed;
     }
     return {
@@ -215,6 +228,7 @@ export class PluginSettings {
       defaultPage: 0,
       searchViewMode: "card",
       announceMode: "card",
+      shuffleIncludeCollections: true,
       sync: PluginSettings.defaultSyncSettings(),
     };
   }

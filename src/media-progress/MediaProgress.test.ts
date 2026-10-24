@@ -843,10 +843,18 @@ describe("浮窗原生交互与页面生命周期", () => {
       "mainContainer",
     ) as HTMLDivElement;
     const first = document.getElementById("imw-playback-controls")!;
+    // 收藏候选是异步读取的：先让首帧的异步查询落地，再取定时器基线。
+    const flush = async () => {
+      for (let index = 0; index < 8; index++) await Promise.resolve();
+      // 收藏库是 IndexedDB：让挂起的 0ms 定时器落地，避免把瞬时定时器算进基线。
+      await vi.advanceTimersByTimeAsync(0);
+    };
+    await flush();
     // 每份控制器各持一个 250ms 轮询定时器：接管必须同时换掉旧定时器。
     const timers = vi.getTimerCount();
     // 同一份 bundle 内重复初始化（热更新/多入口）。
     act(() => IMCInit.init(container));
+    await flush();
     expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
     expect(first.isConnected).toBe(false);
     const second = document.getElementById("imw-playback-controls")!;
@@ -856,6 +864,7 @@ describe("浮窗原生交互与页面生命周期", () => {
     vi.resetModules();
     const reloaded = await import("../page");
     act(() => reloaded.IMCInit.init(container));
+    await flush();
     expect(document.querySelectorAll("#imw-playback-controls")).toHaveLength(1);
     expect(document.querySelectorAll("#imw-media-progress-entry")).toHaveLength(
       1,

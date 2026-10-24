@@ -1,6 +1,7 @@
 import { Component } from "preact";
 import { MainNavigationBar } from "./components/navigationBar/main/MainNavigationBar";
 import { MainAppContainer } from "./MainAppContainer";
+import { setPanelFocus } from "../playback/PanelFocus";
 import { LocalStorageUtils } from "../settings/localStorageUtils/LocalStorageUtils";
 import { PluginSettings } from "../settings/pluginSettings/PluginSettings";
 
@@ -29,6 +30,10 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
   }
 
   itemsPerPage = 10;
+
+  componentDidMount(): void {
+    setPanelFocus({ category: this.state.CategoriesIndex, platform: 0 });
+  }
 
   componentDidUpdate(
     _prevProps: Readonly<MainAppProps>,
@@ -72,6 +77,7 @@ export class MainApp extends Component<MainAppProps, MainAppState> {
    */
   protected switchCategories = async (index: number) => {
     await this.setState({ CategoriesIndex: index });
+    setPanelFocus({ category: index, platform: 0 });
     if (index !== 2 && index !== 3) {
       this.setState({ needOutFromSettings: true });
     } else if (this.state.needOutFromSettings) {

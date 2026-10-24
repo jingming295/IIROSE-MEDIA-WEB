@@ -6,6 +6,11 @@ import { SidebarMediaEntry } from "../media-progress/SidebarMediaEntry";
 import { PlaybackMode } from "../playback/PlaybackMode";
 import { SidebarPlaybackRow } from "../playback/SidebarPlaybackRow";
 import { LoopController } from "../playback/LoopController";
+import { ShuffleController } from "../playback/ShuffleController";
+import { FavoritesStorageService } from "../storage/FavoritesStorageService";
+import { NetEasePlatform } from "../platforms/NetEasePlatform";
+import { BilibiliPlatform } from "../platforms/BilibiliPlatform";
+import { NeteaseMusicAPI } from "../Api/NeteaseAPI/NeteaseMusic";
 import { MediaPayloadMemory } from "../playback/MediaPayloadMemory";
 import { Announce } from "../iirose_func/Socket/Announce";
 import { Socket } from "../iirose_func/Socket";
@@ -38,6 +43,58 @@ function releasePlaybackController(page: ControllerWindow) {
     document.getElementById(id)?.remove();
 }
 
+/** 收藏记录 → 可播目标；专辑/歌单只取其中随机一首。 */
+async function prepareShuffleTarget(
+  record: import("../storage/FavoritesStorageService").FavoriteRecord,
+): Promise<{ title: string; play: () => void } | null> {
+  if (record.type === "song" || record.type === "video") {
+    const data = FavoritesStorageService.restorePlatformData(record);
+    return {
+      title: record.title,
+      play: () =>
+        record.platform === "bilibili"
+          ? // 自动随机不能停下来等选集：多分 P 直接播第一集。
+            BilibiliPlatform.VOD(data, 1)
+          : NetEasePlatform.MOD(data),
+    };
+  }
+  const id = record.platformData.neteaseMusic?.id;
+  if (record.platform !== "netease" || !id) return null;
+  let trackId: number | null = null;
+  let title = "";
+  let cover = record.coverImg;
+  let author = record.author;
+  if (record.type === "album") {
+    const detail = await NeteaseMusicAPI.getAlbumDetail(id);
+    const songs = detail?.songs ?? [];
+    if (!songs.length) return null;
+    const pick = songs[Math.floor(Math.random() * songs.length)];
+    trackId = pick.id;
+    title = pick.name;
+    cover = pick.al?.picUrl || cover;
+    author = pick.ar?.[0]?.name || author;
+  } else {
+    const list = await NeteaseMusicAPI.getSongListDetail(id);
+    const ids = list?.playlist.trackIds ?? [];
+    if (!ids.length) return null;
+    trackId = ids[Math.floor(Math.random() * ids.length)].id;
+    const detail = await NeteaseMusicAPI.getNeteaseSongDetail([trackId]);
+    const song = detail?.[0];
+    if (!song) return null;
+    title = song.name;
+    cover = song.album?.picUrl || cover;
+    author = song.artists?.[0]?.name || author;
+  }
+  const data = {
+    title,
+    coverImg: (cover || "").replace(/^http:\/\//, "https://"),
+    author,
+    websiteUrl: `https://music.163.com/#/song?id=${trackId}`,
+    neteaseMusic: { id: trackId, fee: 0 },
+  };
+  return { title, play: () => NetEasePlatform.MOD(data) };
+}
+
 function initMediaProgress() {
   disposeProgress?.();
   disposeProgress = undefined;
@@ -52,6 +109,7 @@ function initMediaProgress() {
   let playback!: PlaybackMode;
   let playbackRow!: SidebarPlaybackRow;
   let loop!: LoopController;
+  let shuffle: ShuffleController | undefined;
   let memory: MediaPayloadMemory | undefined;
   let sidebar!: SidebarMediaEntry;
   let unsubscribePlayback: (() => void) | undefined;
@@ -75,6 +133,7 @@ function initMediaProgress() {
       safely(() => close(false));
       safely(() => unsubscribePlayback?.());
       safely(() => loop?.dispose());
+      safely(() => shuffle?.dispose());
       // 只摘掉属于自己的观察者：后注入者接管后不能清掉新实例的钩子。
       if (Socket.observe === observeSocket) Socket.observe = undefined;
       safely(() => memory?.clear());
@@ -99,6 +158,18 @@ function initMediaProgress() {
   // 只观察插件自己发出的报文：重播只对插件点播过的曲目可用。
   const observeSocket = (data: string) => memory?.record(data);
   Socket.observe = observeSocket;
+  shuffle = new ShuffleController(playback, bridge, {
+    query: (platform, includeCollections) =>
+      FavoritesStorageService.query({ platform }).then((records) =>
+        includeCollections
+          ? records
+          : records.filter(
+              (record) => record.type === "song" || record.type === "video",
+            ),
+      ),
+    prepare: (record) => prepareShuffleTarget(record),
+    now: () => Date.now(),
+  });
   loop = new LoopController(playback, bridge, memory, {
     sendCard: (card) => Announce.sendMediaCard(new Socket(), card),
     sendPayload: (payload) => new Socket().send(payload),
@@ -144,6 +215,7 @@ function initMediaProgress() {
     playback.applySnapshot(snapshot),
   );
   loop.attach();
+  shuffle.attach();
   onPageHide = (event: PageTransitionEvent) => {
     saveMediaProgressPosition(lastPosition);
     if (!event.persisted) dispose();

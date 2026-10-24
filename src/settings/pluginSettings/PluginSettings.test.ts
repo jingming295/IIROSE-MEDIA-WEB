@@ -141,4 +141,25 @@ describe("点播播报模式设置", () => {
     expect(PluginSettings.parseAnnounceMode("silent")).toBe("静默");
     expect(PluginSettings.parseAnnounceMode("summary")).toBe("批量总结");
   });
+
+  it("老设置缺随机包含专辑/歌单字段时默认开启，切换后写回", () => {
+    localStorage.setItem(
+      "imwPluginSetting",
+      JSON.stringify({
+        chatBox: { isProxyAtInput: true },
+        defaultPage: 0,
+        searchViewMode: "card",
+        announceMode: "card",
+      }),
+    );
+    expect(PluginSettings.getPluginSetting().shuffleIncludeCollections).toBe(
+      true,
+    );
+    expect(PluginSettings.toggleShuffleIncludeCollections()).toBe(false);
+    expect(
+      JSON.parse(localStorage.getItem("imwPluginSetting")!)
+        .shuffleIncludeCollections,
+    ).toBe(false);
+    expect(PluginSettings.toggleShuffleIncludeCollections()).toBe(true);
+  });
 });
